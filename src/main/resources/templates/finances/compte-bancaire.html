@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Compte Bancaire</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">Boulangerie Dashboard</a>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h1>Compte Bancaire</h1>
+    <div class="card">
+        <div class="card-header">
+            Solde du Compte
+        </div>
+        <div class="card-body">
+            <p class="card-text">Solde actuel : <span th:text="${compteBancaire.solde} + ' €'"></span></p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

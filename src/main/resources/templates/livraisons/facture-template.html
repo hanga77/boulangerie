@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Facture de Livraison</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .details {
+            margin-bottom: 20px;
+        }
+        .details p {
+            margin: 5px 0;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .table th {
+            background-color: #f2f2f2;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Facture de Livraison</h1>
+    </div>
+
+    <div class="details">
+        <p><strong>ID de la Livraison:</strong> <span th:text="${livraison.id}"></span></p>
+        <p><strong>Date de Livraison:</strong> <span th:text="${livraison.dateLivraison}"></span></p>
+        <p><strong>Client:</strong> <span th:text="${livraison.nomClient}"></span></p>
+        <p><strong>Montant Total:</strong> <span th:text="${livraison.montantTotal + ' XAF'}"></span></p>
+    </div>
+
+    <h4>Produits Livrés</h4>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Produit</th>
+            <th>Quantité</th>
+            <th>Prix Unitaire</th>
+            <th>Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="produit : ${produitsDetails}">
+            <td th:text="${produit.value.nom}"></td>
+            <td th:text="${produit.value.quantite}"></td>
+            <td th:text="${produit.value.prixVente + ' XAF'}"></td>
+            <td th:text="${produit.value.total + ' XAF'}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Merci pour votre confiance ! | <span th:text="${appName}"></span></p>
+        <p>Imprimé le: <span th:text="${dateImpression}"></span></p>
+    </div>
+</div>
+</body>
+</html>

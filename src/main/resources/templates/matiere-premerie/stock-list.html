@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <title>Gestion des Mouvements de Stock</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<style>
+    .badge {
+        padding: 0.5em 1em;
+        font-size: 0.9em;
+    }
+</style>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="fas fa-bread-slice me-2"></i>Boulangerie Dashboard
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link " href="/dashboard">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/matieres-premieres">Matières Premières</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/produits">Produits</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/commandes">Commandes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/livraisons">Livraisons</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link " href="/production">Productions</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#">Finances</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link active" href="/mouvements">
+                        <i class="fas fa-warehouse me-1"></i>Mouvements de Stock
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" href="/admin/users">Admin</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('BOULANGER')">
+                    <a class="nav-link" href="/Boulanger">Boulanger</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('LIVREUR')">
+                    <a class="nav-link" href="/Livreur">Livreur</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">
+                        <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container mt-4">
+    <h1 class="mb-4">Gestion des Mouvements de Stock</h1>
+
+    <!-- Formulaire de recherche -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form th:action="@{/mouvements}" method="get" class="row g-3">
+               <!-- <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />-->
+                <div class="col-md-4">
+                    <label for="dateDebut" class="form-label">Date début</label>
+                    <input type="date" class="form-control" id="dateDebut" name="dateDebut" th:value="${dateDebut ?: #temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}">
+                </div>
+                <div class="col-md-4">
+                    <label for="dateFin" class="form-label">Date fin</label>
+                    <input type="date" class="form-control" id="dateFin" name="dateFin" th:value="${dateFin ?: #temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Rechercher les mouvements entre les dates sélectionnées">
+                        <i class="fas fa-search"></i> Rechercher
+                    </button>
+                    <a th:href="@{/mouvements/print(date=${dateDebut})}" target="_blank" class="btn btn-secondary" aria-label="Imprimer">
+                        <i class="fas fa-print"></i> Imprimer
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tableau des mouvements -->
+    <div class="card">
+        <div class="card-body">
+            <a th:href="@{/mouvements/stock-summary(date=${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')})}" class="btn btn-info">
+                <i class="fas fa-chart-bar"></i> Résumé des Stocks
+            </a>
+            <a th:href="@{/matieres-premieres/mouvements-stock}" class="btn btn-danger">
+                <i class="fas fa-plus"></i> Ajouter/Retirer des Matières Premières
+            </a>
+            <div class="table-responsive">
+                <table class="table table-striped" aria-label="Liste des mouvements de stock">
+                    <div th:if="${error}" class="alert alert-danger mt-3" role="alert">
+                        <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+                    </div>
+                    <thead>
+                    <tr>
+                        <th>Date/Heure</th>
+                        <th>Type</th>
+                        <th>Matière Première</th>
+                        <th>Quantité</th>
+                        <th>Motif</th>
+                        <th>Utilisateur</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${mouvements.isEmpty()}">
+                        <td colspan="6" class="text-center">Aucun mouvement trouvé pour la période sélectionnée.</td>
+                    </tr>
+                    <tr th:each="mouvement : ${mouvements}">
+                        <td th:text="${#temporals.format(mouvement.date, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                            <span th:if="${mouvement.type == 'ENTREE'}" class="badge bg-success">Entrée</span>
+                            <span th:if="${mouvement.type == 'SORTIE'}" class="badge bg-danger">Sortie</span>
+                        </td>
+                        <td th:text="${mouvement.matierePremiere.nom}"></td>
+                        <td th:text="${mouvement.quantite + ' ' + mouvement.matierePremiere.uniteMesure}"></td>
+                        <td th:text="${mouvement.motif}"></td>
+                        <td th:text="${mouvement.user}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${totalPages > 1}" aria-label="Pagination des mouvements de stock">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="@{/mouvements(page=${currentPage - 1}, dateDebut=${dateDebut}, dateFin=${dateFin})}" aria-label="Précédent">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                        th:classappend="${pageNum == currentPage} ? 'active'">
+                        <a class="page-link" th:href="@{/mouvements(page=${pageNum}, dateDebut=${dateDebut}, dateFin=${dateFin})}"
+                           th:text="${pageNum + 1}" aria-label="Page ${pageNum + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                        <a class="page-link" th:href="@{/mouvements(page=${currentPage + 1}, dateDebut=${dateDebut}, dateFin=${dateFin})}" aria-label="Suivant">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    })
+</script>
+</body>
+</html>

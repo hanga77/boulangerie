@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Livraisons du Jour</title>
+</head>
+<body>
+<h1>Livraisons du Jour</h1>
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Date de Livraison</th>
+        <th>Commande</th>
+        <th>Produits Livrés</th>
+        <th>Utilisateur</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="livraison : ${livraisons}">
+        <td th:text="${livraison.id}"></td>
+        <td th:text="${livraison.dateLivraison}"></td>
+        <td th:text="${livraison.commande.id}"></td>
+        <td>
+            <ul>
+                <li th:each="produit : ${livraison.produitsLivres}">
+                    <span th:text="${produit.key.nom}"></span> : <span th:text="${produit.value}"></span>
+                </li>
+            </ul>
+        </td>
+        <td th:text="${livraison.user.username}"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

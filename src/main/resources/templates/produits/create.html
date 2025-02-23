@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Créer un Produit</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/all.min.css}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+</head>
+<body>
+<!-- Navbar reste identique -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="fas fa-bread-slice me-2"></i>Boulangerie Dashboard
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link " href="/dashboard">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/matieres-premieres">Matières Premières</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/produits">Produits</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/commandes">Commandes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/livraisons">Livraisons</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/production">Productions</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#">Finances</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/mouvements">
+                        <i class="fas fa-warehouse me-1"></i>Mouvements de Stock
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" href="/admin/users">Admin</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('BOULANGER')">
+                    <a class="nav-link" href="/Boulanger">Boulanger</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('LIVREUR')">
+                    <a class="nav-link" href="/Livreur">Livreur</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">
+                        <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+    <!-- ... contenu de la navbar ... -->
+</nav>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Créer un Produit</h1>
+    <form th:action="@{/produits}" th:object="${produitDTO}" method="post" id="productForm">
+        <div class="mb-3">
+            <label for="nom" class="form-label">Nom du Produit</label>
+            <input type="text" class="form-control" id="nom" th:field="*{nom}" required />
+        </div>
+        <div class="mb-3">
+            <label for="prix" class="form-label">Prix</label>
+            <input type="number" step="0.01" class="form-control" id="prix" th:field="*{prix}" required />
+        </div>
+        <div class="mb-3">
+            <label for="quantiteProduit" class="form-label">Quantité de Produit</label>
+            <input type="number" step="0.01" class="form-control" id="quantiteProduit" th:field="*{quantiteAttendue}" required />
+        </div>
+
+        <div class="mb-3">
+            <h3>Matières Premières Nécessaires</h3>
+            <div id="matieresList">
+                <!-- Container pour les matières sélectionnées -->
+            </div>
+            <button type="button" class="btn btn-secondary mb-3" id="addMatiere">
+                <i class="fas fa-plus me-1"></i>Ajouter une matière première
+            </button>
+        </div>
+
+        <button type="submit" class="btn btn-info">
+            <i class="fas fa-save me-1"></i>Enregistrer
+        </button>
+        <a href="/produits" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Retour à la liste
+        </a>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const matieres = [[${matieresPremieres}]];
+
+    document.getElementById('addMatiere').addEventListener('click', function() {
+        const matiereContainer = document.createElement('div');
+        matiereContainer.className = 'row mb-2 align-items-center';
+
+        matiereContainer.innerHTML = `
+            <div class="col-5">
+                <select class="form-select matiere-select" required>
+                    <option value="">Sélectionner une matière première</option>
+                    ${matieres.map(m => `<option value="${m.id}" data-unite="${m.uniteMesure}">${m.nom}</option>`).join('')}
+                </select>
+            </div>
+            <div class="col-5">
+                <div class="input-group">
+                    <input type="number" step="0.01" class="form-control matiere-quantity" required>
+                    <span class="input-group-text unite-mesure"></span>
+                </div>
+            </div>
+            <div class="col-2">
+                <button type="button" class="btn btn-danger remove-matiere">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <input type="hidden" class="matiere-input">
+        `;
+
+        document.getElementById('matieresList').appendChild(matiereContainer);
+
+        // Initialiser Select2 sur le nouveau select
+        $(matiereContainer).find('.matiere-select').select2();
+
+        // Gérer le changement de matière
+        matiereContainer.querySelector('.matiere-select').addEventListener('change', function(e) {
+            const matiere = matieres.find(m => m.id == e.target.value);
+            if (matiere) {
+                matiereContainer.querySelector('.unite-mesure').textContent = matiere.uniteMesure;
+                updateFormField(matiereContainer);
+            }
+        });
+
+        // Gérer le changement de quantité
+        matiereContainer.querySelector('.matiere-quantity').addEventListener('input', function() {
+            updateFormField(matiereContainer);
+        });
+
+        // Gérer la suppression
+        matiereContainer.querySelector('.remove-matiere').addEventListener('click', function() {
+            matiereContainer.remove();
+        });
+    });
+
+    function updateFormField(container) {
+        const matiereId = container.querySelector('.matiere-select').value;
+        const quantity = container.querySelector('.matiere-quantity').value;
+        if (matiereId && quantity) {
+            container.querySelector('.matiere-input').name = `matieresPremieres[${matiereId}]`;
+            container.querySelector('.matiere-input').value = quantity;
+        }
+    }
+    /*]]>*/
+</script>
+</body>
+</html>

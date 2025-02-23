@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Créer un Compte Bancaire</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">Boulangerie Dashboard</a>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h1>Créer un Compte Bancaire</h1>
+    <form th:action="@{/compte-bancaire/creer}" method="post">
+        <div class="mb-3">
+            <label for="nom" class="form-label">Nom du Compte</label>
+            <input type="text" class="form-control" id="nom" name="nom" required>
+        </div>
+        <div class="mb-3">
+            <label for="soldeInitial" class="form-label">Solde Initial</label>
+            <input type="number" step="0.01" class="form-control" id="soldeInitial" name="soldeInitial" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Créer</button>
+    </form>
+</div>
+</body>
+</html>

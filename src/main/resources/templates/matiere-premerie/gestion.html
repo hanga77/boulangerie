@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Gestion des Mouvements de Stock</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome pour les icônes -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Styles personnalisés -->
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="fas fa-bread-slice me-2"></i>Boulangerie Dashboard
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/dashboard">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/matieres-premieres">Matières Premières</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/produits">Produits</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/commandes">Commandes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/livraisons">Livraisons</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/production">Productions</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#">Finances</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link active" href="/mouvements">
+                        <i class="fas fa-warehouse me-1"></i>Mouvements de Stock
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" href="/admin/users">Admin</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('BOULANGER')">
+                    <a class="nav-link" href="/Boulanger">Boulanger</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('LIVREUR')">
+                    <a class="nav-link" href="/Livreur">Livreur</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">
+                        <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Contenu principal -->
+<div class="container mt-4">
+    <!-- Alertes pour les messages -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${warning}" class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <span th:text="${warning}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <h1 class="mb-4">Gestion des Mouvements de Stock</h1>
+    <p class="lead">Gérez les entrées et sorties de stock pour les matières premières.</p>
+
+    <!-- Formulaire pour ajouter ou retirer du stock -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <i class="fas fa-warehouse me-2"></i>Ajouter ou Retirer du Stock
+
+        </div>
+        <div class="card-body">
+            <form th:action="@{/matieres-premieres/mouvements-stock}" method="post">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="matierePremiereId" class="form-label">Matière Première</label>
+                            <select class="form-control" id="matierePremiereId" name="matierePremiereId" required>
+                                <option th:each="matiere : ${matieresPremieres}" th:value="${matiere.id}" th:text="${matiere.nom}"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="quantite" class="form-label">Quantité</label>
+                            <input type="number" class="form-control" id="quantite" name="quantite" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="type" class="form-label">Type de Mouvement</label>
+                            <select class="form-control" id="type" name="type" required>
+                                <option value="ENTREE">Entrée</option>
+                                <option value="SORTIE">Sortie</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3" id="prixUnitaireField" style="display: none;">
+                            <label for="prixUnitaire" class="form-label">Prix Unitaire</label>
+                            <input type="number" step="0.01" class="form-control" id="prixUnitaire" name="prixUnitaire">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-info">
+                    <i class="fas fa-save me-1"></i>Enregistrer le Mouvement
+                </button>
+
+                <a href="/mouvements" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Retour</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des mouvements de stock -->
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <i class="fas fa-list-alt me-2"></i>Mouvements de Stock
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Matière Première</th>
+                        <th>Type</th>
+                        <th>Quantité</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="mouvement : ${mouvementsStock}">
+                        <td th:text="${mouvement.date}"></td>
+                        <td th:text="${mouvement.matierePremiere.nom}"></td>
+                        <td th:text="${mouvement.type}"></td>
+                        <td th:text="${mouvement.quantite}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS (optionnel, pour les fonctionnalités interactives) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+<script>
+    function togglePrixUnitaire() {
+        const type = document.getElementById("type").value;
+        const prixUnitaireField = document.getElementById("prixUnitaireField");
+        const prixUnitaireInput = document.getElementById("prixUnitaire");
+
+        if (type === "ENTREE") {
+            prixUnitaireField.style.display = "block";
+            prixUnitaireInput.setAttribute("required", "required");
+            prixUnitaireInput.setAttribute("min", "0.01");
+        } else {
+            prixUnitaireField.style.display = "none";
+            prixUnitaireInput.removeAttribute("required");
+            prixUnitaireInput.value = "";
+        }
+    }
+
+    // Validation du formulaire
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const type = document.getElementById("type").value;
+        const quantite = document.getElementById("quantite").value;
+        const prixUnitaire = document.getElementById("prixUnitaire").value;
+
+        if (quantite <= 0) {
+            e.preventDefault();
+            alert("La quantité doit être supérieure à 0");
+            return;
+        }
+
+        if (type === "ENTREE" && (!prixUnitaire || prixUnitaire <= 0)) {
+            e.preventDefault();
+            alert("Le prix unitaire est requis et doit être supérieur à 0 pour une entrée de stock");
+            return;
+        }
+    });
+
+    // Initialisation
+    document.addEventListener("DOMContentLoaded", function() {
+        togglePrixUnitaire();
+        document.getElementById("type").addEventListener("change", togglePrixUnitaire);
+    });
+</script>
+</body>
+</html>

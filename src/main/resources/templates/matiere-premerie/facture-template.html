@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>État des Stocks et Mouvements</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .summary-table th, .summary-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        .summary-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .movements-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .movements-table th, .movements-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .movements-table th {
+            background-color: #f2f2f2;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+            .header {
+                background-color: #007bff !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>État des Stocks et Mouvements</h1>
+    </div>
+
+    <div class="details">
+        <p><strong>Date:</strong> <span th:text="${#temporals.format(date, 'dd/MM/yyyy')}"></span></p>
+    </div>
+
+    <!-- Résumé des stocks par matière première -->
+    <h3>Résumé des Stocks</h3>
+    <table class="summary-table">
+        <thead>
+        <tr>
+            <th>Matière Première</th>
+            <th>Stock Initial</th>
+            <th>Total Entrées</th>
+            <th>Total Sorties</th>
+            <th>Stock Restant</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="stock : ${stocksResume}">
+            <td th:text="${stock.matierePremiere.nom}"></td>
+            <td th:text="${stock.stockInitial}"></td>
+            <td th:text="${stock.totalEntrees}"></td>
+            <td th:text="${stock.totalSorties}"></td>
+            <td th:text="${stock.stockRestant}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- Détail des mouvements -->
+    <h3>Détail des Mouvements de la Journée</h3>
+    <table class="movements-table">
+        <thead>
+        <tr>
+            <th>Heure</th>
+            <th>Type</th>
+            <th>Matière Première</th>
+            <th>Quantité</th>
+            <th>Stock Après Mouvement</th>
+            <th>Utilisateur</th>
+            <th>Motif</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="mouvement : ${mouvements}">
+            <td th:text="${#temporals.format(mouvement.date, 'HH:mm')}"></td>
+            <td th:text="${mouvement.type}"></td>
+            <td th:text="${mouvement.matierePremiere.nom}"></td>
+            <td th:text="${mouvement.quantite}"></td>
+            <td th:text="${mouvement.stockApres}"></td>
+            <td th:text="${mouvement.user.nom}"></td>
+            <td th:text="${mouvement.motif}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Document généré le: <span th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm')}"></span></p>
+    </div>
+
+</div>
+</body>
+</html>

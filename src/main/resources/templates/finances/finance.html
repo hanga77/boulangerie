@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Gestion Financière</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome pour les icônes -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Styles personnalisés -->
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="fas fa-bread-slice me-2"></i>Boulangerie Dashboard
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/matieres-premieres">Matières Premières</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/produits">Produits</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/commandes">Commandes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/livraisons">Livraisons</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/production">Productions</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/finances">Finances</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/mouvements">Mouvements de Stock</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" href="/admin/users">Admin</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">
+                        <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Contenu principal -->
+<div class="container mt-4">
+    <h1 class="mb-4">Gestion Financière</h1>
+    <p class="lead">Visualisez et gérez les transactions financières de la boulangerie.</p>
+
+    <!-- Bouton d'impression -->
+    <button class="btn btn-primary mb-3" onclick="window.print()">
+        <i class="fas fa-print me-1"></i>Imprimer
+    </button>
+
+    <!-- Liste des transactions financières -->
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <i class="fas fa-list-alt me-2"></i>Transactions Financières
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Montant</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="transaction : ${transactions}">
+                    <td th:text="${transaction.date}"></td>
+                    <td th:text="${transaction.type}"></td>
+                    <td th:text="${transaction.description}"></td>
+                    <td th:text="${transaction.montant} + ' €'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- Pagination -->
+        <nav aria-label="Page navigation" th:if="${totalPages > 1}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link" th:href="@{/finances(page=${currentPage - 1}, size=${size})}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link" th:href="@{/finances(page=${i}, size=${size})}" th:text="${i + 1}"></a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                    <a class="page-link" th:href="@{/finances(page=${currentPage + 1}, size=${size})}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Résumé financier -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <i class="fas fa-chart-line me-2"></i>Résumé Financier
+        </div>
+        <div class="card-body">
+            <p>Revenus totaux : <span th:text="${revenusTotaux} + ' €'"></span></p>
+            <p>Dépenses totales : <span th:text="${depensesTotales} + ' €'"></span></p>
+            <p>Profit : <span th:text="${profit} + ' €'"></span></p>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS (optionnel, pour les fonctionnalités interactives) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

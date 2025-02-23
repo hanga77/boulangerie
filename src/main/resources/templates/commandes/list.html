@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Liste des Commandes</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome pour les icônes -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Styles personnalisés -->
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="fas fa-bread-slice me-2"></i>Boulangerie Dashboard
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link " href="/dashboard">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/matieres-premieres">Matières Premières</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/produits">Produits</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/commandes">Commandes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/livraisons">Livraisons</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/production">Productions</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#">Finances</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/mouvements">
+                        <i class="fas fa-warehouse me-1"></i>Mouvements de Stock
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" href="/admin/users">Admin</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('BOULANGER')">
+                    <a class="nav-link" href="/Boulanger">Boulanger</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('LIVREUR')">
+                    <a class="nav-link" href="/Livreur">Livreur</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">
+                        <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Contenu principal -->
+<div class="container mt-4">
+    <h1>Liste des Commandes</h1>
+    <a th:if="${#lists.isEmpty(commandes)}" th:href="@{/commandes/non-traitees}" class="btn btn-info btn-sm disabled" >
+        <i class="fa-solid fa-arrow-left me-1"></i>Commandes non traitées
+    </a>
+    <!-- Tableau des commandes -->
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th>Point de Vente</th>
+            <th>Coût Total</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="commande, iterStat : ${commandes}" th:if="${iterStat.index >= (currentPage * size) and iterStat.index < ((currentPage + 1) * size)}">
+            <td th:text="${commande.dateCommande}"></td>
+            <td th:text="${commande.pointDeVente}"></td>
+            <td th:text="${commande.coutTotal + ' XAF'}"></td>
+            <td>
+                <a th:if="${commande.processed.equals(false)}" th:href="@{/commandes/edit/{id}(id=${commande.id})}" class="btn btn-primary btn-sm">Modifier</a>
+                <a th:if="${commande.processed.equals(true)}" class="btn btn-secondary btn-sm disabled">Traitée</a>
+                <a th:if="${commande.processed.equals(false)}" th:href="@{/commandes/delete/{id}(id=${commande.id})}" class="btn btn-danger btn-sm">Supprimer</a>
+                <a th:href="@{/commandes/view/{id}(id=${commande.id})}" class="btn btn-info btn-sm">Voir</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation" th:if="${totalPages > 1}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/commandes(page=${currentPage - 1}, size=${size})}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                <a class="page-link" th:href="@{/commandes(page=${i}, size=${size})}" th:text="${i + 1}"></a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                <a class="page-link" th:href="@{/commandes(page=${currentPage + 1}, size=${size})}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <a href="/commandes/new" class="btn btn-success">Créer une nouvelle commande</a>
+    <a href="/production/passer-a-la-production" class="btn btn-success">Démarrer la production</a>
+</div>
+
+
+<!-- Bootstrap JS (optionnel, pour les fonctionnalités interactives) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

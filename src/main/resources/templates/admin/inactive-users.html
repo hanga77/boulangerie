@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Utilisateurs en attente d'activation</title>
+    <!-- Dans votre header -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/all.min.css}">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="fas fa-bread-slice me-2"></i>Boulangerie Dashboard
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link " href="/dashboard">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/matieres-premieres">Matières Premières</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/produits">Produits</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/commandes">Commandes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/livraisons">Livraisons</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/production">Productions</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#">Finances</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/mouvements">
+                        <i class="fas fa-warehouse me-1"></i>Mouvements de Stock
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" href="/admin/users">Admin</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('BOULANGER')">
+                    <a class="nav-link" href="/Boulanger">Boulanger</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('LIVREUR')">
+                    <a class="nav-link" href="/Livreur">Livreur</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">
+                        <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <!-- Message d'erreur -->
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+    <!-- Message de succès -->
+    <div th:if="${successMessage}" class="alert alert-success" role="alert">
+        <span th:text="${successMessage}"></span>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Utilisateurs en attente d'activation</h2>
+        </div>
+        <div class="card-body">
+            <!-- Si aucun utilisateur inactif -->
+            <div th:if="${#lists.isEmpty(inactiveUsers)}" class="alert alert-info">
+                Aucun utilisateur en attente d'activation.
+            </div>
+
+            <!-- Liste des utilisateurs inactifs -->
+            <div th:if="${!#lists.isEmpty(inactiveUsers)}" class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Nom d'utilisateur</th>
+                        <th>Date de création</th>
+                        <th>Rôle</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="user : ${inactiveUsers}">
+                        <td th:text="${user.username}"></td>
+                        <td th:text="${#temporals.format(user.creationDate, 'dd-MM-yyyy HH:mm')}"></td>
+                        <td>
+                            <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" class="form-inline">
+                                <select name="role" class="form-control form-control-sm">
+                                    <option value="BOULANGER" th:selected="${user.role == 'BOULANGER'}">Boulanger</option>
+                                    <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Administrateur</option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-secondary ml-2">
+                                    Modifier le rôle
+                                </button>
+                            </form>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <form th:action="@{/admin/users/{id}/activate(id=${user.id})}" method="post" style="display: inline;">
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="fas fa-check"></i> Activer
+                                    </button>
+                                </form>
+                                <form th:action="@{/admin/users/{id}(id=${user.id})}" method="post" style="display: inline;">
+                                    <input type="hidden" name="_method" value="DELETE"/>
+                                    <button type="submit" class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bouton de retour -->
+    <div class="mt-3">
+        <a href="/admin/users" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+</div>
+</body>
+</html>
