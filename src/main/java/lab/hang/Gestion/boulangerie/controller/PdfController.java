@@ -19,9 +19,16 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 import com.lowagie.text.pdf.BaseFont;
 
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -39,10 +46,17 @@ public class PdfController {
     private final LivraisonService livraisonService;
     private final MatierePremiereService matierePremiereService;
 
+    private final FinanceService financeService;
+    private final ChargeFixeService chargeFixeService;
+    private final FacturationService facturationService;
+
+    private final KPIService kpiService;
+
+
     @Value("${app.name}")
     private String appName;
 
-    public PdfController(TemplateEngine templateEngine, CommandeService commandeService, ProductionService productionService, UserService userService, ProduitService produitService, ProductionMapper productionMapper, LivraisonService livraisonService, MatierePremiereService matierePremiereService) {
+    public PdfController(TemplateEngine templateEngine, CommandeService commandeService, ProductionService productionService, UserService userService, ProduitService produitService, ProductionMapper productionMapper, LivraisonService livraisonService, MatierePremiereService matierePremiereService, FinanceService financeService, ChargeFixeService chargeFixeService, FacturationService facturationService, KPIService kpiService) {
         this.templateEngine = templateEngine;
         this.commandeService = commandeService;
         this.productionService = productionService;
@@ -51,6 +65,10 @@ public class PdfController {
         this.productionMapper = productionMapper;
         this.livraisonService = livraisonService;
         this.matierePremiereService = matierePremiereService;
+        this.financeService = financeService;
+        this.chargeFixeService = chargeFixeService;
+        this.facturationService = facturationService;
+        this.kpiService = kpiService;
     }
 
     @GetMapping("/commande/imprimer")
@@ -199,6 +217,49 @@ public class PdfController {
             renderer.layout();
             renderer.createPDF(outputStream);
         }
+    }
+
+    public String genererRapportFinancierMensuel() throws Exception {
+        YearMonth moisActuel = YearMonth.now();
+        LocalDate debutMois = moisActuel.atDay(1);
+        LocalDate finMois = moisActuel.atEndOfMonth();
+
+        double revenus = financeService.calculerRevenusTotaux();
+        double depenses = financeService.calculerDepensesTotales();
+        double salaires = financeService.calculerDepensesSalariales();
+        double coutProduction = productionService.calculerCoutTotalProduction(debutMois, finMois);
+        double profit = revenus - (depenses + salaires + coutProduction);
+        List<?> chargesFixes = chargeFixeService.getAllChargesFixe();
+        List<?> facturesImpayees = facturationService.getFacturesImpayees();
+        List<?> livraisons = livraisonService.getLivraisonsByDateRange(debutMois, finMois);
+        List<?> commandes = commandeService.getCommandesByDate(debutMois);
+        List<?> ventesProduits = productionService.getVentesParProduit(debutMois, finMois);
+        Object kpis = kpiService.getKPIsJournaliers();
+
+        Context context = new Context();
+        context.setVariable("mois", moisActuel);
+        context.setVariable("debutMois", debutMois);
+        context.setVariable("finMois", finMois);
+        context.setVariable("revenus", revenus);
+        context.setVariable("depenses", depenses);
+        context.setVariable("salaires", salaires);
+        context.setVariable("coutProduction", coutProduction);
+        context.setVariable("profit", profit);
+        context.setVariable("chargesFixes", chargesFixes);
+        context.setVariable("facturesImpayees", facturesImpayees);
+        context.setVariable("livraisons", livraisons);
+        context.setVariable("commandes", commandes);
+        context.setVariable("ventesProduits", ventesProduits);
+        context.setVariable("kpis", kpis);
+
+        String htmlContent = templateEngine.process("rapport-financier", context);
+
+        String filePath = "rapport_financier_" + moisActuel + ".html";
+        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(filePath), StandardCharsets.UTF_8)) {
+            writer.write(htmlContent);
+        }
+
+        return filePath;
     }
 
 }

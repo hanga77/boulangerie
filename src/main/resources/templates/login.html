@@ -11,6 +11,11 @@
 <body class="bg-light">
 <div class="container">
     <div class="row justify-content-center align-items-center min-vh-100">
+        <!-- Ajouter ce bloc dans votre login.html -->
+        <div th:if="${session.errorMessage}" class="alert alert-danger" role="alert">
+            <span th:text="${session.errorMessage}"></span>
+            <!--<span th:remove="all" th:text="${session.remove('errorMessage')}"></span>-->
+        </div>
         <div class="col-md-6">
             <div class="card shadow-lg">
                 <div class="card-body p-5">

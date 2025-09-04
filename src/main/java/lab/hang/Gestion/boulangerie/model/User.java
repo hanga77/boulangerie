@@ -29,6 +29,7 @@ public class User {
     @Column(name = "creation_date")
     private LocalDateTime creationDate;
 
+    private String email;
     @PrePersist
     protected void onCreate() {
         creationDate = LocalDateTime.now();
@@ -80,5 +81,13 @@ public class User {
 
     public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

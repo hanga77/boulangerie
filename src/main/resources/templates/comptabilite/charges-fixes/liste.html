@@ -1,0 +1,87 @@
+<!--
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Gestion des charges fixes</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+<body>
+<div class="container">
+    <h1>Gestion des charges fixes</h1>
+
+    <form th:action="@{/comptabilite/charges-fixes}"
+          th:object="${nouvelleCharge}"
+          method="post"
+          class="form-charge">
+        <div class="form-group">
+            <label>Type</label>
+            <select th:field="*{type}" required>
+                <option value="LOYER">Loyer</option>
+                <option value="SALAIRE">Salaire</option>
+                <option value="ELECTRICITE">Électricité</option>
+                <option value="EAU">Eau</option>
+                <option value="ASSURANCE">Assurance</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Montant</label>
+            <input type="number" th:field="*{montant}" step="0.01" required />
+        </div>
+
+        <div class="form-group">
+            <label>Description</label>
+            <input type="text" th:field="*{description}" required />
+        </div>
+
+        <div class="form-group">
+            <label>Date d'échéance</label>
+            <input type="date" th:field="*{dateEcheance}" required />
+        </div>
+
+        <div class="form-group">
+            <label>Périodicité</label>
+            <select th:field="*{periodicite}">
+                <option value="">Aucune</option>
+                <option value="MENSUEL">Mensuelle</option>
+                <option value="TRIMESTRIEL">Trimestrielle</option>
+                <option value="ANNUEL">Annuelle</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+    </form>
+
+    <div class="charges-table">
+        <table>
+            <thead>
+            <tr>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Montant</th>
+                <th>Échéance</th>
+                <th>Périodicité</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="charge : ${charges}">
+                <td th:text="${charge.type}">Type</td>
+                <td th:text="${charge.description}">Description</td>
+                <td th:text="${#numbers.formatCurrency(charge.montant)}">0.00 €</td>
+                <td th:text="${charge.dateEcheance}">Date</td>
+                <td th:text="${charge.periodicite}">Périodicité</td>
+                <td th:text="${charge.paye ? 'Payée' : 'En attente'}">Statut</td>
+                <td>
+                    <a th:if="${!charge.paye}"
+                       th:href="@{/comptabilite/charges-fixes/{id}/payer(id=${charge.id})}"
+                       class="btn btn-small">Payer</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>-->

@@ -47,13 +47,13 @@ public class DashboardController {
         System.out.println("Nombre de points de vente actifs : " + nombrePointsDeVenteActifs);
 
         double coutsProduction = financeService.calculerCoutsProduction();
-        System.out.println("Coûts de production : " + coutsProduction);
+        //System.out.println("Coûts de production : " + coutsProduction);
 
         double revenusVentes = financeService.calculerRevenusVentes();
-        System.out.println("Revenus des ventes : " + revenusVentes);
+        //System.out.println("Revenus des ventes : " + revenusVentes);
 
         double profitTotal = financeService.calculerProfitTotal();
-        System.out.println("Profit total : " + profitTotal);
+        //System.out.println("Profit total : " + profitTotal);
 
         List<Production> productionDTOS = productionService.getProductionsByDate(today);
         HashMap<Produit, Double> coutsProduits = new HashMap<>();

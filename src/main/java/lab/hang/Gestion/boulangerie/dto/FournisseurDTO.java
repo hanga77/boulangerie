@@ -1,12 +1,6 @@
-package lab.hang.Gestion.boulangerie.model;
+package lab.hang.Gestion.boulangerie.dto;
 
-import jakarta.persistence.*;
-import java.util.List;
-
-@Entity
-public class Fournisseur {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class FournisseurDTO {
     private Long id;
 
     private String nom;
@@ -16,10 +10,9 @@ public class Fournisseur {
 
     private String referenceContact;
     private String categorieProduits;
-    @OneToMany(mappedBy = "fournisseur")
-    private List<FournisseurDette> dettes;
 
-    // Getters and setters
+    // Getters et setters
+
     public Long getId() {
         return id;
     }
@@ -60,14 +53,6 @@ public class Fournisseur {
         this.email = email;
     }
 
-    public List<FournisseurDette> getDettes() {
-        return dettes;
-    }
-
-    public void setDettes(List<FournisseurDette> dettes) {
-        this.dettes = dettes;
-    }
-
     public String getReferenceContact() {
         return referenceContact;
     }
@@ -83,5 +68,4 @@ public class Fournisseur {
     public void setCategorieProduits(String categorieProduits) {
         this.categorieProduits = categorieProduits;
     }
-
 }

@@ -1,0 +1,62 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dashboard Comptabilité</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+<body>
+<div class="dashboard-container">
+    <div class="card">
+        <h2>Charges fixes du mois</h2>
+        <div class="charges-list">
+            <div th:each="charge : ${chargesMois}" class="charge-item">
+                <span th:text="${charge.description}">Description</span>
+                <span th:text="${#numbers.formatCurrency(charge.montant)}">0.00 €</span>
+                <span th:text="${charge.dateEcheance}"
+                      th:class="${charge.paye ? 'status-paid' : 'status-pending'}">
+                        Status
+                    </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Factures impayées</h2>
+        <div class="factures-list">
+            <div th:each="facture : ${facturesImpayees}" class="facture-item">
+                <span th:text="${facture.numero}">N° Facture</span>
+                <span th:text="${#numbers.formatCurrency(facture.montantTTC)}">0.00 €</span>
+                <span th:text="${facture.dateEcheance}">Date</span>
+                <a th:href="@{/comptabilite/factures/{id}/payer(id=${facture.id})}"
+                   class="btn btn-primary">Payer</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>KPIs</h2>
+        <div class="kpis-grid">
+            <div th:each="kpi : ${kpisJournaliers}" class="kpi-item">
+                <span th:text="${kpi.nom}">Nom KPI</span>
+                <span th:text="${#numbers.formatDecimal(kpi.valeur, 1, 2)} + ${kpi.unite}">
+                        Valeur
+                    </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card alert-card" th:if="${not #lists.isEmpty(alertesNonVues)}">
+        <h2>Alertes</h2>
+        <div class="alertes-list">
+            <div th:each="alerte : ${alertesNonVues}"
+                 th:class="'alerte-item ' + ${alerte.niveau}">
+                <span th:text="${alerte.message}">Message</span>
+                <button th:onclick="'marquerAlerteLue(' + ${alerte.id} + ')'"
+                        class="btn btn-small">Lu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/comptabilite.js}"></script>
+</body>
+</html>

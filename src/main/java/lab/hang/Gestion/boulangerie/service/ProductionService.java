@@ -261,4 +261,18 @@ public class ProductionService {
     public List<Production> getProductionsByDate(LocalDate now) {
         return productionRepository.findByDateProduction(now);
     }
+
+    public double calculerCoutTotalProduction(LocalDate debutMois, LocalDate finMois) {
+        double coutTotal = 0;
+
+        for (Production production : getProductionsByDateRange(debutMois, finMois)) {
+            coutTotal += calculerCoutProduction(production.getId());
+        }
+
+        return coutTotal;
+    }
+
+   public List<?> getVentesParProduit(LocalDate debutMois, LocalDate finMois) {
+        return transactionRepository.findByDateBetweenAndType("VENTE", debutMois, finMois);
+    }
 }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/compte-bancaire")
+
 public class CompteBancaireController {
 
     private final FinanceService financeService;
@@ -21,8 +22,8 @@ public class CompteBancaireController {
 
     @GetMapping
     public String getCompteBancaire(Model model) {
-        CompteBancaire compteBancaire = financeService.getCompteBancairePrincipal();
-        model.addAttribute("compteBancaire", compteBancaire);
+        //CompteBancaire compteBancaire = financeService.getCompteBancairePrincipal();
+        //model.addAttribute("compteBancaire", compteBancaire);
         return "finances/compte-bancaire";
     }
 
@@ -33,7 +34,7 @@ public class CompteBancaireController {
 
     @PostMapping("/creer")
     public String creerCompteBancaire(@RequestParam String nom, @RequestParam double soldeInitial) {
-        financeService.creerCompteBancaire(nom, soldeInitial);
+        //financeService.creerCompteBancaire(nom, soldeInitial);
         return "redirect:/compte-bancaire";
     }
 }
