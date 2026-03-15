@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Charges Fixes')}">
+</head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-file-invoice me-2"></i>Charges Fixes</h1>
+        <a href="/comptabilite/dashboard" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Retour au dashboard
+        </a>
+    </div>
+
+    <!-- Formulaire d'ajout -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-plus-circle me-2"></i>Ajouter une charge fixe
+        </div>
+        <div class="card-body">
+            <form th:action="@{/comptabilite/charges-fixes}" th:object="${newCharge}" method="post">
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <label for="type" class="form-label">Type</label>
+                        <select class="form-select" id="type" th:field="*{type}" required>
+                            <option value="">-- Choisir --</option>
+                            <option value="LOYER">Loyer</option>
+                            <option value="SALAIRE">Salaire</option>
+                            <option value="ELECTRICITE">Électricité</option>
+                            <option value="EAU">Eau</option>
+                            <option value="ASSURANCE">Assurance</option>
+                            <option value="AUTRE">Autre</option>
+                        </select>
+                        <div class="text-danger" th:if="${#fields.hasErrors('type')}" th:errors="*{type}"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="description" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="description" th:field="*{description}" required>
+                        <div class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="montant" class="form-label">Montant (XAF)</label>
+                        <input type="number" step="1" class="form-control" id="montant" th:field="*{montant}" min="0" required>
+                        <div class="text-danger" th:if="${#fields.hasErrors('montant')}" th:errors="*{montant}"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="dateEcheance" class="form-label">Date d'échéance</label>
+                        <input type="date" class="form-control" id="dateEcheance" th:field="*{dateEcheance}" required>
+                        <div class="text-danger" th:if="${#fields.hasErrors('dateEcheance')}" th:errors="*{dateEcheance}"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="periodicite" class="form-label">Périodicité</label>
+                        <select class="form-select" id="periodicite" th:field="*{periodicite}">
+                            <option value="">Aucune</option>
+                            <option value="MENSUEL">Mensuelle</option>
+                            <option value="TRIMESTRIEL">Trimestrielle</option>
+                            <option value="ANNUEL">Annuelle</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des charges -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <i class="fas fa-list me-2"></i>Liste des charges
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Montant</th>
+                        <th>Échéance</th>
+                        <th>Périodicité</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="charge : ${charges}">
+                        <td>
+                            <span class="badge bg-secondary" th:text="${charge.type}"></span>
+                        </td>
+                        <td th:text="${charge.description}"></td>
+                        <td th:text="${charge.montant + ' XAF'}"></td>
+                        <td th:text="${charge.dateEcheance}"></td>
+                        <td th:text="${charge.periodicite != null ? charge.periodicite : '-'}"></td>
+                        <td>
+                            <span th:if="${charge.paye}" class="badge bg-success">Payée</span>
+                            <span th:unless="${charge.paye}" class="badge bg-danger">En attente</span>
+                        </td>
+                        <td>
+                            <a th:if="${!charge.paye}"
+                               th:href="@{/comptabilite/charges-fixes/{id}/payer(id=${charge.id})}"
+                               class="btn btn-sm btn-success">
+                                <i class="fas fa-check me-1"></i>Payer
+                            </a>
+                            <span th:if="${charge.paye}" class="text-muted">—</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(charges)}">
+                        <td colspan="7" class="text-center text-muted py-4">Aucune charge enregistrée.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

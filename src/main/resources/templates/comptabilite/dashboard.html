@@ -1,62 +1,205 @@
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Dashboard Comptabilité</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}" />
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Dashboard Comptabilité')}">
 </head>
 <body>
-<div class="dashboard-container">
-    <div class="card">
-        <h2>Charges fixes du mois</h2>
-        <div class="charges-list">
-            <div th:each="charge : ${chargesMois}" class="charge-item">
-                <span th:text="${charge.description}">Description</span>
-                <span th:text="${#numbers.formatCurrency(charge.montant)}">0.00 €</span>
-                <span th:text="${charge.dateEcheance}"
-                      th:class="${charge.paye ? 'status-paid' : 'status-pending'}">
-                        Status
-                    </span>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-calculator me-2"></i>Dashboard Comptabilité</h1>
+        <div>
+            <a href="/comptabilite/charges-fixes" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-file-invoice me-1"></i>Charges fixes
+            </a>
+            <a href="/comptabilite/factures" class="btn btn-outline-primary me-2">
+                <i class="fas fa-file-alt me-1"></i>Factures
+            </a>
+            <a href="/comptabilite/kpis" class="btn btn-outline-info me-2">
+                <i class="fas fa-chart-line me-1"></i>KPIs
+            </a>
+            <a href="/comptabilite/alertes" class="btn btn-outline-danger">
+                <i class="fas fa-bell me-1"></i>Alertes
+            </a>
+        </div>
+    </div>
+
+    <!-- Alertes actives -->
+    <div th:if="${not #lists.isEmpty(alertesNonVues)}"
+         class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong th:text="${#lists.size(alertesNonVues)}">0</strong> alerte(s) non lue(s).
+        <a href="/comptabilite/alertes" class="alert-link ms-2">Voir les alertes</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Charges à venir -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-calendar-alt me-2"></i>Charges fixes à venir (30 jours)
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Montant</th>
+                                <th>Échéance</th>
+                                <th>Statut</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="charge : ${chargesAVenir}">
+                                <td th:text="${charge.type}"></td>
+                                <td th:text="${charge.description}"></td>
+                                <td th:text="${charge.montant + ' XAF'}"></td>
+                                <td th:text="${charge.dateEcheance}"></td>
+                                <td>
+                                    <span th:if="${charge.paye}" class="badge bg-success">Payée</span>
+                                    <span th:unless="${charge.paye}" class="badge bg-danger">En attente</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(chargesAVenir)}">
+                                <td colspan="5" class="text-center text-muted py-3">Aucune charge à venir</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="/comptabilite/charges-fixes" class="btn btn-sm btn-warning">
+                        <i class="fas fa-arrow-right me-1"></i>Gérer les charges
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Factures impayées -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>Factures impayées
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>N° Facture</th>
+                                <th>Montant TTC</th>
+                                <th>Échéance</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="facture : ${facturesImpayees}">
+                                <td th:text="${facture.numero}"></td>
+                                <td th:text="${facture.montantTTC + ' XAF'}"></td>
+                                <td th:text="${facture.dateEcheance}"></td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(facturesImpayees)}">
+                                <td colspan="3" class="text-center text-muted py-3">Aucune facture impayée</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="/comptabilite/factures" class="btn btn-sm btn-danger">
+                        <i class="fas fa-arrow-right me-1"></i>Voir toutes les factures
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <h2>Factures impayées</h2>
-        <div class="factures-list">
-            <div th:each="facture : ${facturesImpayees}" class="facture-item">
-                <span th:text="${facture.numero}">N° Facture</span>
-                <span th:text="${#numbers.formatCurrency(facture.montantTTC)}">0.00 €</span>
-                <span th:text="${facture.dateEcheance}">Date</span>
-                <a th:href="@{/comptabilite/factures/{id}/payer(id=${facture.id})}"
-                   class="btn btn-primary">Payer</a>
+    <!-- KPIs journaliers -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <i class="fas fa-chart-bar me-2"></i>KPIs du jour
+        </div>
+        <div class="card-body">
+            <div th:if="${#lists.isEmpty(kpisJournaliers)}" class="text-center text-muted py-3">
+                Aucun KPI enregistré aujourd'hui.
             </div>
+            <div class="row" th:unless="${#lists.isEmpty(kpisJournaliers)}">
+                <div class="col-md-3 mb-3" th:each="kpi : ${kpisJournaliers}">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <h6 class="card-title text-muted" th:text="${kpi.nom}"></h6>
+                            <p class="card-text fs-4 fw-bold text-info">
+                                <span th:text="${#numbers.formatDecimal(kpi.valeur, 1, 2)}"></span>
+                                <small th:text="${kpi.unite}" class="fs-6 text-muted"></small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="/comptabilite/kpis" class="btn btn-sm btn-info">
+                <i class="fas fa-chart-line me-1"></i>Tableau de bord KPIs
+            </a>
         </div>
     </div>
 
+    <!-- Bilan rapide -->
     <div class="card">
-        <h2>KPIs</h2>
-        <div class="kpis-grid">
-            <div th:each="kpi : ${kpisJournaliers}" class="kpi-item">
-                <span th:text="${kpi.nom}">Nom KPI</span>
-                <span th:text="${#numbers.formatDecimal(kpi.valeur, 1, 2)} + ${kpi.unite}">
-                        Valeur
-                    </span>
-            </div>
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-balance-scale me-2"></i>Bilan rapide (statistiques de facturation)
         </div>
-    </div>
-
-    <div class="card alert-card" th:if="${not #lists.isEmpty(alertesNonVues)}">
-        <h2>Alertes</h2>
-        <div class="alertes-list">
-            <div th:each="alerte : ${alertesNonVues}"
-                 th:class="'alerte-item ' + ${alerte.niveau}">
-                <span th:text="${alerte.message}">Message</span>
-                <button th:onclick="'marquerAlerteLue(' + ${alerte.id} + ')'"
-                        class="btn btn-small">Lu</button>
+        <div class="card-body">
+            <div th:if="${statsFacturation != null}" class="row text-center">
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="text-muted">Total facturé</h6>
+                            <p class="fs-4 fw-bold text-primary"
+                               th:text="${(statsFacturation.totalFacture != null ? statsFacturation.totalFacture : 0) + ' XAF'}">0 XAF</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="text-muted">Total encaissé</h6>
+                            <p class="fs-4 fw-bold text-success"
+                               th:text="${(statsFacturation.totalEncaisse != null ? statsFacturation.totalEncaisse : 0) + ' XAF'}">0 XAF</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="text-muted">En attente</h6>
+                            <p class="fs-4 fw-bold text-danger"
+                               th:text="${(statsFacturation.totalImpaye != null ? statsFacturation.totalImpaye : 0) + ' XAF'}">0 XAF</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="text-muted">Nb factures</h6>
+                            <p class="fs-4 fw-bold"
+                               th:text="${statsFacturation.nombreFactures != null ? statsFacturation.nombreFactures : 0}">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div th:if="${statsFacturation == null}" class="text-center text-muted py-3">
+                Aucune statistique disponible.
             </div>
         </div>
     </div>
 </div>
 
-<script th:src="@{/js/comptabilite.js}"></script>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

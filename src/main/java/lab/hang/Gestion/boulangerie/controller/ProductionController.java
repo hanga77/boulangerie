@@ -63,7 +63,6 @@ public class ProductionController {
         // 2. Démarrer la production
         ProductionDTO productionDTO = productionService.startProduction(date, user);
 
-        System.out.println("production" + productionDTO.getQuantitesReellesUtilisees());
 
         // 3. Vérifier les stocks avant de confirmer la production
         boolean stocksSuffisants = productionService.verifierStocksSuffisants(productionDTO);
@@ -230,6 +229,6 @@ public class ProductionController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors de l'enregistrement du coût: " + e.getMessage());
         }
-        return "redirect:/productions/" + id;
+        return "redirect:/production/details/" + id;
     }
 }
