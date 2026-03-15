@@ -4,10 +4,14 @@ import lab.hang.Gestion.boulangerie.dto.CommandeDTO;
 import lab.hang.Gestion.boulangerie.dto.ProduitDTO;
 import lab.hang.Gestion.boulangerie.service.CommandeService;
 import lab.hang.Gestion.boulangerie.service.ProduitService;
+import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -18,6 +22,8 @@ import java.util.Map;
 @Controller
 @RequestMapping("/commandes")
 public class CommandeController {
+
+    private static final Logger log = LoggerFactory.getLogger(CommandeController.class);
 
     private final CommandeService commandeService;
     private final ProduitService produitService;
@@ -58,13 +64,24 @@ public class CommandeController {
     }
 
     @PostMapping
-    public String saveCommande(@ModelAttribute("commandeDTO") CommandeDTO commandeDTO) {
+    public String saveCommande(@Valid @ModelAttribute("commandeDTO") CommandeDTO commandeDTO,
+                               BindingResult result, Model model) {
+        if (result.hasErrors()) {
+            model.addAttribute("produits", produitService.getAllProduits());
+            return "commandes/create";
+        }
         commandeService.createCommande(commandeDTO);
         return "redirect:/commandes";
     }
 
     @PostMapping("/update/{id}")
-    public String updateCommande(@PathVariable Long id, @ModelAttribute("commandeDTO") CommandeDTO commandeDTO) {
+    public String updateCommande(@PathVariable Long id,
+                                 @Valid @ModelAttribute("commandeDTO") CommandeDTO commandeDTO,
+                                 BindingResult result, Model model) {
+        if (result.hasErrors()) {
+            model.addAttribute("produits", produitService.getAllProduits());
+            return "commandes/edit";
+        }
         commandeService.updateCommande(id, commandeDTO);
         return "redirect:/commandes";
     }
@@ -86,7 +103,9 @@ public class CommandeController {
         // Fetch untreated orders
         List<CommandeDTO> commandes = commandeService.getCommandesNonTraitees();
 
-        System.out.println("checking "+commandes.get(0).isProcessed());
+        if (!commandes.isEmpty()) {
+            log.debug("Première commande non traitée - processed: {}", commandes.get(0).isProcessed());
+        }
         // Fetch product names for each order
         for (CommandeDTO commande : commandes) {
             Map<Long, String> nomsProduits = new HashMap<>();

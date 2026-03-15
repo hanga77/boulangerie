@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -53,6 +54,7 @@ public class ProductionController {
         return "production/passer-a-la-production";
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'BOULANGER')")
     @PostMapping("/passer-a-la-production")
     public String passerALaProduction(@RequestParam LocalDate date, Model model) {
         // 1. Récupérer l'utilisateur actuellement connecté
@@ -89,6 +91,7 @@ public class ProductionController {
         return "production/confirm";
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'BOULANGER')")
     @PostMapping("/confirmer-production")
     public String confirmerProduction(@RequestParam LocalDate date, Model model) {
         // 1. Récupérer l'utilisateur actuellement connecté
@@ -105,6 +108,7 @@ public class ProductionController {
     }
 
     // In your controller
+    @PreAuthorize("hasAnyRole('ADMIN', 'BOULANGER')")
     @PostMapping("/valider-production")
     public String validerProduction(@RequestParam Map<String, String> formData) {
         ProductionDTO productionDTO = new ProductionDTO();
@@ -217,6 +221,7 @@ public class ProductionController {
     }
 
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/enregistrer-cout")
     public String enregistrerCoutProduction(@PathVariable Long id, @RequestParam double coutTotal, RedirectAttributes redirectAttributes) {
         try {

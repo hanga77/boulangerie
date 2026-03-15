@@ -6,12 +6,8 @@ import lab.hang.Gestion.boulangerie.repository.CompteBancaireRepository;
 import lab.hang.Gestion.boulangerie.repository.LotRepository;
 import lab.hang.Gestion.boulangerie.repository.StockMovementRepository;
 import lab.hang.Gestion.boulangerie.repository.TransactionRepository;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.message.Message;
-import org.apache.logging.log4j.util.MessageSupplier;
-import org.apache.logging.log4j.util.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -25,6 +21,8 @@ import java.util.Map;
 
 @Service
 public class StockService {
+
+    private static final Logger log = LoggerFactory.getLogger(StockService.class);
 
     private final StockMovementRepository stockMovementRepository;
     private final MatierePremiereService matierePremiereService;
@@ -111,10 +109,10 @@ public class StockService {
             lot.setMatierePremiere(matierePremiere);
             lotRepository.save(lot);
 
-            System.out.println("start to record");
+            log.debug("Enregistrement mouvement stock ENTREE - matière: {}, quantité: {}", matierePremiere.getNom(), quantite);
             // Record stock movement
             recordStockMovement(matierePremiere, quantite, "ENTREE");
-            System.out.println("end to record add");
+            log.debug("Mouvement stock ENTREE enregistré avec succès");
 
             // Create transaction with credit handling
             boolean isSoldeInsuffisant = compte.getSolde() < coutTotal;
@@ -126,9 +124,8 @@ public class StockService {
 
             if (isSoldeInsuffisant) {
                 description += " (CRÉDIT)";
-                System.out.println("ATTENTION: Achat à crédit effectué par " + currentUser.getUsername() +
-                        " - Montant: " + coutTotal +
-                        " - Solde disponible: " + compte.getSolde());
+                log.warn("Achat à crédit - utilisateur: {}, montant: {}, solde disponible: {}",
+                        currentUser.getUsername(), coutTotal, compte.getSolde());
             }
 
             Transaction transaction = new Transaction();
@@ -139,16 +136,15 @@ public class StockService {
             transaction.setCompteBancaire(compte);
 
             // Update account balance
-            compte.setSolde(coutTotal);
+            compte.setSolde(compte.getSolde() - coutTotal);
 
             // Save all changes
             transactionRepository.save(transaction);
             compteBancaireRepository.save(compte);
 
-            // Log warning if operating on credit
             if (isSoldeInsuffisant) {
-                System.out.println("ATTENTION: Achat effectué avec un solde insuffisant - Dette: " +
-                        Math.abs(compte.getSolde()) + " - Fournisseur: " + matierePremiere.getNom());
+                log.warn("Achat effectué avec solde insuffisant - dette: {}, matière: {}",
+                        Math.abs(compte.getSolde()), matierePremiere.getNom());
             }
 
         } catch (Exception e) {
@@ -174,10 +170,10 @@ public class StockService {
         // Mettre à jour le stock
         matierePremiere.setStock(matierePremiere.getStock() - quantite);
 
-        System.out.println("start to record");
+        log.debug("Enregistrement mouvement stock SORTIE - matière: {}, quantité: {}", matierePremiere.getNom(), quantite);
         // Enregistrer le mouvement de stock
         recordStockMovement(matierePremiere, quantite, "SORTIE");
-        System.out.println("end to record");
+        log.debug("Mouvement stock SORTIE enregistré avec succès");
         // Sauvegarder les modifications
         matierePremiereService.saveMatierePremiere(matierePremiere);
     }
@@ -195,8 +191,7 @@ public class StockService {
                 throw new SecurityException("L'ID de l'utilisateur est manquant");
             }
 
-            System.out.println("Enregistrement mouvement pour utilisateur: " + currentUser.getUsername() +
-                    " (ID: " + currentUser.getId() + ")");
+            log.debug("Enregistrement mouvement - utilisateur: {} (ID: {})", currentUser.getUsername(), currentUser.getId());
 
             StockMovement movement = new StockMovement();
             movement.setType(type);

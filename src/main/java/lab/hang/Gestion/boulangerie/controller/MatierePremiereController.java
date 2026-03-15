@@ -3,6 +3,8 @@ package lab.hang.Gestion.boulangerie.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lab.hang.Gestion.boulangerie.dto.StockReportDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import lab.hang.Gestion.boulangerie.exception.SoldeInsuffisantException;
 import lab.hang.Gestion.boulangerie.exception.StockInsuffisantException;
 import lab.hang.Gestion.boulangerie.model.MatierePremiere;
@@ -24,6 +26,8 @@ import java.util.Map;
 @Controller
 @RequestMapping("/matieres-premieres")
 public class MatierePremiereController {
+
+    private static final Logger log = LoggerFactory.getLogger(MatierePremiereController.class);
 
     private final MatierePremiereService matierePremiereService;
     private final StockService stockService;
@@ -130,7 +134,7 @@ public class MatierePremiereController {
                     "Erreur : " + e.getMessage());
             return "redirect:/matieres-premieres/mouvements-stock";
         } catch (Exception e) {
-             e.printStackTrace(); // Ajouter cette ligne pour voir la stack trace complète
+            log.error("Erreur lors de l'enregistrement du mouvement de stock", e);
             redirectAttributes.addFlashAttribute("error",
                     "Une erreur est survenue : " + e.getMessage());
             return "redirect:/matieres-premieres/mouvements-stock";

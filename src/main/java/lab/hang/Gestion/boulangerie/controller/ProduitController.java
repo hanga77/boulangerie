@@ -5,15 +5,19 @@ import lab.hang.Gestion.boulangerie.exception.ProduitNotFoundException;
 import lab.hang.Gestion.boulangerie.model.MatierePremiere;
 import lab.hang.Gestion.boulangerie.service.MatierePremiereService;
 import lab.hang.Gestion.boulangerie.service.ProduitService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/produits")
@@ -35,14 +39,17 @@ public class ProduitController {
         // Récupérer tous les produits sous forme de DTO
         Page<ProduitDTO> produits = produitService.getAllProduits(PageRequest.of(page, size));
 
-        // Calculer la quantité de farine pour chaque produit
+        // Charger toutes les matières premières en une seule requête (évite N+1)
+        Map<Long, MatierePremiere> matiereCache = matierePremiereService.getAllMatierePremieres()
+                .stream()
+                .collect(Collectors.toMap(MatierePremiere::getId, Function.identity()));
+
         Map<Long, Double> farineQuantities = new HashMap<>();
         for (ProduitDTO produit : produits.getContent()) {
             double farineQuantity = produit.getMatieresPremieres().entrySet().stream()
                     .filter(entry -> {
-                        // Récupérer le nom de la matière première à partir de son ID
-                        MatierePremiere matiere = matierePremiereService.getMatierePremiereById(entry.getKey());
-                        return matiere.getNom().toLowerCase().contains("farine");
+                        MatierePremiere matiere = matiereCache.get(entry.getKey());
+                        return matiere != null && matiere.getNom().toLowerCase().contains("farine");
                     })
                     .map(Map.Entry::getValue)
                     .findFirst()
@@ -69,13 +76,24 @@ public class ProduitController {
     }
 
     @PostMapping
-    public String saveProduit(@ModelAttribute("produitDTO") ProduitDTO produitDTO) {
+    public String saveProduit(@Valid @ModelAttribute("produitDTO") ProduitDTO produitDTO,
+                              BindingResult result, Model model) {
+        if (result.hasErrors()) {
+            model.addAttribute("matieresPremieres", matierePremiereService.getAllMatierePremieres());
+            return "produits/create";
+        }
         produitService.saveProduit(produitDTO);
         return "redirect:/produits";
     }
 
     @PostMapping("/update/{id}")
-    public String updateProduit(@PathVariable Long id, @ModelAttribute("produitDTO") ProduitDTO produitDTO) {
+    public String updateProduit(@PathVariable Long id,
+                                @Valid @ModelAttribute("produitDTO") ProduitDTO produitDTO,
+                                BindingResult result, Model model) {
+        if (result.hasErrors()) {
+            model.addAttribute("matieresPremieres", matierePremiereService.getAllMatierePremieres());
+            return "produits/edit";
+        }
         try {
             produitService.updateProduit(id, produitDTO);
             return "redirect:/produits";

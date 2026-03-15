@@ -7,6 +7,10 @@ import lab.hang.Gestion.boulangerie.model.MatierePremiere;
 import lab.hang.Gestion.boulangerie.model.Produit;
 import lab.hang.Gestion.boulangerie.repository.MatierePremiereRepository;
 import lab.hang.Gestion.boulangerie.repository.ProduitRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,8 @@ import java.util.stream.Collectors;
 @Service
 public class ProduitService {
 
+    private static final Logger log = LoggerFactory.getLogger(ProduitService.class);
+
     private final ProduitRepository produitRepository;
     private final ProduitMapper produitMapper;
     private final MatierePremiereRepository matierePremiereRepository;
@@ -29,14 +35,14 @@ public class ProduitService {
         this.matierePremiereRepository = matierePremiereRepository;
     }
 
+    @CacheEvict(value = "produits", allEntries = true)
     public Produit saveProduit(ProduitDTO produitDTO) {
         Produit produit = new Produit();
         produit.setNom(produitDTO.getNom());
         produit.setPrix(produitDTO.getPrix());
         produit.setQuantiteAttendue(produitDTO.getQuantiteAttendue());
 
-        System.out.println("Saving product: " + produitDTO.getNom());
-        System.out.println("Raw materials: " + produitDTO.getMatieresPremieres().entrySet());
+        log.debug("Sauvegarde produit: {}, matières premières: {}", produitDTO.getNom(), produitDTO.getMatieresPremieres());
 
         // Convertir la map de DTO en map d'entités MatierePremiere
         Map<MatierePremiere, Double> matieresPremieres = new HashMap<>();
@@ -50,6 +56,7 @@ public class ProduitService {
         return produitRepository.save(produit);
     }
 
+    @CacheEvict(value = "produits", allEntries = true)
     public Produit updateProduit(Long id, ProduitDTO produitDTO) {
         Produit produit = produitRepository.findById(id)
                 .orElseThrow(() -> new ProduitNotFoundException("Produit non trouvé avec l'ID : " + id));
@@ -87,15 +94,12 @@ public class ProduitService {
                 // Calculate required quantity based on ordered quantity
                 double quantiteNecessaire = quantiteBase * quantiteCommandee;
 
-                // Debug logging
-                System.out.println("Adding material: " + matiere.getNom() +
-                        ", base quantity: " + quantiteBase +
-                        ", calculated quantity: " + quantiteNecessaire);
-
+                log.debug("Matière ajoutée: {}, quantité base: {}, quantité calculée: {}",
+                        matiere.getNom(), quantiteBase, quantiteNecessaire);
                 matieresNecessaires.put(matiere, quantiteNecessaire);
             });
         } else {
-            System.out.println("Warning: No raw materials defined for product " + produitDTO.getNom());
+            log.warn("Aucune matière première définie pour le produit: {}", produitDTO.getNom());
         }
 
         return matieresNecessaires;
@@ -106,6 +110,7 @@ public class ProduitService {
                 .map(produitMapper::toDTO);
     }
 
+    @Cacheable("produits")
     public List<ProduitDTO> getAllProduits() {
         return produitRepository.findAll().stream()
                 .map(produitMapper::toDTO)
@@ -123,6 +128,7 @@ public class ProduitService {
                 .orElseThrow(() -> new ProduitNotFoundException("Produit non trouvé avec l'ID : " + id));
     }
 
+    @CacheEvict(value = "produits", allEntries = true)
     public void deleteProduit(Long id) {
         if (!produitRepository.existsById(id)) {
             throw new ProduitNotFoundException("Produit non trouvé avec l'ID : " + id);

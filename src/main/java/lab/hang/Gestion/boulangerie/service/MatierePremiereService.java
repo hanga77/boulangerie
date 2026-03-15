@@ -1,13 +1,17 @@
 package lab.hang.Gestion.boulangerie.service;
 
 import lab.hang.Gestion.boulangerie.dto.StockReportDTO;
+import lab.hang.Gestion.boulangerie.exception.MatierePremiereNotFoundException;
 import lab.hang.Gestion.boulangerie.model.MatierePremiere;
 import lab.hang.Gestion.boulangerie.model.StockMovement;
 import lab.hang.Gestion.boulangerie.repository.MatierePremiereRepository;
 import lab.hang.Gestion.boulangerie.repository.StockMovementRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -26,11 +30,14 @@ public class MatierePremiereService {
         this.stockMovementRepository = stockMovementRepository;
     }
 
+    @Transactional
+    @CacheEvict(value = "matieres-premieres", allEntries = true)
     public MatierePremiere saveMatierePremiere(MatierePremiere matierePremiere) {
         matierePremiere.setPrixUnitaire(0.0);
         return matierePremiereRepository.save(matierePremiere);
     }
 
+    @Cacheable("matieres-premieres")
     public List<MatierePremiere> getAllMatierePremieres() {
         return matierePremiereRepository.findAll();
     }
@@ -39,9 +46,12 @@ public class MatierePremiereService {
     }
 
     public MatierePremiere getMatierePremiereById(Long id) {
-        return matierePremiereRepository.findById(id).orElseThrow(() -> new RuntimeException("Matière première non trouvée"));
+        return matierePremiereRepository.findById(id)
+                .orElseThrow(() -> new MatierePremiereNotFoundException("Matière première non trouvée avec l'ID : " + id));
     }
 
+    @Transactional
+    @CacheEvict(value = "matieres-premieres", allEntries = true)
     public MatierePremiere updateMatierePremiere(Long id, MatierePremiere matierePremiereDetails) {
         MatierePremiere matierePremiere = getMatierePremiereById(id);
         matierePremiere.setNom(matierePremiereDetails.getNom());
@@ -51,6 +61,8 @@ public class MatierePremiereService {
     }
 
 
+    @Transactional
+    @CacheEvict(value = "matieres-premieres", allEntries = true)
     public void deleteMatierePremiere(Long id) {
         matierePremiereRepository.deleteById(id);
     }

@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Secrets - Ne jamais committer ces fichiers ###
+src/main/resources/application-dev.properties
+src/main/resources/application-prod.properties
+*.env
+.env
+secrets.properties

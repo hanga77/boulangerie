@@ -1,6 +1,7 @@
 package lab.hang.Gestion.boulangerie.service;
 
 import lab.hang.Gestion.boulangerie.model.CompteBancaire;
+import lab.hang.Gestion.boulangerie.model.CompteComptable;
 import lab.hang.Gestion.boulangerie.model.EcritureComptable;
 import lab.hang.Gestion.boulangerie.model.Facture;
 import lab.hang.Gestion.boulangerie.repository.CompteBancaireRepository;
@@ -34,17 +35,16 @@ public class ComptabiliteService {
 
         switch (type) {
             case "VENTE":
-                compteDebit = "512"; // Banque
-                compteCredit = "707"; // Ventes de marchandises
+                compteDebit = CompteComptable.BANQUE.getCode();
+                compteCredit = CompteComptable.VENTES_MARCHANDISES.getCode();
                 break;
             case "ACHAT":
-                compteDebit = "607"; // Achats de marchandises
-                compteCredit = "512"; // Banque
+                compteDebit = CompteComptable.ACHATS_MARCHANDISES.getCode();
+                compteCredit = CompteComptable.BANQUE.getCode();
                 break;
-            // Autres cas
             default:
-                compteDebit = "471"; // Compte d'attente
-                compteCredit = "471"; // Compte d'attente
+                compteDebit = CompteComptable.COMPTE_ATTENTE.getCode();
+                compteCredit = CompteComptable.COMPTE_ATTENTE.getCode();
         }
 
         // Créer l'écriture de débit

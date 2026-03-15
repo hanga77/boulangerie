@@ -5,6 +5,9 @@ import lab.hang.Gestion.boulangerie.exception.UserNotAuthenticatedException;
 import lab.hang.Gestion.boulangerie.exception.UserNotFoundException;
 import lab.hang.Gestion.boulangerie.model.User;
 import lab.hang.Gestion.boulangerie.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +19,8 @@ import java.util.List;
 @Service
 public class UserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -26,6 +31,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public void registerUser(User user) {
         // Vérifier si c'est le premier utilisateur
         if (userRepository.count() == 0) {
@@ -39,12 +45,14 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
     public User activateUser(Long userId) {
         User user = getUserById(userId);
         user.setActive(true);
         return userRepository.save(user);
     }
 
+    @Transactional
     public User updateUserRole(Long userId, String newRole) {
         User user = getUserById(userId);
         user.setRole(newRole);
@@ -66,7 +74,7 @@ public class UserService {
 
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println("Authentication: " + authentication);
+        log.debug("Récupération utilisateur courant - authentication: {}", authentication);
 
         if (authentication == null) {
             throw new UserNotAuthenticatedException("Aucune authentification trouvée.");
@@ -77,7 +85,7 @@ public class UserService {
         }
 
         String username = authentication.getName();
-        System.out.println("Username: " + username);
+        log.debug("Utilisateur authentifié: {}", username);
 
         if ("anonymousUser".equals(username)) {
             throw new UserNotAuthenticatedException("Session utilisateur invalide.");
@@ -95,7 +103,7 @@ public class UserService {
 
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec l'ID : " + userId));
     }
 
 }

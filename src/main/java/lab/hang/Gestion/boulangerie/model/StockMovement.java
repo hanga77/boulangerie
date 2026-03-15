@@ -3,11 +3,20 @@ package lab.hang.Gestion.boulangerie.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@Table(name = "stock_movement", indexes = {
+        @Index(name = "idx_stock_movement_date", columnList = "date"),
+        @Index(name = "idx_stock_movement_type", columnList = "type")
+})
 public class StockMovement {
 
     @Id
@@ -16,81 +25,21 @@ public class StockMovement {
 
     @Column(nullable = false)
     @Pattern(regexp = "^(ENTREE|SORTIE)$")
-    private String type; // "ENTREE" ou "SORTIE"
+    private String type;
 
     @Column(nullable = false)
-    @Positive // Vérifiez que le stock est positif
+    @Positive
     private double quantite;
 
     @Column(nullable = false)
     private LocalDate date;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "matiere_premiere_id", nullable = false)
     private MatierePremiere matierePremiere;
 
-    @ManyToOne
-    private User user; // Qui a effectué le mouvement
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User user;
 
-    private String motif; // Raison du mouvement
-
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getMotif() {
-        return motif;
-    }
-
-    public void setMotif(String motif) {
-        this.motif = motif;
-    }
-
-
-
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public double getQuantite() {
-        return quantite;
-    }
-
-    public void setQuantite(double quantite) {
-        this.quantite = quantite;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public MatierePremiere getMatierePremiere() {
-        return matierePremiere;
-    }
-
-    public void setMatierePremiere(MatierePremiere matierePremiere) {
-        this.matierePremiere = matierePremiere;
-    }
+    private String motif;
 }

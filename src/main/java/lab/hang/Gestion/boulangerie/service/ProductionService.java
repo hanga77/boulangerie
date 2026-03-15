@@ -1,6 +1,9 @@
 package lab.hang.Gestion.boulangerie.service;
 
 import jakarta.transaction.Transactional;
+import lab.hang.Gestion.boulangerie.exception.MatierePremiereNotFoundException;
+import lab.hang.Gestion.boulangerie.exception.ProductionNotFoundException;
+import lab.hang.Gestion.boulangerie.exception.StockInsuffisantException;
 import lab.hang.Gestion.boulangerie.dto.CommandeDTO;
 import lab.hang.Gestion.boulangerie.dto.ProductionDTO;
 import lab.hang.Gestion.boulangerie.dto.ProduitDTO;
@@ -118,7 +121,7 @@ public class ProductionService {
             // Vérifier si la quantité livrée est valide
             Integer quantiteRestante = produitsRestants.getOrDefault(produitId, 0);
             if (quantiteLivree > quantiteRestante) {
-                throw new RuntimeException("Quantité livrée supérieure à la quantité restante pour le produit ID : " + produitId);
+                throw new IllegalArgumentException("Quantité livrée supérieure à la quantité restante pour le produit ID : " + produitId);
             }
 
             // Mettre à jour les quantités restantes
@@ -134,7 +137,7 @@ public class ProductionService {
     public void updateProduction(ProductionDTO productionDTO) {
         // 1. Récupérer la production existante
         Production production = productionRepository.findById(productionDTO.getId())
-                .orElseThrow(() -> new RuntimeException("Production non trouvée avec l'ID : " + productionDTO.getId()));
+                .orElseThrow(() -> new ProductionNotFoundException("Production non trouvée avec l'ID : " + productionDTO.getId()));
 
         // 2. Mettre à jour les quantités réelles
         Map<MatierePremiere, Double> quantitesReelles = new HashMap<>();
@@ -170,7 +173,7 @@ public class ProductionService {
             // Soustraire la quantité utilisée du stock
             double nouveauStock = matierePremiere.getStock() - quantiteUtilisee;
             if (nouveauStock < 0) {
-                throw new RuntimeException("Stock insuffisant pour la matière première : " + matierePremiere.getNom());
+                throw new StockInsuffisantException("Stock insuffisant pour la matière première : " + matierePremiere.getNom());
             }
 
             matierePremiere.setStock(nouveauStock);
@@ -182,7 +185,7 @@ public class ProductionService {
     public ProductionDTO getProductionById(Long productionId) {
         // 1. Récupérer la production
         Production production = productionRepository.findById(productionId)
-                .orElseThrow(() -> new RuntimeException("Production non trouvée avec l'ID : " + productionId));
+                .orElseThrow(() -> new ProductionNotFoundException("Production non trouvée avec l'ID : " + productionId));
 
         return productionMapper.toDTO(production);
     }
@@ -211,7 +214,7 @@ public class ProductionService {
             Double quantiteNecessaire = entry.getValue();
 
             MatierePremiere matiere = matierePremiereRepository.findById(matiereId)
-                    .orElseThrow(() -> new RuntimeException("Matière première non trouvée avec l'ID : " + matiereId));
+                    .orElseThrow(() -> new MatierePremiereNotFoundException("Matière première non trouvée avec l'ID : " + matiereId));
 
             if (matiere.getStock() < quantiteNecessaire) {
                 return false; // Stock insuffisant
@@ -224,7 +227,7 @@ public class ProductionService {
     @Transactional
     public double calculerCoutProduction(Long productionId) {
         Production production = productionRepository.findById(productionId)
-                .orElseThrow(() -> new RuntimeException("Production non trouvée avec l'ID : " + productionId));
+                .orElseThrow(() -> new ProductionNotFoundException("Production non trouvée avec l'ID : " + productionId));
 
         double coutTotal = 0;
 
