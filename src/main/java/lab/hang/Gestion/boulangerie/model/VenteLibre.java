@@ -36,5 +36,9 @@ public class VenteLibre {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "guichet_id")
+    private Guichet guichet;
+
     private double montantTotal;
 }

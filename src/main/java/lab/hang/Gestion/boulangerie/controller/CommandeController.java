@@ -3,6 +3,7 @@ package lab.hang.Gestion.boulangerie.controller;
 import lab.hang.Gestion.boulangerie.dto.CommandeDTO;
 import lab.hang.Gestion.boulangerie.dto.ProduitDTO;
 import lab.hang.Gestion.boulangerie.service.CommandeService;
+import lab.hang.Gestion.boulangerie.service.PointDeVenteService;
 import lab.hang.Gestion.boulangerie.service.ProduitService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -27,10 +28,13 @@ public class CommandeController {
 
     private final CommandeService commandeService;
     private final ProduitService produitService;
+    private final PointDeVenteService pointDeVenteService;
 
-    public CommandeController(CommandeService commandeService, ProduitService produitService) {
+    public CommandeController(CommandeService commandeService, ProduitService produitService,
+                              PointDeVenteService pointDeVenteService) {
         this.commandeService = commandeService;
         this.produitService = produitService;
+        this.pointDeVenteService = pointDeVenteService;
     }
 
     @GetMapping
@@ -52,6 +56,8 @@ public class CommandeController {
     public String showCreateForm(Model model) {
         model.addAttribute("commandeDTO", new CommandeDTO());
         model.addAttribute("produits", produitService.getAllProduits());
+        model.addAttribute("pointsDeVente", pointDeVenteService.getPointsDeVenteActifs());
+        model.addAttribute("guichets", pointDeVenteService.getAllGuichetsActifs());
         return "commandes/create";
     }
 
@@ -60,6 +66,8 @@ public class CommandeController {
         CommandeDTO commandeDTO = commandeService.getCommandeById(id);
         model.addAttribute("commandeDTO", commandeDTO);
         model.addAttribute("produits", produitService.getAllProduits());
+        model.addAttribute("pointsDeVente", pointDeVenteService.getPointsDeVenteActifs());
+        model.addAttribute("guichets", pointDeVenteService.getAllGuichetsActifs());
         return "commandes/edit";
     }
 
@@ -68,6 +76,8 @@ public class CommandeController {
                                BindingResult result, Model model) {
         if (result.hasErrors()) {
             model.addAttribute("produits", produitService.getAllProduits());
+            model.addAttribute("pointsDeVente", pointDeVenteService.getPointsDeVenteActifs());
+            model.addAttribute("guichets", pointDeVenteService.getAllGuichetsActifs());
             return "commandes/create";
         }
         commandeService.createCommande(commandeDTO);
@@ -80,6 +90,8 @@ public class CommandeController {
                                  BindingResult result, Model model) {
         if (result.hasErrors()) {
             model.addAttribute("produits", produitService.getAllProduits());
+            model.addAttribute("pointsDeVente", pointDeVenteService.getPointsDeVenteActifs());
+            model.addAttribute("guichets", pointDeVenteService.getAllGuichetsActifs());
             return "commandes/edit";
         }
         commandeService.updateCommande(id, commandeDTO);

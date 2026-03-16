@@ -17,6 +17,10 @@ public class VenteLibreMapper {
         dto.setProductionId(venteLibre.getProduction().getId());
         dto.setVendeurUsername(venteLibre.getUser().getUsername());
         dto.setMontantTotal(venteLibre.getMontantTotal());
+        if (venteLibre.getGuichet() != null) {
+            dto.setGuichetId(venteLibre.getGuichet().getId());
+            dto.setNomGuichet(venteLibre.getGuichet().getNom());
+        }
 
         Map<Long, Integer> produitsVendus = new HashMap<>();
         Map<Long, String> nomsProduits = new HashMap<>();

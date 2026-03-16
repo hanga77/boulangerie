@@ -3,6 +3,7 @@ package lab.hang.Gestion.boulangerie.mapper;
 import lab.hang.Gestion.boulangerie.dto.CommandeDTO;
 import lab.hang.Gestion.boulangerie.model.Commande;
 import lab.hang.Gestion.boulangerie.model.Produit;
+import lab.hang.Gestion.boulangerie.service.PointDeVenteService;
 import lab.hang.Gestion.boulangerie.service.ProduitService;
 import org.springframework.stereotype.Component;
 
@@ -13,9 +14,11 @@ import java.util.Map;
 public class CommandeMapper {
 
     private final ProduitService produitService;
+    private final PointDeVenteService pointDeVenteService;
 
-    public CommandeMapper(ProduitService produitService) {
+    public CommandeMapper(ProduitService produitService, PointDeVenteService pointDeVenteService) {
         this.produitService = produitService;
+        this.pointDeVenteService = pointDeVenteService;
     }
     // Convertir CommandeDTO en Commande
     public Commande toEntity(CommandeDTO commandeDTO) {
@@ -24,7 +27,12 @@ public class CommandeMapper {
             commande.setId(commandeDTO.getId());
         }
         commande.setDateCommande(commandeDTO.getDateCommande());
-        commande.setPointDeVente(commandeDTO.getPointDeVente());
+        if (commandeDTO.getPointDeVenteId() != null) {
+            commande.setPointDeVente(pointDeVenteService.getEntityById(commandeDTO.getPointDeVenteId()));
+        }
+        if (commandeDTO.getGuichetId() != null) {
+            commande.setGuichet(pointDeVenteService.getGuichetEntityById(commandeDTO.getGuichetId()));
+        }
 
         commande.setProcessed(commandeDTO.isProcessed());
         // Convertir Map<Long, Integer> en Map<Produit, Integer>
@@ -48,7 +56,14 @@ public class CommandeMapper {
         CommandeDTO commandeDTO = new CommandeDTO();
         commandeDTO.setId(commande.getId());
         commandeDTO.setDateCommande(commande.getDateCommande());
-        commandeDTO.setPointDeVente(commande.getPointDeVente());
+        if (commande.getPointDeVente() != null) {
+            commandeDTO.setPointDeVenteId(commande.getPointDeVente().getId());
+            commandeDTO.setNomPointDeVente(commande.getPointDeVente().getNom());
+        }
+        if (commande.getGuichet() != null) {
+            commandeDTO.setGuichetId(commande.getGuichet().getId());
+            commandeDTO.setNomGuichet(commande.getGuichet().getNom());
+        }
 
         commandeDTO.setProcessed(commande.isProcessed());
         // Convertir Map<Produit, Integer> en Map<Long, Integer>

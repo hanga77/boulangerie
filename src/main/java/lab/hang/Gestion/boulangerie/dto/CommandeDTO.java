@@ -1,6 +1,5 @@
 package lab.hang.Gestion.boulangerie.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
@@ -14,8 +13,13 @@ public class CommandeDTO {
     @NotNull(message = "La date de commande est obligatoire")
     private LocalDate dateCommande;
 
-    @NotBlank(message = "Le point de vente est obligatoire")
-    private String pointDeVente;
+    @NotNull(message = "Le point de vente est obligatoire")
+    private Long pointDeVenteId;
+
+    private String nomPointDeVente;
+
+    private Long guichetId;
+    private String nomGuichet;
 
     @NotNull(message = "Les produits commandés sont obligatoires")
     @NotEmpty(message = "Au moins un produit doit être commandé")
@@ -42,8 +46,17 @@ public class CommandeDTO {
     public LocalDate getDateCommande() { return dateCommande; }
     public void setDateCommande(LocalDate dateCommande) { this.dateCommande = dateCommande; }
 
-    public String getPointDeVente() { return pointDeVente; }
-    public void setPointDeVente(String pointDeVente) { this.pointDeVente = pointDeVente; }
+    public Long getPointDeVenteId() { return pointDeVenteId; }
+    public void setPointDeVenteId(Long pointDeVenteId) { this.pointDeVenteId = pointDeVenteId; }
+
+    public String getNomPointDeVente() { return nomPointDeVente; }
+    public void setNomPointDeVente(String nomPointDeVente) { this.nomPointDeVente = nomPointDeVente; }
+
+    public Long getGuichetId() { return guichetId; }
+    public void setGuichetId(Long guichetId) { this.guichetId = guichetId; }
+
+    public String getNomGuichet() { return nomGuichet; }
+    public void setNomGuichet(String nomGuichet) { this.nomGuichet = nomGuichet; }
 
     public Map<Long, Integer> getProduitsCommandes() { return produitsCommandes; }
     public void setProduitsCommandes(Map<Long, Integer> produitsCommandes) { this.produitsCommandes = produitsCommandes; }

@@ -5,6 +5,7 @@ import lab.hang.Gestion.boulangerie.dto.ProductionDTO;
 import lab.hang.Gestion.boulangerie.dto.ProduitDTO;
 import lab.hang.Gestion.boulangerie.dto.VenteLibreDTO;
 import lab.hang.Gestion.boulangerie.model.Production;
+import lab.hang.Gestion.boulangerie.service.PointDeVenteService;
 import lab.hang.Gestion.boulangerie.service.ProductionService;
 import lab.hang.Gestion.boulangerie.service.ProduitService;
 import lab.hang.Gestion.boulangerie.service.VenteLibreService;
@@ -26,13 +27,16 @@ public class VenteLibreController {
     private final VenteLibreService venteLibreService;
     private final ProductionService productionService;
     private final ProduitService produitService;
+    private final PointDeVenteService pointDeVenteService;
 
     public VenteLibreController(VenteLibreService venteLibreService,
                                 ProductionService productionService,
-                                ProduitService produitService) {
+                                ProduitService produitService,
+                                PointDeVenteService pointDeVenteService) {
         this.venteLibreService = venteLibreService;
         this.productionService = productionService;
         this.produitService = produitService;
+        this.pointDeVenteService = pointDeVenteService;
     }
 
     @GetMapping
@@ -50,6 +54,7 @@ public class VenteLibreController {
 
         model.addAttribute("productions", productions);
         model.addAttribute("venteLibreRequest", new CreateVenteLibreRequest());
+        model.addAttribute("guichets", pointDeVenteService.getAllGuichetsActifs());
         return "vente-libre/create";
     }
 

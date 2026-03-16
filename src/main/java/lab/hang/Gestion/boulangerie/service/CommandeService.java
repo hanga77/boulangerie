@@ -26,12 +26,16 @@ public class CommandeService {
     private final CommandeMapper commandeMapper;
     private final ProduitService produitService;
     private final UserService userService;
+    private final PointDeVenteService pointDeVenteService;
 
-    public CommandeService(CommandeRepository commandeRepository, CommandeMapper commandeMapper, ProduitService produitService, UserService userService) {
+    public CommandeService(CommandeRepository commandeRepository, CommandeMapper commandeMapper,
+                           ProduitService produitService, UserService userService,
+                           PointDeVenteService pointDeVenteService) {
         this.commandeRepository = commandeRepository;
         this.commandeMapper = commandeMapper;
         this.produitService = produitService;
         this.userService = userService;
+        this.pointDeVenteService = pointDeVenteService;
     }
 
     // Créer une commande et retourner un CommandeDTO
@@ -64,7 +68,10 @@ public class CommandeService {
 
         // Mettre à jour les champs de la commande
         commande.setDateCommande(commandeDTO.getDateCommande());
-        commande.setPointDeVente(commandeDTO.getPointDeVente());
+        commande.setPointDeVente(commandeDTO.getPointDeVenteId() != null
+                ? pointDeVenteService.getEntityById(commandeDTO.getPointDeVenteId()) : null);
+        commande.setGuichet(commandeDTO.getGuichetId() != null
+                ? pointDeVenteService.getGuichetEntityById(commandeDTO.getGuichetId()) : null);
 
 
         final double[] coutTotal = {0.0};

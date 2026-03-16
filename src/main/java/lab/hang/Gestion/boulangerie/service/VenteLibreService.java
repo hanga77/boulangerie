@@ -26,6 +26,7 @@ public class VenteLibreService {
     private final VenteLibreMapper venteLibreMapper;
     private final TransactionRepository transactionRepository;
     private final CompteBancaireRepository compteBancaireRepository;
+    private final PointDeVenteService pointDeVenteService;
 
     public VenteLibreService(VenteLibreRepository venteLibreRepository,
                              ProductionRepository productionRepository,
@@ -33,7 +34,8 @@ public class VenteLibreService {
                              UserService userService,
                              VenteLibreMapper venteLibreMapper,
                              TransactionRepository transactionRepository,
-                             CompteBancaireRepository compteBancaireRepository) {
+                             CompteBancaireRepository compteBancaireRepository,
+                             PointDeVenteService pointDeVenteService) {
         this.venteLibreRepository = venteLibreRepository;
         this.productionRepository = productionRepository;
         this.produitRepository = produitRepository;
@@ -41,6 +43,7 @@ public class VenteLibreService {
         this.venteLibreMapper = venteLibreMapper;
         this.transactionRepository = transactionRepository;
         this.compteBancaireRepository = compteBancaireRepository;
+        this.pointDeVenteService = pointDeVenteService;
     }
 
     public VenteLibreDTO createVenteLibre(CreateVenteLibreRequest request) {
@@ -51,6 +54,9 @@ public class VenteLibreService {
         venteLibre.setDateVente(LocalDate.now());
         venteLibre.setProduction(production);
         venteLibre.setUser(currentUser);
+        if (request.getGuichetId() != null) {
+            venteLibre.setGuichet(pointDeVenteService.getGuichetEntityById(request.getGuichetId()));
+        }
 
         Map<Produit, Integer> produitsVendus = new HashMap<>();
         Map<Produit, Integer> produitsRestants = production.getProduitsRestants();

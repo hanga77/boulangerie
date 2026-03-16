@@ -13,6 +13,8 @@ public class VenteLibreDTO {
     private Map<Long, String> nomsProduits;       // produitId -> nom (pour affichage)
     private Map<Long, Double> prixProduits;       // produitId -> prix unitaire
     private double montantTotal;
+    private Long guichetId;
+    private String nomGuichet;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -37,4 +39,10 @@ public class VenteLibreDTO {
 
     public double getMontantTotal() { return montantTotal; }
     public void setMontantTotal(double montantTotal) { this.montantTotal = montantTotal; }
+
+    public Long getGuichetId() { return guichetId; }
+    public void setGuichetId(Long guichetId) { this.guichetId = guichetId; }
+
+    public String getNomGuichet() { return nomGuichet; }
+    public void setNomGuichet(String nomGuichet) { this.nomGuichet = nomGuichet; }
 }

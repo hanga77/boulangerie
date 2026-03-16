@@ -22,7 +22,7 @@
                 <!-- Sélection de la production -->
                 <div class="mb-4">
                     <h5><i class="fas fa-industry me-2"></i>Production</h5>
-                    <div class="row">
+                    <div class="row g-3">
                         <div class="col-md-6">
                             <label for="productionId" class="form-label">Sélectionner la production</label>
                             <select class="form-control" id="productionId" th:field="*{productionId}" required>
@@ -31,6 +31,15 @@
                                         th:value="${production.id}"
                                         th:text="${'Production du ' + #temporals.format(production.dateProduction, 'dd/MM/yyyy')}">
                                 </option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="guichetId" class="form-label">Guichet (optionnel)</label>
+                            <select class="form-select" id="guichetId" th:field="*{guichetId}">
+                                <option value="">-- Aucun guichet --</option>
+                                <option th:each="g : ${guichets}"
+                                        th:value="${g.id}"
+                                        th:text="${g.nomPointDeVente + ' › ' + g.nom}"></option>
                             </select>
                         </div>
                     </div>

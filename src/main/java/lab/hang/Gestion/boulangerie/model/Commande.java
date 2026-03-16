@@ -33,8 +33,13 @@ public class Commande {
     @Column(name = "quantite")
     private Map<Produit, Integer> produitsCommandes = new HashMap<>();
 
-    @Column(nullable = false)
-    private String pointDeVente;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "point_de_vente_id")
+    private PointDeVente pointDeVente;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "guichet_id")
+    private Guichet guichet;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

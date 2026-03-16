@@ -22,9 +22,23 @@
                     <div class="text-danger" th:if="${#fields.hasErrors('dateCommande')}" th:errors="*{dateCommande}"></div>
                 </div>
                 <div class="mb-3">
-                    <label for="pointDeVente">Point de Vente:</label>
-                    <input type="text" id="pointDeVente" th:field="*{pointDeVente}" class="form-control" required />
-                    <div class="text-danger" th:if="${#fields.hasErrors('pointDeVente')}" th:errors="*{pointDeVente}"></div>
+                    <label for="pointDeVenteId">Point de Vente:</label>
+                    <select id="pointDeVenteId" th:field="*{pointDeVenteId}" class="form-select" required>
+                        <option value="">-- Choisir un point de vente --</option>
+                        <option th:each="pdv : ${pointsDeVente}"
+                                th:value="${pdv.id}"
+                                th:text="${pdv.nom}"></option>
+                    </select>
+                    <div class="text-danger" th:if="${#fields.hasErrors('pointDeVenteId')}" th:errors="*{pointDeVenteId}"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="guichetId">Guichet (optionnel):</label>
+                    <select id="guichetId" th:field="*{guichetId}" class="form-select">
+                        <option value="">-- Aucun guichet --</option>
+                        <option th:each="g : ${guichets}"
+                                th:value="${g.id}"
+                                th:text="${g.nomPointDeVente + ' › ' + g.nom}"></option>
+                    </select>
                 </div>
                 <div class="mb-3">
                     <h3>Produits Commandés</h3>
