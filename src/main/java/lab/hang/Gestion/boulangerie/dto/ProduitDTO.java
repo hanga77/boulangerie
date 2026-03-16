@@ -22,6 +22,8 @@ public class ProduitDTO {
     @NotNull(message = "Les matières premières sont obligatoires")
     private Map<Long, Double> matieresPremieres;
 
+    private int quantiteVenteLibreJournaliere;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -36,4 +38,7 @@ public class ProduitDTO {
 
     public Map<Long, Double> getMatieresPremieres() { return matieresPremieres; }
     public void setMatieresPremieres(Map<Long, Double> matieresPremieres) { this.matieresPremieres = matieresPremieres; }
+
+    public int getQuantiteVenteLibreJournaliere() { return quantiteVenteLibreJournaliere; }
+    public void setQuantiteVenteLibreJournaliere(int quantiteVenteLibreJournaliere) { this.quantiteVenteLibreJournaliere = quantiteVenteLibreJournaliere; }
 }

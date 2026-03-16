@@ -29,6 +29,15 @@
         </div>
 
         <div class="mb-3">
+            <label for="quantiteVenteLibreJournaliere" class="form-label">
+                Quota vente libre / jour
+                <small class="text-muted">(quantité supplémentaire produite pour la vente au comptoir)</small>
+            </label>
+            <input type="number" min="0" class="form-control" id="quantiteVenteLibreJournaliere"
+                   th:field="*{quantiteVenteLibreJournaliere}" />
+        </div>
+
+        <div class="mb-3">
             <h3>Matières Premières Nécessaires</h3>
             <div id="matieresList">
                 <!-- Les matières premières seront ajoutées ici dynamiquement -->

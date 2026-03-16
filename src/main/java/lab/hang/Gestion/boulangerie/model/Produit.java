@@ -29,6 +29,9 @@ public class Produit {
     @Column(nullable = false)
     private double quantiteAttendue;
 
+    @Column(nullable = false)
+    private int quantiteVenteLibreJournaliere = 0;
+
     @ElementCollection
     @CollectionTable(name = "produit_matiere_premiere", joinColumns = @JoinColumn(name = "produit_id"))
     @MapKeyJoinColumn(name = "matiere_premiere_id")

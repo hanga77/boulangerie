@@ -86,6 +86,16 @@ public class ProductionService {
             }
         }
 
+        // Ajouter le quota de vente libre pour chaque produit défini
+        for (ProduitDTO produit : produitService.getAllProduits()) {
+            if (produit.getQuantiteVenteLibreJournaliere() > 0) {
+                produitsProduits.merge(produit.getId(), produit.getQuantiteVenteLibreJournaliere(), Integer::sum);
+                Map<MatierePremiere, Double> matieresPourQuota =
+                        produitService.calculateMatieresPremieresNecessaires(produit, produit.getQuantiteVenteLibreJournaliere());
+                matieresPourQuota.forEach((matiere, quantite) ->
+                        matieresUtilisees.merge(matiere.getId(), quantite, Double::sum));
+            }
+        }
 
         // Create and populate ProductionDTO
         ProductionDTO productionDTO = new ProductionDTO();

@@ -25,6 +25,7 @@ public class ProduitMapper {
         produit.setNom(produitDTO.getNom());
         produit.setPrix(produitDTO.getPrix());
         produit.setQuantiteAttendue(produitDTO.getQuantiteAttendue());
+        produit.setQuantiteVenteLibreJournaliere(produitDTO.getQuantiteVenteLibreJournaliere());
 
         // Convertir Map<Long, Double> en Map<MatierePremiere, Double>
         Map<MatierePremiere, Double> matieresPremieres = new HashMap<>();
@@ -45,6 +46,7 @@ public class ProduitMapper {
         produitDTO.setNom(produit.getNom());
         produitDTO.setPrix(produit.getPrix());
         produitDTO.setQuantiteAttendue(produit.getQuantiteAttendue());
+        produitDTO.setQuantiteVenteLibreJournaliere(produit.getQuantiteVenteLibreJournaliere());
 
         // Convertir Map<MatierePremiere, Double> en Map<Long, Double>
         Map<Long, Double> matieresPremieres = new HashMap<>();

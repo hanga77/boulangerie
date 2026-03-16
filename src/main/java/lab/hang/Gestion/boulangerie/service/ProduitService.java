@@ -41,6 +41,7 @@ public class ProduitService {
         produit.setNom(produitDTO.getNom());
         produit.setPrix(produitDTO.getPrix());
         produit.setQuantiteAttendue(produitDTO.getQuantiteAttendue());
+        produit.setQuantiteVenteLibreJournaliere(produitDTO.getQuantiteVenteLibreJournaliere());
 
         log.debug("Sauvegarde produit: {}, matières premières: {}", produitDTO.getNom(), produitDTO.getMatieresPremieres());
 
@@ -65,6 +66,7 @@ public class ProduitService {
         produit.setNom(produitDTO.getNom());
         produit.setPrix(produitDTO.getPrix());
         produit.setQuantiteAttendue(produitDTO.getQuantiteAttendue());
+        produit.setQuantiteVenteLibreJournaliere(produitDTO.getQuantiteVenteLibreJournaliere());
 
         // Mettre à jour les matières premières nécessaires
         Map<MatierePremiere, Double> matieresPremieres = new HashMap<>();

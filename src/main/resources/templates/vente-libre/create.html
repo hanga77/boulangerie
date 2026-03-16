@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Nouvelle Vente Libre')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-store me-2"></i>Nouvelle Vente Libre</h1>
+        <a href="/ventes-libres" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form th:action="@{/ventes-libres/save}" method="post"
+                  th:object="${venteLibreRequest}" id="venteLibreForm">
+
+                <!-- Sélection de la production -->
+                <div class="mb-4">
+                    <h5><i class="fas fa-industry me-2"></i>Production</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="productionId" class="form-label">Sélectionner la production</label>
+                            <select class="form-control" id="productionId" th:field="*{productionId}" required>
+                                <option value="">Choisir une production...</option>
+                                <option th:each="production : ${productions}"
+                                        th:value="${production.id}"
+                                        th:text="${'Production du ' + #temporals.format(production.dateProduction, 'dd/MM/yyyy')}">
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Produits disponibles (chargés en AJAX) -->
+                <div class="mb-4">
+                    <h5><i class="fas fa-box me-2"></i>Produits à vendre</h5>
+                    <div id="produitsSection">
+                        <p class="text-muted">Sélectionnez une production pour voir les produits disponibles.</p>
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <a href="/ventes-libres" class="btn btn-secondary me-2">
+                        <i class="fas fa-times me-1"></i>Annuler
+                    </a>
+                    <button type="submit" class="btn btn-success" id="submitBtn" disabled>
+                        <i class="fas fa-cash-register me-1"></i>Enregistrer la vente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script>
+    function loadProduits(productionId) {
+        const produitsSection = document.getElementById('produitsSection');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (!productionId) {
+            produitsSection.innerHTML = '<p class="text-muted">Sélectionnez une production pour voir les produits disponibles.</p>';
+            submitBtn.disabled = true;
+            return;
+        }
+
+        produitsSection.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Chargement des produits...</p>
+            </div>`;
+
+        fetch(`/ventes-libres/ajax/production/${productionId}/produits`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error || !data.produitsRestants || Object.keys(data.produitsRestants).length === 0) {
+                    produitsSection.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Aucun produit disponible pour cette production.
+                        </div>`;
+                    submitBtn.disabled = true;
+                    return;
+                }
+
+                let html = '<div class="card"><div class="card-body">';
+                html += `<div class="row fw-bold mb-3 border-bottom pb-2">
+                            <div class="col-md-4">Produit</div>
+                            <div class="col-md-3">Disponible</div>
+                            <div class="col-md-3">Prix unitaire</div>
+                            <div class="col-md-2">Quantité à vendre</div>
+                         </div>`;
+
+                Object.entries(data.produitsRestants).forEach(([produitId, quantiteRestante]) => {
+                    const produit = data.nomsProduits[produitId];
+                    const nom = produit ? produit.nom : `Produit ${produitId}`;
+                    const prix = produit ? produit.prix : '-';
+                    html += `
+                        <div class="row mb-3 align-items-center">
+                            <div class="col-md-4 fw-semibold">${nom}</div>
+                            <div class="col-md-3">
+                                <span class="badge bg-secondary fs-6">${quantiteRestante}</span>
+                            </div>
+                            <div class="col-md-3 text-muted">${prix} XAF</div>
+                            <div class="col-md-2">
+                                <input type="number"
+                                       class="form-control"
+                                       name="produits[${produitId}]"
+                                       min="0"
+                                       max="${quantiteRestante}"
+                                       value="0"
+                                       placeholder="0" />
+                            </div>
+                        </div>`;
+                });
+
+                html += '</div></div>';
+                produitsSection.innerHTML = html;
+                submitBtn.disabled = false;
+            })
+            .catch(err => {
+                produitsSection.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>Erreur : ${err.message}
+                    </div>`;
+                submitBtn.disabled = true;
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const sel = document.getElementById('productionId');
+        sel.addEventListener('change', () => loadProduits(sel.value));
+        if (sel.value) loadProduits(sel.value);
+    });
+</script>
+</body>
+</html>
