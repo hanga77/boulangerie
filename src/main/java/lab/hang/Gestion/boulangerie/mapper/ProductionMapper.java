@@ -43,7 +43,6 @@ public class ProductionMapper {
         }
         production.setMatieresPremieresUtilisees(matieresPremieresUtilisees);
 
-        System.out.println("matieresPremieresUtilisees "+ matieresPremieresUtilisees);
         // Convertir les produits produits
         Map<Produit, Integer> produitsProduits = new HashMap<>();
         if (productionDTO.getProduitsProduits() != null) {

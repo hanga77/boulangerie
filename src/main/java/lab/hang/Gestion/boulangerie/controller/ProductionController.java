@@ -222,7 +222,7 @@ public class ProductionController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/enregistrer-cout")
-    public String enregistrerCoutProduction(@PathVariable Long id, @RequestParam double coutTotal, RedirectAttributes redirectAttributes) {
+    public String enregistrerCoutProduction(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             productionService.enregistrerCoutProduction(id );
             redirectAttributes.addFlashAttribute("success", "Coût de production enregistré avec succès");

@@ -171,7 +171,7 @@ public class PdfController {
         }
     }
 
-    @GetMapping("livraisons/{id}/imprimer")
+    @GetMapping("/livraisons/{id}/imprimer")
     public void generateFacture(@PathVariable Long id, HttpServletResponse response) throws Exception {
         LivraisonDTO livraison = livraisonService.getLivraisonById(id);
 

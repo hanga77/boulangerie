@@ -155,47 +155,6 @@ public class LivraisonService {
 
     @Transactional
     public void enregistrerRevenuLivraison(Long livraisonId, double montantTotal) {
-        Livraison livraison = livraisonRepository.findById(livraisonId)
-                .orElseThrow(() -> new RuntimeException("Livraison non trouvée avec l'ID : " + livraisonId));
-
-        CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal");
-        compte.setSolde(compte.getSolde() + montantTotal);
-
-        Transaction transaction = new Transaction();
-        transaction.setDate(LocalDate.now());
-        transaction.setType("VENTE");
-        transaction.setMontant(montantTotal);
-        transaction.setDescription("Revenu de la livraison ID: " + livraisonId);
-        transaction.setCompteBancaire(compte);
-
-        transactionRepository.save(transaction);
-        compteBancaireRepository.save(compte);
-    }
-
-    @Transactional
-    public double calculerMontantLivraison(Long livraisonId) {
-        Livraison livraison = livraisonRepository.findById(livraisonId)
-                .orElseThrow(() -> new RuntimeException("Livraison non trouvée avec l'ID : " + livraisonId));
-
-        /*double montantTotal = 0;
-
-        // Parcourir les produits livrés
-        for (Map.Entry<Produit, ProduitLivre> entry : livraison.getProduitsLivres().entrySet()) {
-            Produit produit = entry.getKey();
-            ProduitLivre produitLivre = entry.getValue();
-            double prixVente = produitLivre.getPrixVente();
-            int quantiteLivree = produitLivre.getQuantite();
-            montantTotal += prixVente * quantiteLivree;
-        }*/
-
-        return livraison.getMontantTotal();
-    }
-
-    @Transactional
-    public void enregistrerRevenuLivraison(Long livraisonId) {
-        double montantTotal = calculerMontantLivraison(livraisonId);
-
-        // Enregistrer la transaction financière
         CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal");
         compte.setSolde(compte.getSolde() + montantTotal);
 

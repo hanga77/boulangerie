@@ -16,20 +16,20 @@
         </div>
         <div class="card-body">
             <form th:action="@{/commandes/update/{id}(id=${commandeDTO.id})}" th:object="${commandeDTO}" method="post">
-                <div class="form-group mb-3">
+                <div class="mb-3">
                     <label for="dateCommande">Date de la Commande:</label>
                     <input type="date" id="dateCommande" th:field="*{dateCommande}" class="form-control" required />
                     <div class="text-danger" th:if="${#fields.hasErrors('dateCommande')}" th:errors="*{dateCommande}"></div>
                 </div>
-                <div class="form-group mb-3">
+                <div class="mb-3">
                     <label for="pointDeVente">Point de Vente:</label>
                     <input type="text" id="pointDeVente" th:field="*{pointDeVente}" class="form-control" required />
                     <div class="text-danger" th:if="${#fields.hasErrors('pointDeVente')}" th:errors="*{pointDeVente}"></div>
                 </div>
-                <div class="form-group">
+                <div class="mb-3">
                     <h3>Produits Commandés</h3>
-                    <table class="table table-striped">
-                        <thead>
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
                         <tr>
                             <th>Produit</th>
                             <th>Quantité</th>
@@ -45,7 +45,7 @@
                         </tbody>
                     </table>
                 </div>
-                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i>Enregistrer</button>
                 <a href="/commandes" class="btn btn-secondary mt-3">Retour à la liste</a>
             </form>
         </div>

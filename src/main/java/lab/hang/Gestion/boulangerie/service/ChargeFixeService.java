@@ -139,7 +139,9 @@ public class ChargeFixeService {
         return LocalDate.now().plusDays(7).isAfter(dateEcheance);
     }
 
+    @Transactional
     public void creerChargeFixe(ChargeFixeDTO chargeFixeDTO) {
+        chargeFixeRepository.save(mapToEntity(chargeFixeDTO));
     }
 
     public List<ChargeFixeDTO> getAllChargesFixe() {

@@ -10,13 +10,24 @@
 
 <!-- Contenu principal -->
 <div class="container mt-4">
-    <h1>Liste des Commandes</h1>
-    <a th:if="${#lists.isEmpty(commandes)}" th:href="@{/commandes/non-traitees}" class="btn btn-info btn-sm disabled" >
-        <i class="fa-solid fa-arrow-left me-1"></i>Commandes non traitées
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Liste des Commandes</h1>
+        <div>
+            <a href="/commandes/new" class="btn btn-primary me-2">
+                <i class="fas fa-plus me-1"></i>Nouvelle commande
+            </a>
+            <a href="/production/passer-a-la-production" class="btn btn-success">
+                <i class="fas fa-industry me-1"></i>Démarrer la production
+            </a>
+        </div>
+    </div>
+    <a th:if="${!#lists.isEmpty(commandes)}" th:href="@{/commandes/non-traitees}" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="fa-solid fa-list me-1"></i>Commandes non traitées
     </a>
     <!-- Tableau des commandes -->
-    <table class="table table-striped">
-        <thead>
+    <div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
         <tr>
             <th>Date</th>
             <th>Point de Vente</th>
@@ -30,7 +41,7 @@
             <td th:text="${commande.pointDeVente}"></td>
             <td th:text="${commande.coutTotal + ' XAF'}"></td>
             <td>
-                <a th:if="${commande.processed.equals(false)}" th:href="@{/commandes/edit/{id}(id=${commande.id})}" class="btn btn-primary btn-sm">Modifier</a>
+                <a th:if="${commande.processed.equals(false)}" th:href="@{/commandes/edit/{id}(id=${commande.id})}" class="btn btn-warning btn-sm"><i class="fas fa-edit me-1"></i>Modifier</a>
                 <a th:if="${commande.processed.equals(true)}" class="btn btn-secondary btn-sm disabled">Traitée</a>
                 <form th:if="${commande.processed.equals(false)}"
                       th:action="@{/commandes/delete/{id}(id=${commande.id})}" method="post"
@@ -41,11 +52,12 @@
                         <i class="fas fa-trash me-1"></i>Supprimer
                     </button>
                 </form>
-                <a th:href="@{/commandes/view/{id}(id=${commande.id})}" class="btn btn-info btn-sm">Voir</a>
+                <a th:href="@{/commandes/view/{id}(id=${commande.id})}" class="btn btn-info btn-sm"><i class="fas fa-eye me-1"></i>Voir</a>
             </td>
         </tr>
         </tbody>
     </table>
+    </div>
 
     <!-- Pagination -->
     <nav aria-label="Page navigation" th:if="${totalPages > 1}">
@@ -66,8 +78,6 @@
         </ul>
     </nav>
 
-    <a href="/commandes/new" class="btn btn-success">Créer une nouvelle commande</a>
-    <a href="/production/passer-a-la-production" class="btn btn-success">Démarrer la production</a>
 </div>
 
 

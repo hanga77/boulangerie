@@ -88,6 +88,49 @@ public class MatierePremiereController {
     }
 
 
+    @GetMapping("/add-stock")
+    public String showAddStockForm(@RequestParam Long id, Model model) {
+        model.addAttribute("matierePremiere", matierePremiereService.getMatierePremiereById(id));
+        return "matiere-premerie/add-stock";
+    }
+
+    @PostMapping("/add-stock")
+    public String addStock(@RequestParam Long id,
+                           @RequestParam double quantite,
+                           @RequestParam double prixUnitaire,
+                           RedirectAttributes redirectAttributes) {
+        try {
+            stockService.addStock(id, quantite, prixUnitaire);
+            redirectAttributes.addFlashAttribute("success", "Stock ajouté avec succès");
+        } catch (Exception e) {
+            log.error("Erreur lors de l'ajout du stock", e);
+            redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
+            return "redirect:/matieres-premieres/add-stock?id=" + id;
+        }
+        return "redirect:/matieres-premieres";
+    }
+
+    @GetMapping("/remove-stock")
+    public String showRemoveStockForm(@RequestParam Long id, Model model) {
+        model.addAttribute("matierePremiere", matierePremiereService.getMatierePremiereById(id));
+        return "matiere-premerie/remove-stock";
+    }
+
+    @PostMapping("/remove-stock")
+    public String removeStock(@RequestParam Long id,
+                              @RequestParam double quantite,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            stockService.removeStock(id, quantite);
+            redirectAttributes.addFlashAttribute("success", "Stock retiré avec succès");
+        } catch (Exception e) {
+            log.error("Erreur lors du retrait du stock", e);
+            redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
+            return "redirect:/matieres-premieres/remove-stock?id=" + id;
+        }
+        return "redirect:/matieres-premieres";
+    }
+
     @GetMapping("/mouvements-stock")
     public String gestionMouvementsStock(Model model) {
         // Récupérer la liste des matières premières

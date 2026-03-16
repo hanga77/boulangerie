@@ -11,11 +11,12 @@
 <!-- Contenu principal -->
 <div class="container mt-4">
     <h1 class="mb-4">Liste des Produits</h1>
-    <a href="/produits/new" class="btn btn-info mb-3">
+    <a href="/produits/new" class="btn btn-primary mb-3">
         <i class="fas fa-plus me-1"></i>Créer un nouveau produit
     </a>
-    <table class="table table-striped">
-        <thead>
+    <div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
         <tr>
             <th>ID</th>
             <th>Nom</th>
@@ -48,6 +49,7 @@
         </tr>
         </tbody>
     </table>
+    </div>
 
     <!-- Pagination -->
     <nav aria-label="Page navigation" th:if="${totalPages > 1}">
