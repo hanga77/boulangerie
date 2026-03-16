@@ -124,6 +124,9 @@ public class MatierePremiereController {
             } else if (type.equals("SORTIE")) {
                 stockService.removeStock(matierePremiereId, quantite);
                 redirectAttributes.addFlashAttribute("success", "Sortie de stock enregistrée avec succès");
+            } else if (type.equals("RETOUR")) {
+                stockService.returnStock(matierePremiereId, quantite, "RETOUR MANUEL");
+                redirectAttributes.addFlashAttribute("success", "Retour de stock enregistré avec succès");
             }
         } catch (SoldeInsuffisantException e) {
             redirectAttributes.addFlashAttribute("warning",

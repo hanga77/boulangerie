@@ -59,6 +59,7 @@
                             <select class="form-control" id="type" name="type" required>
                                 <option value="ENTREE">Entrée</option>
                                 <option value="SORTIE">Sortie</option>
+                                <option value="RETOUR">Retour au magasin</option>
                             </select>
                         </div>
                     </div>
@@ -125,7 +126,7 @@
             prixUnitaireField.style.display = "block";
             prixUnitaireInput.setAttribute("required", "required");
             prixUnitaireInput.setAttribute("min", "0.01");
-        } else {
+        } else { // SORTIE ou RETOUR
             prixUnitaireField.style.display = "none";
             prixUnitaireInput.removeAttribute("required");
             prixUnitaireInput.value = "";

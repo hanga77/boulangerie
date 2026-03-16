@@ -152,6 +152,29 @@ public class StockService {
         }
     }
 
+    /** Sortie de stock avec motif libre (ex: "PRODUCTION 2026-03-16"). */
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    public void removeStock(Long matierePremiereId, double quantite, String motif) {
+        if (quantite <= 0) throw new IllegalArgumentException("La quantité doit être positive.");
+        MatierePremiere matierePremiere = matierePremiereService.getMatierePremiereById(matierePremiereId);
+        if (matierePremiere.getStock() < quantite) {
+            throw new StockInsuffisantException("Stock insuffisant pour : " + matierePremiere.getNom());
+        }
+        matierePremiere.setStock(matierePremiere.getStock() - quantite);
+        recordStockMovementWithMotif(matierePremiere, quantite, "SORTIE", motif);
+        matierePremiereService.saveMatierePremiere(matierePremiere);
+    }
+
+    /** Retour de matières au magasin (invendu ou excédent de production). */
+    @Transactional
+    public void returnStock(Long matierePremiereId, double quantite, String motif) {
+        if (quantite <= 0) throw new IllegalArgumentException("La quantité doit être positive.");
+        MatierePremiere matierePremiere = matierePremiereService.getMatierePremiereById(matierePremiereId);
+        matierePremiere.setStock(matierePremiere.getStock() + quantite);
+        recordStockMovementWithMotif(matierePremiere, quantite, "RETOUR", motif);
+        matierePremiereService.saveMatierePremiere(matierePremiere);
+    }
+
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void removeStock(Long matierePremiereId, double quantite) {
         // Validation des entrées
@@ -178,6 +201,18 @@ public class StockService {
         matierePremiereService.saveMatierePremiere(matierePremiere);
     }
 
+
+    private void recordStockMovementWithMotif(MatierePremiere matierePremiere, double quantite, String type, String motif) {
+        User currentUser = userService.getCurrentUser();
+        StockMovement movement = new StockMovement();
+        movement.setType(type);
+        movement.setQuantite(quantite);
+        movement.setDate(LocalDate.now());
+        movement.setMatierePremiere(matierePremiere);
+        movement.setUser(currentUser);
+        movement.setMotif(motif);
+        stockMovementRepository.save(movement);
+    }
 
     private void recordStockMovement(MatierePremiere matierePremiere, double quantite, String type) {
         // Récupérer l'utilisateur courant avec gestion explicite des erreurs

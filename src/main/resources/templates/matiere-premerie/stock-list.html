@@ -72,8 +72,9 @@
                     <tr th:each="mouvement : ${mouvements}">
                         <td th:text="${#temporals.format(mouvement.date, 'dd/MM/yyyy HH:mm')}"></td>
                         <td>
-                            <span th:if="${mouvement.type == 'ENTREE'}" class="badge bg-success">Entrée</span>
-                            <span th:if="${mouvement.type == 'SORTIE'}" class="badge bg-danger">Sortie</span>
+                            <span th:if="${mouvement.type == 'ENTREE'}"  class="badge bg-success">Entrée</span>
+                            <span th:if="${mouvement.type == 'SORTIE'}"  class="badge bg-danger">Sortie</span>
+                            <span th:if="${mouvement.type == 'RETOUR'}"  class="badge bg-warning text-dark">Retour</span>
                         </td>
                         <td th:text="${mouvement.matierePremiere.nom}"></td>
                         <td th:text="${mouvement.quantite + ' ' + mouvement.matierePremiere.uniteMesure}"></td>

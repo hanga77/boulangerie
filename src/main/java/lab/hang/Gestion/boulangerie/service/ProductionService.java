@@ -11,6 +11,8 @@ import lab.hang.Gestion.boulangerie.mapper.CommandeMapper;
 import lab.hang.Gestion.boulangerie.mapper.ProductionMapper;
 import lab.hang.Gestion.boulangerie.model.*;
 import lab.hang.Gestion.boulangerie.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ import java.util.Map;
 
 @Service
 public class ProductionService {
+
+    private static final Logger log = LoggerFactory.getLogger(ProductionService.class);
 
 
     private final ProductionRepository productionRepository;
@@ -38,9 +42,11 @@ public class ProductionService {
     private final CommandeMapper commandeMapper;
     private  final CompteBancaireRepository compteBancaireRepository;
     private  final TransactionRepository transactionRepository;
+    private  final StockService stockService;
 
     public ProductionService(ProductionRepository productionRepository, MatierePremiereRepository matierePremiereRepository, CommandeRepository commandeRepository, CommandeService commandeService, ProductionMapper productionMapper, MatierePremiereService matierePremiereService, ProduitService produitService, CommandeMapper commandeMapper,
-                             CompteBancaireRepository compteBancaireRepository, TransactionRepository transactionRepository) {
+                             CompteBancaireRepository compteBancaireRepository, TransactionRepository transactionRepository,
+                             StockService stockService) {
         this.productionRepository = productionRepository;
         this.matierePremiereRepository = matierePremiereRepository;
         this.commandeRepository = commandeRepository;
@@ -51,6 +57,7 @@ public class ProductionService {
         this.commandeMapper = commandeMapper;
         this.compteBancaireRepository = compteBancaireRepository;
         this.transactionRepository = transactionRepository;
+        this.stockService = stockService;
     }
 
     public ProductionDTO startProduction(LocalDate dateProduction, User user) {
@@ -109,6 +116,18 @@ public class ProductionService {
         // Save production
         Production savedProduction = productionRepository.save(productionMapper.toEntity(productionDTO));
 
+        // Générer les sorties de stock pour les matières premières (quantités théoriques)
+        if (!matieresUtilisees.isEmpty()) {
+            String motif = "PRODUCTION " + dateProduction + " (prod. #" + savedProduction.getId() + ")";
+            matieresUtilisees.forEach((matiereId, quantite) -> {
+                try {
+                    stockService.removeStock(matiereId, quantite, motif);
+                } catch (Exception e) {
+                    log.warn("Stock insuffisant pour matière ID {} lors de la production : {}", matiereId, e.getMessage());
+                }
+            });
+        }
+
         // Update orders
         for (CommandeDTO commande : commandesDuJour) {
             Commande commandeEntity = commandeMapper.toEntity(commande);
@@ -158,6 +177,33 @@ public class ProductionService {
             quantitesReelles.put(matiere, entry.getValue());
         }
         production.setQuantitesReellesUtilisees(quantitesReelles);
+
+        // Réconcilier stock théorique vs réel
+        String motifBase = "RECONCILIATION prod. #" + production.getId();
+        Map<MatierePremiere, Double> theorique = production.getMatieresPremieresUtilisees();
+        for (Map.Entry<MatierePremiere, Double> entry : theorique.entrySet()) {
+            MatierePremiere matiere = entry.getKey();
+            double qteTheorique = entry.getValue();
+            double qteReelle = quantitesReelles.getOrDefault(matiere, 0.0);
+            double diff = qteTheorique - qteReelle;
+            if (diff > 0.0001) {
+                // Moins utilisé que prévu → retour au magasin
+                try {
+                    stockService.returnStock(matiere.getId(), diff,
+                            "RETOUR " + motifBase + " (" + matiere.getNom() + ")");
+                } catch (Exception e) {
+                    log.warn("Impossible d'enregistrer le retour pour {} : {}", matiere.getNom(), e.getMessage());
+                }
+            } else if (diff < -0.0001) {
+                // Plus utilisé que prévu → sortie supplémentaire
+                try {
+                    stockService.removeStock(matiere.getId(), -diff,
+                            "SUPPLEMENT " + motifBase + " (" + matiere.getNom() + ")");
+                } catch (Exception e) {
+                    log.warn("Impossible d'enregistrer la sortie supplément pour {} : {}", matiere.getNom(), e.getMessage());
+                }
+            }
+        }
 
         // 3. Mettre à jour les produits produits
         Map<Produit, Integer> produitsProduits = new HashMap<>();
