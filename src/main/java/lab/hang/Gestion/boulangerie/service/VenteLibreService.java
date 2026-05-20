@@ -105,7 +105,8 @@ public class VenteLibreService {
     }
 
     private void enregistrerRevenu(Long venteLibreId, double montantTotal) {
-        CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal");
+        CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal")
+                .orElseThrow(() -> new ResourceNotFoundException("Compte bancaire principal non trouvé"));
         compte.setSolde(compte.getSolde() + montantTotal);
 
         Transaction transaction = new Transaction();

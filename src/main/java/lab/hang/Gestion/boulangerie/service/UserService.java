@@ -1,10 +1,13 @@
 package lab.hang.Gestion.boulangerie.service;
 
 
+import lab.hang.Gestion.boulangerie.dto.RegisterRequest;
 import lab.hang.Gestion.boulangerie.exception.UserNotAuthenticatedException;
 import lab.hang.Gestion.boulangerie.exception.UserNotFoundException;
 import lab.hang.Gestion.boulangerie.model.User;
 import lab.hang.Gestion.boulangerie.repository.UserRepository;
+
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,8 @@ public class UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
+    private static final Set<String> VALID_ROLES = Set.of("ADMIN", "MANAGER", "BOULANGER");
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -32,8 +37,10 @@ public class UserService {
     }
 
     @Transactional
-    public void registerUser(User user) {
-        // Vérifier si c'est le premier utilisateur
+    public void registerUser(RegisterRequest request) {
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
         if (userRepository.count() == 0) {
             user.setRole("ADMIN");
             user.setActive(true);
@@ -41,8 +48,12 @@ public class UserService {
             user.setRole("BOULANGER");
             user.setActive(false);
         }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
+    }
+
+    public boolean hasUsers() {
+        return userRepository.count() > 0;
     }
 
     @Transactional
@@ -54,6 +65,9 @@ public class UserService {
 
     @Transactional
     public User updateUserRole(Long userId, String newRole) {
+        if (!VALID_ROLES.contains(newRole)) {
+            throw new IllegalArgumentException("Rôle invalide : " + newRole + ". Valeurs acceptées : " + VALID_ROLES);
+        }
         User user = getUserById(userId);
         user.setRole(newRole);
         return userRepository.save(user);

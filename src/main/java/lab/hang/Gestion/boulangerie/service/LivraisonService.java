@@ -2,6 +2,7 @@ package lab.hang.Gestion.boulangerie.service;
 
 import jakarta.transaction.Transactional;
 import lab.hang.Gestion.boulangerie.dto.CreateLivraisonRequest;
+import lab.hang.Gestion.boulangerie.dto.FactureDTO;
 import lab.hang.Gestion.boulangerie.dto.LivraisonDTO;
 import lab.hang.Gestion.boulangerie.dto.ProduitLivreRequest;
 import lab.hang.Gestion.boulangerie.exception.ResourceNotFoundException;
@@ -27,19 +28,19 @@ public class LivraisonService {
     private final UserService userService;
     private final ProductionService productionService;
     private final LivraisonMapper livraisonMapper;
-    private  final TransactionRepository transactionRepository;
+    private final TransactionRepository transactionRepository;
     private final CompteBancaireRepository compteBancaireRepository;
-
-
-    // Constructor omitted for brevity...
-
+    private final FacturationService facturationService;
 
     public LivraisonService(LivraisonRepository livraisonRepository,
                             ProductionRepository productionRepository,
                             ProduitRepository produitRepository,
                             UserService userService,
                             ProductionService productionService,
-                            LivraisonMapper livraisonMapper, TransactionRepository transactionRepository, CompteBancaireRepository compteBancaireRepository) {
+                            LivraisonMapper livraisonMapper,
+                            TransactionRepository transactionRepository,
+                            CompteBancaireRepository compteBancaireRepository,
+                            FacturationService facturationService) {
         this.livraisonRepository = livraisonRepository;
         this.productionRepository = productionRepository;
         this.produitRepository = produitRepository;
@@ -48,6 +49,7 @@ public class LivraisonService {
         this.livraisonMapper = livraisonMapper;
         this.transactionRepository = transactionRepository;
         this.compteBancaireRepository = compteBancaireRepository;
+        this.facturationService = facturationService;
     }
 
     public LivraisonDTO createLivraison(CreateLivraisonRequest request) {
@@ -70,6 +72,8 @@ public class LivraisonService {
 
         Livraison savedLivraison = livraisonRepository.save(livraison);
         productionRepository.save(production);
+
+        creerFacturePourLivraison(savedLivraison);
 
         return livraisonMapper.toDTO(savedLivraison);
     }
@@ -153,9 +157,20 @@ public class LivraisonService {
         return livraisonRepository.findAll(pageable).map(livraisonMapper::toDTO);
     }
 
+    private void creerFacturePourLivraison(Livraison livraison) {
+        FactureDTO factureDTO = new FactureDTO();
+        factureDTO.setType("VENTE");
+        factureDTO.setMontantHT(livraison.getMontantTotal());
+        factureDTO.setMontantTVA(0.0);
+        factureDTO.setDateEmission(livraison.getDateLivraison());
+        factureDTO.setDateEcheance(livraison.getDateLivraison().plusDays(30));
+        facturationService.creerFacture(factureDTO);
+    }
+
     @Transactional
     public void enregistrerRevenuLivraison(Long livraisonId, double montantTotal) {
-        CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal");
+        CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal")
+                .orElseThrow(() -> new ResourceNotFoundException("Compte bancaire principal non trouvé"));
         compte.setSolde(compte.getSolde() + montantTotal);
 
         Transaction transaction = new Transaction();

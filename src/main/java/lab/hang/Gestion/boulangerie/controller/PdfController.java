@@ -20,7 +20,6 @@ import com.lowagie.text.pdf.BaseFont;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
@@ -28,7 +27,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -73,24 +71,19 @@ public class PdfController {
 
     @GetMapping("/commande/imprimer")
     public void printCommandes(@RequestParam Long id, HttpServletResponse response) throws Exception {
-        // Récupérer la commande
         CommandeDTO commande = commandeService.getCommandeById(id);
 
-        // Préparer le contexte Thymeleaf
         Context context = new Context();
         context.setVariable("commande", commande);
 
-        CommandeDTO commandeDTO = commandeService.getCommandeById(id);
         Map<ProduitDTO, Integer> produitsAvecNoms = new HashMap<>();
-
-        // Convertir la Map<Long, Integer> en Map<ProduitDTO, Integer>
-        commandeDTO.getProduitsCommandes().forEach((produitId, quantite) -> {
+        commande.getProduitsCommandes().forEach((produitId, quantite) -> {
             ProduitDTO produit = produitService.getProduitById(produitId);
             produitsAvecNoms.put(produit, quantite);
         });
 
+        context.setVariable("produitsAvecNoms", produitsAvecNoms);
         context.setVariable("user", userService.getUserById(commande.getUserId()));
-        context.setVariable("produitsAvecNoms",produitsAvecNoms );
         context.setVariable("appName", appName);
 
         // Générer le HTML à partir du template
@@ -136,19 +129,18 @@ public class PdfController {
             matieresMap.put(matiereId, matierePremiereService.getMatierePremiereById(matiereId));
         }
 
-        // Préparer le contexte Thymeleaf
         Context context = new Context();
-
         context.setVariable("production", productionDTO);
+        context.setVariable("produitsMap", produitsMap);
+        context.setVariable("matieresMap", matieresMap);
         context.setVariable("user", userService.getUserById(productionDTO.getUserId()));
         context.setVariable("appName", appName);
 
-        // Générer le HTML à partir du template
         String html = templateEngine.process("production/print", context);
 
-        // Configurer la réponse HTTP
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=commande-details.pdf");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=production-" + id + ".pdf");
 
         // Convertir le HTML en PDF
         try (OutputStream outputStream = response.getOutputStream()) {
@@ -219,7 +211,8 @@ public class PdfController {
         }
     }
 
-    public String genererRapportFinancierMensuel() throws Exception {
+    @GetMapping("/rapport-financier")
+    public void genererRapportFinancierMensuel(HttpServletResponse response) throws Exception {
         YearMonth moisActuel = YearMonth.now();
         LocalDate debutMois = moisActuel.atDay(1);
         LocalDate finMois = moisActuel.atEndOfMonth();
@@ -229,12 +222,6 @@ public class PdfController {
         double salaires = financeService.calculerDepensesSalariales();
         double coutProduction = productionService.calculerCoutTotalProduction(debutMois, finMois);
         double profit = revenus - (depenses + salaires + coutProduction);
-        List<?> chargesFixes = chargeFixeService.getAllChargesFixe();
-        List<?> facturesImpayees = facturationService.getFacturesImpayees();
-        List<?> livraisons = livraisonService.getLivraisonsByDateRange(debutMois, finMois);
-        List<?> commandes = commandeService.getCommandesByDate(debutMois);
-        List<?> ventesProduits = productionService.getVentesParProduit(debutMois, finMois);
-        Object kpis = kpiService.getKPIsJournaliers();
 
         Context context = new Context();
         context.setVariable("mois", moisActuel);
@@ -245,21 +232,22 @@ public class PdfController {
         context.setVariable("salaires", salaires);
         context.setVariable("coutProduction", coutProduction);
         context.setVariable("profit", profit);
-        context.setVariable("chargesFixes", chargesFixes);
-        context.setVariable("facturesImpayees", facturesImpayees);
-        context.setVariable("livraisons", livraisons);
-        context.setVariable("commandes", commandes);
-        context.setVariable("ventesProduits", ventesProduits);
-        context.setVariable("kpis", kpis);
+        context.setVariable("chargesFixes", chargeFixeService.getAllChargesFixe());
+        context.setVariable("facturesImpayees", facturationService.getFacturesImpayees());
+        context.setVariable("livraisons", livraisonService.getLivraisonsByDateRange(debutMois, finMois));
+        context.setVariable("commandes", commandeService.getCommandesByDate(debutMois));
+        context.setVariable("ventesProduits", productionService.getVentesParProduit(debutMois, finMois));
+        context.setVariable("kpis", kpiService.getKPIsJournaliers());
 
         String htmlContent = templateEngine.process("rapport-financier", context);
 
-        String filePath = "rapport_financier_" + moisActuel + ".html";
-        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(filePath), StandardCharsets.UTF_8)) {
+        response.setContentType("text/html; charset=UTF-8");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=rapport_financier_" + moisActuel + ".html");
+        try (OutputStreamWriter writer = new OutputStreamWriter(
+                response.getOutputStream(), StandardCharsets.UTF_8)) {
             writer.write(htmlContent);
         }
-
-        return filePath;
     }
 
 }

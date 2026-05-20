@@ -1,5 +1,6 @@
 package lab.hang.gestion_boulangerie.service;
 
+import lab.hang.Gestion.boulangerie.dto.RegisterRequest;
 import lab.hang.Gestion.boulangerie.exception.UserNotFoundException;
 import lab.hang.Gestion.boulangerie.model.User;
 import lab.hang.Gestion.boulangerie.repository.UserRepository;
@@ -27,37 +28,59 @@ class UserServiceTest {
     @InjectMocks
     private UserService userService;
 
+    // ── registerUser ───────────────────────────────────────────────────────
+
     @Test
-    void registerUser_premier_utilisateur_doit_etre_admin_et_actif() {
+    void registerUser_premier_utilisateur_est_admin_et_actif() {
         when(userRepository.count()).thenReturn(0L);
-        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        when(passwordEncoder.encode(anyString())).thenReturn("hashed");
         when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        User user = new User();
-        user.setPassword("plaintext");
-        userService.registerUser(user);
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("admin");
+        request.setPassword("password123");
 
-        assertThat(user.getRole()).isEqualTo("ADMIN");
-        assertThat(user.isActive()).isTrue();
-        assertThat(user.getPassword()).isEqualTo("encoded");
+        userService.registerUser(request);
+
+        verify(userRepository).save(argThat(u ->
+                "ADMIN".equals(u.getRole()) && u.isActive()));
     }
 
     @Test
-    void registerUser_autres_utilisateurs_doivent_etre_boulanger_et_inactifs() {
+    void registerUser_utilisateur_suivant_est_boulanger_et_inactif() {
         when(userRepository.count()).thenReturn(5L);
-        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        when(passwordEncoder.encode(anyString())).thenReturn("hashed");
         when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        User user = new User();
-        user.setPassword("plaintext");
-        userService.registerUser(user);
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("jean");
+        request.setPassword("password123");
 
-        assertThat(user.getRole()).isEqualTo("BOULANGER");
-        assertThat(user.isActive()).isFalse();
+        userService.registerUser(request);
+
+        verify(userRepository).save(argThat(u ->
+                "BOULANGER".equals(u.getRole()) && !u.isActive()));
     }
 
     @Test
-    void activateUser_doit_mettre_active_a_true() {
+    void registerUser_encode_le_mot_de_passe() {
+        when(userRepository.count()).thenReturn(0L);
+        when(passwordEncoder.encode("mdpClair")).thenReturn("mdpHashé");
+        when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("user");
+        request.setPassword("mdpClair");
+
+        userService.registerUser(request);
+
+        verify(userRepository).save(argThat(u -> "mdpHashé".equals(u.getPassword())));
+    }
+
+    // ── activateUser ───────────────────────────────────────────────────────
+
+    @Test
+    void activateUser_met_active_a_true() {
         User user = new User();
         user.setId(1L);
         user.setActive(false);
@@ -70,17 +93,10 @@ class UserServiceTest {
         assertThat(result.isActive()).isTrue();
     }
 
-    @Test
-    void getUserById_avec_id_inexistant_doit_lever_UserNotFoundException() {
-        when(userRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> userService.getUserById(99L))
-                .isInstanceOf(UserNotFoundException.class)
-                .hasMessageContaining("99");
-    }
+    // ── updateUserRole ─────────────────────────────────────────────────────
 
     @Test
-    void updateUserRole_doit_modifier_le_role() {
+    void updateUserRole_modifie_le_role() {
         User user = new User();
         user.setId(1L);
         user.setRole("BOULANGER");
@@ -91,5 +107,35 @@ class UserServiceTest {
         User result = userService.updateUserRole(1L, "MANAGER");
 
         assertThat(result.getRole()).isEqualTo("MANAGER");
+    }
+
+    @Test
+    void updateUserRole_role_invalide_leve_IllegalArgumentException() {
+        assertThatThrownBy(() -> userService.updateUserRole(1L, "SUPER_ADMIN"))
+                .isInstanceOf(java.lang.IllegalArgumentException.class)
+                .hasMessageContaining("SUPER_ADMIN");
+    }
+
+    @Test
+    void updateUserRole_roles_valides_acceptes() {
+        User user = new User();
+        user.setId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        assertThatNoException().isThrownBy(() -> userService.updateUserRole(1L, "ADMIN"));
+        assertThatNoException().isThrownBy(() -> userService.updateUserRole(1L, "MANAGER"));
+        assertThatNoException().isThrownBy(() -> userService.updateUserRole(1L, "BOULANGER"));
+    }
+
+    // ── getUserById ────────────────────────────────────────────────────────
+
+    @Test
+    void getUserById_id_inexistant_leve_UserNotFoundException() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.getUserById(99L))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining("99");
     }
 }

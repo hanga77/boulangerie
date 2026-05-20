@@ -106,11 +106,8 @@ public class FinanceService {
     }
 
     public CompteBancaire getCompteBancairePrincipal() {
-        CompteBancaire comptePrincipal = compteBancaireRepository.findByNom("Compte Principal");
-        if (comptePrincipal == null) {
-            throw new ResourceNotFoundException("Compte Principal non trouvé");
-        }
-        return comptePrincipal;
+        return compteBancaireRepository.findByNom("Compte Principal")
+                .orElseThrow(() -> new ResourceNotFoundException("Compte Principal non trouvé"));
     }
 
     public void creerCompteBancaire(String nom, double soldeInitial) {

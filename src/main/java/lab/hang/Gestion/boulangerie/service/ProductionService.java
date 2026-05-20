@@ -1,6 +1,7 @@
 package lab.hang.Gestion.boulangerie.service;
 
 import jakarta.transaction.Transactional;
+import lab.hang.Gestion.boulangerie.exception.EntityNotFoundException;
 import lab.hang.Gestion.boulangerie.exception.MatierePremiereNotFoundException;
 import lab.hang.Gestion.boulangerie.exception.ProductionNotFoundException;
 import lab.hang.Gestion.boulangerie.exception.StockInsuffisantException;
@@ -60,16 +61,13 @@ public class ProductionService {
         this.stockService = stockService;
     }
 
+    @Transactional
     public ProductionDTO startProduction(LocalDate dateProduction, User user) {
         List<CommandeDTO> commandesDuJour = commandeService.getCommandesByDateAndEtat(dateProduction);
         Map<Long, Integer> produitsProduits = new HashMap<>();
         Map<Long, Double> matieresUtilisees = new HashMap<>();
 
-        /*System.out.println("Starting production for date: " + dateProduction);
-        System.out.println("Number of orders to process: " + commandesDuJour.size());
-*/
         for (CommandeDTO commande : commandesDuJour) {
-           /* System.out.println("Processing order ID: " + commande.getId());*/
 
             for (Map.Entry<Long, Integer> entry : commande.getProduitsCommandes().entrySet()) {
                 Long produitId = entry.getKey();
@@ -78,10 +76,7 @@ public class ProductionService {
                 // Aggregate products
                 produitsProduits.merge(produitId, quantiteCommandee, Integer::sum);
 
-                // Get product details
                 ProduitDTO produitDTO = produitService.getProduitById(produitId);
-                /*System.out.println("Processing product: " + produitDTO.getNom() +
-                        " (ID: " + produitId + "), quantity: " + quantiteCommandee);*/
 
                 // Calculate required materials
                 Map<MatierePremiere, Double> matieresPourProduit =
@@ -119,13 +114,8 @@ public class ProductionService {
         // Générer les sorties de stock pour les matières premières (quantités théoriques)
         if (!matieresUtilisees.isEmpty()) {
             String motif = "PRODUCTION " + dateProduction + " (prod. #" + savedProduction.getId() + ")";
-            matieresUtilisees.forEach((matiereId, quantite) -> {
-                try {
-                    stockService.removeStock(matiereId, quantite, motif);
-                } catch (Exception e) {
-                    log.warn("Stock insuffisant pour matière ID {} lors de la production : {}", matiereId, e.getMessage());
-                }
-            });
+            matieresUtilisees.forEach((matiereId, quantite) ->
+                    stockService.removeStock(matiereId, quantite, motif));
         }
 
         // Update orders
@@ -221,23 +211,6 @@ public class ProductionService {
         productionRepository.save(production);
     }
 
-    private void updateMatierePremiereStocks(Map<String, Double> quantitesUtilisees) {
-        for (Map.Entry<String, Double> entry : quantitesUtilisees.entrySet()) {
-            MatierePremiere matierePremiere = matierePremiereService.getMatierePremiereById(Long.valueOf(entry.getKey()));
-            Double quantiteUtilisee = entry.getValue();
-
-            // Soustraire la quantité utilisée du stock
-            double nouveauStock = matierePremiere.getStock() - quantiteUtilisee;
-            if (nouveauStock < 0) {
-                throw new StockInsuffisantException("Stock insuffisant pour la matière première : " + matierePremiere.getNom());
-            }
-
-            matierePremiere.setStock(nouveauStock);
-            matierePremiereRepository.save(matierePremiere);
-        }
-    }
-
-
     public ProductionDTO getProductionById(Long productionId) {
         // 1. Récupérer la production
         Production production = productionRepository.findById(productionId)
@@ -302,8 +275,8 @@ public class ProductionService {
     public void enregistrerCoutProduction(Long productionId) {
         double coutTotal = calculerCoutProduction(productionId);
 
-        // Enregistrer la transaction financière
-        CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal");
+        CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal")
+                .orElseThrow(() -> new EntityNotFoundException("Compte bancaire principal non trouvé"));
         compte.setSolde(compte.getSolde() - coutTotal);
 
         Transaction transaction = new Transaction();
@@ -331,7 +304,7 @@ public class ProductionService {
         return coutTotal;
     }
 
-   public List<?> getVentesParProduit(LocalDate debutMois, LocalDate finMois) {
+    public List<Transaction> getVentesParProduit(LocalDate debutMois, LocalDate finMois) {
         return transactionRepository.findByDateBetweenAndType("VENTE", debutMois, finMois);
     }
 }

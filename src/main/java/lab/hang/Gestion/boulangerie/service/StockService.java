@@ -88,10 +88,8 @@ public class StockService {
         }
 
         // Get compte bancaire
-        CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal");
-        if (compte == null) {
-            throw new EntityNotFoundException("Compte bancaire principal non trouvé");
-        }
+        CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal")
+                .orElseThrow(() -> new EntityNotFoundException("Compte bancaire principal non trouvé"));
 
         // Calculate total cost
         double coutTotal = quantite * prixUnitaire;
@@ -156,7 +154,7 @@ public class StockService {
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void removeStock(Long matierePremiereId, double quantite, String motif) {
         if (quantite <= 0) throw new IllegalArgumentException("La quantité doit être positive.");
-        MatierePremiere matierePremiere = matierePremiereService.getMatierePremiereById(matierePremiereId);
+        MatierePremiere matierePremiere = matierePremiereService.getMatierePremiereByIdWithLock(matierePremiereId);
         if (matierePremiere.getStock() < quantite) {
             throw new StockInsuffisantException("Stock insuffisant pour : " + matierePremiere.getNom());
         }
@@ -177,13 +175,10 @@ public class StockService {
 
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void removeStock(Long matierePremiereId, double quantite) {
-        // Validation des entrées
         if (quantite <= 0) {
             throw new IllegalArgumentException("La quantité doit être positive.");
         }
-
-        // Récupérer la matière première avec un verrou pessimiste
-        MatierePremiere matierePremiere = matierePremiereService.getMatierePremiereById(matierePremiereId);
+        MatierePremiere matierePremiere = matierePremiereService.getMatierePremiereByIdWithLock(matierePremiereId);
 
         // Vérifier si le stock est suffisant
         if (matierePremiere.getStock() < quantite) {

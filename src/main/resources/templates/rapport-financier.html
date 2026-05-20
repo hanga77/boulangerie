@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Rapport Financier Mensuel</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
+        .header { background: #007bff; color: white; padding: 20px; text-align: center; margin-bottom: 30px; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .header p { margin: 5px 0 0; font-size: 14px; opacity: 0.9; }
+        .summary-cards { display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
+        .card { flex: 1; min-width: 180px; border: 1px solid #ddd; border-radius: 6px; padding: 15px; text-align: center; }
+        .card h3 { margin: 0 0 8px; font-size: 13px; color: #666; text-transform: uppercase; }
+        .card .value { font-size: 22px; font-weight: bold; }
+        .card.revenus .value { color: #28a745; }
+        .card.depenses .value { color: #dc3545; }
+        .card.profit .value { color: #007bff; }
+        .card.cout .value { color: #fd7e14; }
+        section { margin-bottom: 30px; }
+        section h2 { border-bottom: 2px solid #007bff; padding-bottom: 8px; color: #007bff; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #f2f2f2; font-weight: bold; text-align: left; padding: 8px; border: 1px solid #ddd; }
+        td { padding: 7px 8px; border: 1px solid #ddd; }
+        tr:nth-child(even) { background: #fafafa; }
+        .badge-success { background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+        .badge-danger  { background: #dc3545; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+        .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #ddd; padding-top: 15px; }
+        @media print {
+            .header { background: #007bff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Rapport Financier Mensuel</h1>
+    <p th:text="${'Période : ' + debutMois + ' au ' + finMois}"></p>
+</div>
+
+<!-- Résumé financier -->
+<div class="summary-cards">
+    <div class="card revenus">
+        <h3>Revenus totaux</h3>
+        <div class="value" th:text="${revenus + ' XAF'}"></div>
+    </div>
+    <div class="card depenses">
+        <h3>Dépenses</h3>
+        <div class="value" th:text="${depenses + ' XAF'}"></div>
+    </div>
+    <div class="card depenses">
+        <h3>Salaires</h3>
+        <div class="value" th:text="${salaires + ' XAF'}"></div>
+    </div>
+    <div class="card cout">
+        <h3>Coût production</h3>
+        <div class="value" th:text="${coutProduction + ' XAF'}"></div>
+    </div>
+    <div class="card profit">
+        <h3>Bénéfice net</h3>
+        <div class="value" th:text="${profit + ' XAF'}"></div>
+    </div>
+</div>
+
+<!-- Charges fixes -->
+<section>
+    <h2>Charges fixes</h2>
+    <table>
+        <thead>
+            <tr><th>Type</th><th>Description</th><th>Montant</th><th>Échéance</th><th>Statut</th></tr>
+        </thead>
+        <tbody>
+            <tr th:each="charge : ${chargesFixes}">
+                <td th:text="${charge.type}"></td>
+                <td th:text="${charge.description}"></td>
+                <td th:text="${charge.montant + ' XAF'}"></td>
+                <td th:text="${charge.dateEcheance}"></td>
+                <td>
+                    <span th:if="${charge.paye}" class="badge-success">Payée</span>
+                    <span th:unless="${charge.paye}" class="badge-danger">En attente</span>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(chargesFixes)}">
+                <td colspan="5" style="text-align:center; color:#999;">Aucune charge fixe</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Factures impayées -->
+<section>
+    <h2>Factures impayées</h2>
+    <table>
+        <thead>
+            <tr><th>N° Facture</th><th>Type</th><th>Montant TTC</th><th>Émission</th><th>Échéance</th></tr>
+        </thead>
+        <tbody>
+            <tr th:each="facture : ${facturesImpayees}">
+                <td th:text="${facture.numero}"></td>
+                <td th:text="${facture.type}"></td>
+                <td th:text="${facture.montantTTC + ' XAF'}"></td>
+                <td th:text="${facture.dateEmission}"></td>
+                <td th:text="${facture.dateEcheance}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(facturesImpayees)}">
+                <td colspan="5" style="text-align:center; color:#999;">Aucune facture impayée</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Livraisons du mois -->
+<section>
+    <h2>Livraisons du mois</h2>
+    <table>
+        <thead>
+            <tr><th>Date</th><th>Client</th><th>Montant</th></tr>
+        </thead>
+        <tbody>
+            <tr th:each="livraison : ${livraisons}">
+                <td th:text="${livraison.dateLivraison}"></td>
+                <td th:text="${livraison.nomClient}"></td>
+                <td th:text="${livraison.montantTotal + ' XAF'}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(livraisons)}">
+                <td colspan="3" style="text-align:center; color:#999;">Aucune livraison</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Ventes par produit -->
+<section>
+    <h2>Ventes par produit</h2>
+    <table>
+        <thead>
+            <tr><th>Date</th><th>Type</th><th>Montant</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+            <tr th:each="vente : ${ventesProduits}">
+                <td th:text="${vente.date}"></td>
+                <td th:text="${vente.type}"></td>
+                <td th:text="${vente.montant + ' XAF'}"></td>
+                <td th:text="${vente.description}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(ventesProduits)}">
+                <td colspan="4" style="text-align:center; color:#999;">Aucune vente enregistrée</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<div class="footer">
+    <p th:text="${'Rapport généré le ' + #temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm')}"></p>
+</div>
+
+</body>
+</html>

@@ -60,7 +60,7 @@ public class ChargeFixeService {
 
 
     @Transactional
-    public void payerChargeFix(Long id) {
+    public void payerChargeFixe(Long id) {
         ChargeFixe charge = chargeFixeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Charge fixe non trouvée"));
 
@@ -105,40 +105,6 @@ public class ChargeFixeService {
     }
 
 
-    /*public BilanChargesFixesDTO getBilanChargesFixe() {
-        BilanChargesFixesDTO bilan = new BilanChargesFixesDTO();
-
-        LocalDate today = LocalDate.now();
-        int chargesEnRetard = chargeFixeRepository.countByPayeAndDateEcheanceBefore(false, today);
-
-        double montantTotalEnRetard = chargeFixeRepository.findByPayeFalseAndDateEcheanceBefore(today)
-                .stream()
-                .mapToDouble(ChargeFixe::getMontant)
-                .sum();
-
-        double montantTotalAVenir = chargeFixeRepository.findByPayeFalseAndDateEcheanceBetween(
-                        today, today.plusMonths(1))
-                .stream()
-                .mapToDouble(ChargeFixe::getMontant)
-                .sum();
-
-        double montantTotalPaye = chargeFixeRepository.findByPayeTrue()
-                .stream()
-                .mapToDouble(ChargeFixe::getMontant)
-                .sum();
-
-        bilan.setNombreChargesEnRetard(chargesEnRetard);
-        bilan.setMontantTotalEnRetard(montantTotalEnRetard);
-        bilan.setMontantTotalAVenir(montantTotalAVenir);
-        bilan.setMontantTotalPaye(montantTotalPaye);
-
-        return bilan;
-    }*/
-
-    private boolean isEcheanceProche(LocalDate dateEcheance) {
-        return LocalDate.now().plusDays(7).isAfter(dateEcheance);
-    }
-
     @Transactional
     public void creerChargeFixe(ChargeFixeDTO chargeFixeDTO) {
         chargeFixeRepository.save(mapToEntity(chargeFixeDTO));
@@ -157,5 +123,4 @@ public class ChargeFixeService {
                 .collect(Collectors.toList());
     }
 
-    // Autres méthodes
 }

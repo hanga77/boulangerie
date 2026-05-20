@@ -97,9 +97,9 @@ public class ComptabiliteController {
     }
 
     @GetMapping("/charges-fixes/{id}/payer")
-    public String payerChargeFix(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String payerChargeFixe(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            chargeFixeService.payerChargeFix(id);
+            chargeFixeService.payerChargeFixe(id);
             redirectAttributes.addFlashAttribute("success", "Charge fixe marquée comme payée");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());

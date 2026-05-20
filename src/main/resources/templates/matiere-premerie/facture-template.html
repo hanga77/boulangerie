@@ -122,12 +122,12 @@
         </thead>
         <tbody>
         <tr th:each="mouvement : ${mouvements}">
-            <td th:text="${#temporals.format(mouvement.date, 'HH:mm')}"></td>
+            <td th:text="${#temporals.format(mouvement.date, 'dd/MM/yyyy')}"></td>
             <td th:text="${mouvement.type}"></td>
             <td th:text="${mouvement.matierePremiere.nom}"></td>
             <td th:text="${mouvement.quantite}"></td>
-            <td th:text="${mouvement.stockApres}"></td>
-            <td th:text="${mouvement.user.nom}"></td>
+            <td th:text="—"></td>
+            <td th:text="${mouvement.user != null ? mouvement.user.username : '—'}"></td>
             <td th:text="${mouvement.motif}"></td>
         </tr>
         </tbody>

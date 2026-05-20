@@ -33,7 +33,6 @@ public class MatierePremiereService {
     @Transactional
     @CacheEvict(value = "matieres-premieres", allEntries = true)
     public MatierePremiere saveMatierePremiere(MatierePremiere matierePremiere) {
-        matierePremiere.setPrixUnitaire(0.0);
         return matierePremiereRepository.save(matierePremiere);
     }
 
@@ -47,6 +46,12 @@ public class MatierePremiereService {
 
     public MatierePremiere getMatierePremiereById(Long id) {
         return matierePremiereRepository.findById(id)
+                .orElseThrow(() -> new MatierePremiereNotFoundException("Matière première non trouvée avec l'ID : " + id));
+    }
+
+    @Transactional
+    public MatierePremiere getMatierePremiereByIdWithLock(Long id) {
+        return matierePremiereRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new MatierePremiereNotFoundException("Matière première non trouvée avec l'ID : " + id));
     }
 
