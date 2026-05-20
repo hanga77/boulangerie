@@ -1,97 +1,153 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8"/>
     <title>Facture de Livraison</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            background-color: #007bff;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-        .details {
-            margin-bottom: 20px;
-        }
-        .details p {
-            margin: 5px 0;
-        }
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        .table th, .table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        .table th {
-            background-color: #f2f2f2;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #777;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; font-size: 13px; color: #333; background: #fff; }
+        .page { max-width: 800px; margin: 0 auto; padding: 30px; }
+
+        /* En-tête */
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 3px solid #0d6efd; padding-bottom: 20px; }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand img { height: 56px; width: auto; object-fit: contain; }
+        .brand-icon { width: 56px; height: 56px; background: #0d6efd; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .brand-icon svg { width: 32px; height: 32px; fill: white; }
+        .brand-text h2 { font-size: 18px; font-weight: bold; color: #0d6efd; }
+        .brand-text p { font-size: 11px; color: #666; }
+        .facture-title { text-align: right; }
+        .facture-title h1 { font-size: 26px; font-weight: bold; color: #0d6efd; letter-spacing: 2px; text-transform: uppercase; }
+        .facture-title .numero { font-size: 13px; color: #555; margin-top: 4px; }
+        .facture-title .date { font-size: 12px; color: #777; margin-top: 2px; }
+
+        /* Info parties */
+        .parties { display: flex; gap: 30px; margin-bottom: 25px; }
+        .party { flex: 1; }
+        .party h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888; border-bottom: 1px solid #eee; padding-bottom: 4px; margin-bottom: 8px; }
+        .party p { font-size: 13px; line-height: 1.6; }
+        .party .name { font-weight: bold; font-size: 15px; }
+
+        /* Tableau produits */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        thead tr { background: #0d6efd; color: white; }
+        thead th { padding: 10px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        thead th.right { text-align: right; }
+        tbody tr { border-bottom: 1px solid #f0f0f0; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody td { padding: 10px 12px; }
+        tbody td.right { text-align: right; }
+        tbody tr:nth-child(even) { background: #f8f9ff; }
+
+        /* Totaux */
+        .totals { display: flex; justify-content: flex-end; margin-bottom: 25px; }
+        .totals-box { min-width: 260px; }
+        .total-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 13px; }
+        .total-row.grand-total { border-top: 2px solid #0d6efd; border-bottom: none; margin-top: 4px; font-weight: bold; font-size: 15px; color: #0d6efd; padding-top: 10px; }
+
+        /* Pied de page */
+        .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-end; }
+        .footer-note { font-size: 11px; color: #888; }
+        .footer-stamp { text-align: right; }
+        .footer-stamp .generated { font-size: 10px; color: #aaa; }
+
+        @media print {
+            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .page { padding: 15px; }
         }
     </style>
 </head>
 <body>
-<div class="container">
+<div class="page">
+
+    <!-- En-tête avec logo -->
     <div class="header">
-        <h1>Facture de Livraison</h1>
+        <div class="brand">
+            <th:block th:if="${customLogoUrl != null}">
+                <img th:src="${customLogoUrl}" alt="Logo">
+            </th:block>
+            <th:block th:unless="${customLogoUrl != null}">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 3h14a2 2 0 012 2v1a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2zm0 6h14v10a2 2 0 01-2 2H7a2 2 0 01-2-2V9z"/>
+                    </svg>
+                </div>
+            </th:block>
+            <div class="brand-text">
+                <h2 th:text="${appName ?: 'Boulangerie'}">Boulangerie</h2>
+                <p>Yaoundé, Cameroun</p>
+            </div>
+        </div>
+        <div class="facture-title">
+            <h1>Facture</h1>
+            <div class="numero">N° <span th:text="${'LIV-' + livraison.id}"></span></div>
+            <div class="date">Émise le : <span th:text="${livraison.dateLivraison}"></span></div>
+        </div>
     </div>
 
-    <div class="details">
-        <p><strong>ID de la Livraison:</strong> <span th:text="${livraison.id}"></span></p>
-        <p><strong>Date de Livraison:</strong> <span th:text="${livraison.dateLivraison}"></span></p>
-        <p><strong>Client:</strong> <span th:text="${livraison.nomClient}"></span></p>
-        <p><strong>Montant Total:</strong> <span th:text="${livraison.montantTotal + ' XAF'}"></span></p>
+    <!-- Client -->
+    <div class="parties">
+        <div class="party">
+            <h3>Émetteur</h3>
+            <p class="name" th:text="${appName ?: 'Boulangerie'}"></p>
+            <p>Yaoundé, Cameroun</p>
+        </div>
+        <div class="party">
+            <h3>Client</h3>
+            <p class="name" th:text="${livraison.nomClient}"></p>
+            <p>Date de livraison : <span th:text="${livraison.dateLivraison}"></span></p>
+        </div>
     </div>
 
-    <h4>Produits Livrés</h4>
-    <table class="table">
+    <!-- Produits livrés -->
+    <table>
         <thead>
         <tr>
             <th>Produit</th>
-            <th>Quantité</th>
-            <th>Prix Unitaire</th>
-            <th>Total</th>
+            <th class="right">Quantité</th>
+            <th class="right">Prix unitaire</th>
+            <th class="right">Total</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="produit : ${produitsDetails}">
             <td th:text="${produit.value.nom}"></td>
-            <td th:text="${produit.value.quantite}"></td>
-            <td th:text="${produit.value.prixVente + ' XAF'}"></td>
-            <td th:text="${produit.value.total + ' XAF'}"></td>
+            <td class="right" th:text="${produit.value.quantite}"></td>
+            <td class="right" th:text="${produit.value.prixVente + ' XAF'}"></td>
+            <td class="right fw-bold" th:text="${produit.value.total + ' XAF'}"></td>
         </tr>
         </tbody>
     </table>
 
-    <div class="footer">
-        <p>Merci pour votre confiance ! | <span th:text="${appName}"></span></p>
-        <p>Imprimé le: <span th:text="${dateImpression}"></span></p>
+    <!-- Total -->
+    <div class="totals">
+        <div class="totals-box">
+            <div class="total-row">
+                <span>Sous-total HT</span>
+                <span th:text="${livraison.montantTotal + ' XAF'}"></span>
+            </div>
+            <div class="total-row">
+                <span>TVA (0%)</span>
+                <span>0 XAF</span>
+            </div>
+            <div class="total-row grand-total">
+                <span>TOTAL TTC</span>
+                <span th:text="${livraison.montantTotal + ' XAF'}"></span>
+            </div>
+        </div>
     </div>
+
+    <!-- Pied de page -->
+    <div class="footer">
+        <div class="footer-note">
+            <p>Merci pour votre confiance !</p>
+            <p th:text="${appName}"></p>
+        </div>
+        <div class="footer-stamp">
+            <p class="generated">Imprimé le : <span th:text="${dateImpression}"></span></p>
+        </div>
+    </div>
+
 </div>
 </body>
 </html>

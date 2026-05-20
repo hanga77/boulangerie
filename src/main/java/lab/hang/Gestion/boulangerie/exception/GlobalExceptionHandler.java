@@ -2,12 +2,14 @@ package lab.hang.Gestion.boulangerie.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.stream.Collectors;
 
@@ -75,6 +77,12 @@ public class GlobalExceptionHandler {
         log.warn("Argument invalide: {}", ex.getMessage());
         redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         return "redirect:/dashboard";
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handleNoResourceFound(NoResourceFoundException ex) {
+        // Silencieux — les navigateurs sondent des chemins connus (.well-known, favicon, etc.)
+        return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(Exception.class)

@@ -1,6 +1,6 @@
 package lab.hang.Gestion.boulangerie.service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lab.hang.Gestion.boulangerie.exception.EntityNotFoundException;
 import lab.hang.Gestion.boulangerie.exception.MatierePremiereNotFoundException;
 import lab.hang.Gestion.boulangerie.exception.ProductionNotFoundException;
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@Transactional(readOnly = true)
 public class ProductionService {
 
     private static final Logger log = LoggerFactory.getLogger(ProductionService.class);

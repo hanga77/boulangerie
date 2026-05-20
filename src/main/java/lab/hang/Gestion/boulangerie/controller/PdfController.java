@@ -54,6 +54,9 @@ public class PdfController {
     @Value("${app.name}")
     private String appName;
 
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
+
     public PdfController(TemplateEngine templateEngine, CommandeService commandeService, ProductionService productionService, UserService userService, ProduitService produitService, ProductionMapper productionMapper, LivraisonService livraisonService, MatierePremiereService matierePremiereService, FinanceService financeService, ChargeFixeService chargeFixeService, FacturationService facturationService, KPIService kpiService) {
         this.templateEngine = templateEngine;
         this.commandeService = commandeService;
@@ -67,6 +70,12 @@ public class PdfController {
         this.chargeFixeService = chargeFixeService;
         this.facturationService = facturationService;
         this.kpiService = kpiService;
+    }
+
+    private void addBrandToContext(Context context) {
+        context.setVariable("appName", appName);
+        java.io.File logo = new java.io.File(uploadDir, "logo.png").getAbsoluteFile();
+        context.setVariable("customLogoUrl", logo.exists() ? "/uploads/logo.png" : null);
     }
 
     @GetMapping("/commande/imprimer")
@@ -186,6 +195,7 @@ public class PdfController {
             produitsDetails.put(produitId.toString(), detailsMap);
         });
         context.setVariable("produitsDetails", produitsDetails);
+        addBrandToContext(context);
 
         // Générer le HTML à partir du template
         String html = templateEngine.process("livraisons/facture-template", context);

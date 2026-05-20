@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Paramètres')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0">
+                <i class="fas fa-cog me-2 text-secondary"></i>Paramètres de l'application
+            </h1>
+            <p class="text-muted small mb-0">Configuration réservée à l'administrateur</p>
+        </div>
+        <a href="/admin/users" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+
+    <!-- Logo -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-image me-2"></i>Logo de l'application
+        </div>
+        <div class="card-body">
+            <div class="row g-4 align-items-center">
+                <div class="col-12 col-md-3 text-center">
+                    <p class="text-muted small mb-2">Logo actuel</p>
+                    <div class="border rounded p-3 d-inline-block bg-primary">
+                        <img th:if="${customLogoUrl != null}" th:src="${customLogoUrl}"
+                             alt="Logo" style="max-height:80px; max-width:200px; object-fit:contain;">
+                        <i th:unless="${customLogoUrl != null}"
+                           class="fas fa-bread-slice fa-3x text-white"></i>
+                    </div>
+                    <p class="text-muted small mt-2 mb-0"
+                       th:text="${customLogoUrl != null ? 'Logo personnalisé actif' : 'Logo par défaut'}"></p>
+                </div>
+                <div class="col-12 col-md-9">
+                    <form th:action="@{/admin/settings/logo}" method="post"
+                          enctype="multipart/form-data">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <div class="mb-3">
+                            <label for="logo" class="form-label fw-semibold">Nouveau logo</label>
+                            <input type="file" class="form-control" id="logo" name="logo"
+                                   accept="image/png,image/jpeg,image/gif,image/webp" required>
+                            <div class="form-text">PNG recommandé, max 2 Mo. Le fichier sera redimensionné à 80 px de hauteur dans la navbar.</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fas fa-upload me-1"></i>Mettre à jour le logo
+                            </button>
+                            <form th:if="${customLogoUrl != null}"
+                                  th:action="@{/admin/settings/logo/reset}" method="post"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Réinitialiser le logo par défaut ?')">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-undo me-1"></i>Réinitialiser
+                                </button>
+                            </form>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

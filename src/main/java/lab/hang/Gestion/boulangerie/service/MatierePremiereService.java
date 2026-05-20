@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-
+@Transactional(readOnly = true)
 public class MatierePremiereService {
 
     private final MatierePremiereRepository matierePremiereRepository;

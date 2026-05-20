@@ -89,7 +89,8 @@ public class MatierePremiereController {
 
 
     @GetMapping("/add-stock")
-    public String showAddStockForm(@RequestParam Long id, Model model) {
+    public String showAddStockForm(@RequestParam(required = false) Long id, Model model) {
+        if (id == null) return "redirect:/matieres-premieres/mouvements-stock";
         model.addAttribute("matierePremiere", matierePremiereService.getMatierePremiereById(id));
         return "matiere-premerie/add-stock";
     }

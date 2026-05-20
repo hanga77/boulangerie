@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Fournisseur')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0">
+                <i class="fas fa-truck-loading me-2 text-primary"></i>
+                <span th:text="${fournisseur.id != null ? 'Modifier le fournisseur' : 'Nouveau fournisseur'}"></span>
+            </h1>
+        </div>
+        <a href="/fournisseurs" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form th:action="${fournisseur.id != null ? '/fournisseurs/update/' + fournisseur.id : '/fournisseurs'}"
+                  method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Nom *</label>
+                        <input type="text" class="form-control" name="nom"
+                               th:value="${fournisseur.nom}" required>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Référence contact</label>
+                        <input type="text" class="form-control" name="referenceContact"
+                               th:value="${fournisseur.referenceContact}">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Téléphone</label>
+                        <input type="tel" class="form-control" name="telephone"
+                               th:value="${fournisseur.telephone}">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email"
+                               th:value="${fournisseur.email}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Adresse</label>
+                        <input type="text" class="form-control" name="adresse"
+                               th:value="${fournisseur.adresse}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Catégorie de produits</label>
+                        <input type="text" class="form-control" name="categorieProduits"
+                               th:value="${fournisseur.categorieProduits}"
+                               placeholder="ex: Farine, sucre, levure…">
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Enregistrer
+                    </button>
+                    <a href="/fournisseurs" class="btn btn-outline-secondary">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

@@ -1,100 +1,119 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/layout :: head('Productions Précédentes - Boulangerie')}">
-</head>
-<body>
-<!-- Navbar -->
+<head th:replace="~{fragments/layout :: head('Productions Précédentes')}"></head>
+<body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
 
-<div class="container mt-4">
-    <h1 class="mb-4">Productions Précédentes</h1>
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
 
-    <!-- Formulaire de filtrage -->
-    <form th:action="@{/production/previous}" method="get" class="mb-4">
-        <div class="row">
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label for="startDate">Date de début:</label>
-                    <input type="date" id="startDate" name="startDate" class="form-control" th:value="${startDate}"/>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label for="endDate">Date de fin:</label>
-                    <input type="date" id="endDate" name="endDate" class="form-control" th:value="${endDate}"/>
-                </div>
-            </div>
-            <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-filter me-1"></i>Filtrer
-                </button>
-            </div>
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0">
+                <i class="fas fa-history me-2 text-primary"></i>Productions Précédentes
+            </h1>
+            <p class="text-muted small mb-0">Historique de production</p>
         </div>
-    </form>
-
-    <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>Date</th>
-                <th>Produit</th>
-                <th>Quantité Commandée</th>
-                <th>Quantité Produite</th>
-                <th>Matières Premières (Théorique)</th>
-                <th>Matières Premières (Réelle)</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="production : ${productions}">
-                <td th:text="${production.dateProduction}"></td>
-                <td th:text="${production.produitsProduits.keySet().iterator().next().nom}"></td>
-                <td th:text="${production.quantiteCommandee}"></td>
-                <td th:text="${production.produitsProduits.values().iterator().next()}"></td>
-                <td>
-                    <ul>
-                        <li th:each="matiere : ${production.matieresPremieresUtilisees}">
-                            <span th:text="${matiere.key.nom}"></span> : <span th:text="${matiere.value}"></span>
-                        </li>
-                    </ul>
-                </td>
-                <td>
-                    <ul>
-                        <li th:each="matiere : ${production.quantitesReellesUtilisees}">
-                            <span th:text="${matiere.key.nom}"></span> : <span th:text="${matiere.value}"></span>
-                        </li>
-                    </ul>
-                </td>
-                <td>
-                    <a class="btn btn-info" th:href="@{/production/details/{id}(id=${production.id})}"><i class="fas fa-eye me-1"></i> Voir</a>
-                    <a class="btn btn-info no-print" th:href="@{/production/print/{id}(id=${production.id})}"><i class="fas fa-print me-1"></i> Imprimer</a>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <a href="/production/passer-a-la-production" class="btn btn-primary btn-sm">
+            <i class="fas fa-play-circle me-1"></i>Nouvelle production
+        </a>
     </div>
 
-    <!-- Pagination -->
-    <nav aria-label="Page navigation" th:if="${totalPages > 1}">
-        <ul class="pagination justify-content-center">
-            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                <a class="page-link" th:href="@{/production(page=${currentPage - 1}, size=${size})}" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
-            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
-                <a class="page-link" th:href="@{/production(page=${i}, size=${size})}" th:text="${i + 1}"></a>
-            </li>
-            <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                <a class="page-link" th:href="@{/production(page=${currentPage + 1}, size=${size})}" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</div>
+    <!-- Filtrage par date -->
+    <div class="card mb-3">
+        <div class="card-body py-3">
+            <form th:action="@{/production/previous}" method="get">
+                <div class="row g-2 align-items-end">
+                    <div class="col-12 col-md-4">
+                        <label for="startDate" class="form-label">Du</label>
+                        <input type="date" id="startDate" name="startDate" class="form-control form-control-sm"
+                               th:value="${startDate}"/>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label for="endDate" class="form-label">Au</label>
+                        <input type="date" id="endDate" name="endDate" class="form-control form-control-sm"
+                               th:value="${endDate}"/>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <button type="submit" class="btn btn-primary btn-sm w-100 w-md-auto">
+                            <i class="fas fa-filter me-1"></i>Filtrer
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Produit(s)</th>
+                    <th class="text-end d-none d-md-table-cell">Qté commandée</th>
+                    <th class="text-end d-none d-md-table-cell">Qté produite</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="production : ${productions}">
+                    <td class="text-nowrap" th:text="${production.dateProduction}"></td>
+                    <td>
+                        <span th:each="entry, i : ${production.produitsProduits}"
+                              th:text="${entry.key.nom + (i.last ? '' : ', ')}"></span>
+                    </td>
+                    <td class="text-end d-none d-md-table-cell"
+                        th:text="${production.quantiteCommandee}"></td>
+                    <td class="text-end d-none d-md-table-cell">
+                        <span th:each="entry : ${production.produitsProduits}"
+                              th:text="${entry.value}"></span>
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1">
+                            <a class="btn btn-info btn-sm"
+                               th:href="@{/production/details/{id}(id=${production.id})}">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a class="btn btn-outline-secondary btn-sm"
+                               th:href="@{/production/print/{id}(id=${production.id})}">
+                                <i class="fas fa-print"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(productions)}">
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="fas fa-history fa-2x d-block mb-2 opacity-25"></i>
+                        Aucune production dans cette période
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-footer bg-transparent" th:if="${totalPages > 1}">
+            <nav aria-label="Pagination productions">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="@{/production(page=${currentPage - 1}, size=${size})}">&laquo;</a>
+                    </li>
+                    <li class="page-item"
+                        th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                        th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" th:href="@{/production(page=${i}, size=${size})}"
+                           th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                        <a class="page-link" th:href="@{/production(page=${currentPage + 1}, size=${size})}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+</main>
+
 <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

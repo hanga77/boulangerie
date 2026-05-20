@@ -12,6 +12,7 @@ import lab.hang.Gestion.boulangerie.repository.CommandeRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class CommandeService {
 
     private final CommandeRepository commandeRepository;
@@ -39,6 +41,7 @@ public class CommandeService {
     }
 
     // Créer une commande et retourner un CommandeDTO
+    @Transactional
     public CommandeDTO createCommande(CommandeDTO commandeDTO) {
         // Récupérer l'utilisateur connecté
         User currentUser = userService.getCurrentUser();
@@ -62,6 +65,7 @@ public class CommandeService {
     }
 
     // Mettre à jour une commande et retourner un CommandeDTO
+    @Transactional
     public CommandeDTO updateCommande(Long id, CommandeDTO commandeDTO) {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new CommandeNotFoundException("Commande non trouvée avec l'ID : " + id));
@@ -91,6 +95,7 @@ public class CommandeService {
     }
 
     // Supprimer une commande
+    @Transactional
     public void deleteCommande(Long id) {
         if (!commandeRepository.existsById(id)) {
             throw new CommandeNotFoundException("Commande non trouvée avec l'ID : " + id);

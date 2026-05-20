@@ -14,6 +14,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class ProduitService {
 
     private static final Logger log = LoggerFactory.getLogger(ProduitService.class);
@@ -35,6 +37,7 @@ public class ProduitService {
         this.matierePremiereRepository = matierePremiereRepository;
     }
 
+    @Transactional
     @CacheEvict(value = "produits", allEntries = true)
     public Produit saveProduit(ProduitDTO produitDTO) {
         Produit produit = new Produit();
@@ -57,6 +60,7 @@ public class ProduitService {
         return produitRepository.save(produit);
     }
 
+    @Transactional
     @CacheEvict(value = "produits", allEntries = true)
     public Produit updateProduit(Long id, ProduitDTO produitDTO) {
         Produit produit = produitRepository.findById(id)
@@ -130,6 +134,7 @@ public class ProduitService {
                 .orElseThrow(() -> new ProduitNotFoundException("Produit non trouvé avec l'ID : " + id));
     }
 
+    @Transactional
     @CacheEvict(value = "produits", allEntries = true)
     public void deleteProduit(Long id) {
         if (!produitRepository.existsById(id)) {

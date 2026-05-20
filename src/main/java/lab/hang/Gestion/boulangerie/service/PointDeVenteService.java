@@ -1,6 +1,6 @@
 package lab.hang.Gestion.boulangerie.service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lab.hang.Gestion.boulangerie.dto.GuichetDTO;
 import lab.hang.Gestion.boulangerie.dto.PointDeVenteDTO;
 import lab.hang.Gestion.boulangerie.exception.ResourceNotFoundException;
@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class PointDeVenteService {
 
     private final PointDeVenteRepository pointDeVenteRepository;

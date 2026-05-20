@@ -2,12 +2,18 @@ package lab.hang.Gestion.boulangerie.controller;
 
 import lab.hang.Gestion.boulangerie.dto.RegisterRequest;
 import lab.hang.Gestion.boulangerie.service.UserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.io.File;
+import java.io.IOException;
 
 @Controller
 public class UserController {
@@ -81,5 +87,43 @@ public class UserController {
     public String deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return "redirect:/admin/users";
+    }
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
+
+    @GetMapping("/admin/settings")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String showSettings() {
+        return "admin/settings";
+    }
+
+    @PostMapping("/admin/settings/logo")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String uploadLogo(@RequestParam("logo") MultipartFile file,
+                             RedirectAttributes ra) throws IOException {
+        if (file.isEmpty()) {
+            ra.addFlashAttribute("errorMessage", "Veuillez sélectionner un fichier image.");
+            return "redirect:/admin/settings";
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            ra.addFlashAttribute("errorMessage", "Le fichier doit être une image (PNG, JPG…).");
+            return "redirect:/admin/settings";
+        }
+        File dir = new File(uploadDir).getAbsoluteFile();
+        dir.mkdirs();
+        file.transferTo(new File(dir, "logo.png"));
+        ra.addFlashAttribute("successMessage", "Logo mis à jour avec succès.");
+        return "redirect:/admin/settings";
+    }
+
+    @PostMapping("/admin/settings/logo/reset")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String resetLogo(RedirectAttributes ra) {
+        File logo = new File(uploadDir, "logo.png").getAbsoluteFile();
+        if (logo.exists()) logo.delete();
+        ra.addFlashAttribute("successMessage", "Logo réinitialisé.");
+        return "redirect:/admin/settings";
     }
 }
