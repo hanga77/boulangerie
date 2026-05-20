@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class CreditService {
     private final FournisseurDetteRepository detteRepository;
     private final NotificationService notificationService;
@@ -56,6 +57,16 @@ public class CreditService {
     public double calculerDetteTotale(Fournisseur fournisseur) {
         return detteRepository.findByFournisseurId(fournisseur.getId()).stream()
                 .filter(dette -> "EN_COURS".equals(dette.getStatus()))
+                .mapToDouble(FournisseurDette::getMontantDette)
+                .sum();
+    }
+
+    public List<FournisseurDette> getAllDettesEnCours() {
+        return detteRepository.findByStatus("EN_COURS");
+    }
+
+    public double getTotalGlobal() {
+        return detteRepository.findByStatus("EN_COURS").stream()
                 .mapToDouble(FournisseurDette::getMontantDette)
                 .sum();
     }
