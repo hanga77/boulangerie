@@ -41,20 +41,21 @@ public class ProductionController {
     }
 
 
+    @PreAuthorize("hasRole('BOULANGER')")
     @GetMapping("/passer-a-la-production")
     public String afficherPageProduction(Model model) {
         List<CommandeDTO> commandeDTOS = commandeService.getCommandesNonTraitees();
 
-        if (commandeDTOS.isEmpty()){
+        if (commandeDTOS.isEmpty()) {
             return "redirect:/production";
         }
 
         model.addAttribute("dateActuelle", LocalDate.now());
-        // Afficher une page avec un formulaire pour passer à la production
+        model.addAttribute("commandes", commandeDTOS);
         return "production/passer-a-la-production";
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'BOULANGER')")
+    @PreAuthorize("hasRole('BOULANGER')")
     @PostMapping("/passer-a-la-production")
     public String passerALaProduction(@RequestParam LocalDate date, Model model) {
         // 1. Récupérer l'utilisateur actuellement connecté
@@ -90,7 +91,7 @@ public class ProductionController {
         return "production/confirm";
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'BOULANGER')")
+    @PreAuthorize("hasRole('BOULANGER')")
     @PostMapping("/confirmer-production")
     public String confirmerProduction(@RequestParam LocalDate date, Model model) {
         // 1. Récupérer l'utilisateur actuellement connecté
@@ -106,8 +107,7 @@ public class ProductionController {
         return "production/confirm";
     }
 
-    // In your controller
-    @PreAuthorize("hasAnyRole('ADMIN', 'BOULANGER')")
+    @PreAuthorize("hasRole('BOULANGER')")
     @PostMapping("/valider-production")
     public String validerProduction(@RequestParam Map<String, String> formData) {
         ProductionDTO productionDTO = new ProductionDTO();

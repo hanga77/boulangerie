@@ -20,6 +20,10 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
 
     List<StockMovement> findByDate(LocalDate date);
 
+    @Query("SELECT m FROM StockMovement m WHERE m.date BETWEEN :start AND :end ORDER BY m.date DESC")
+    List<StockMovement> findByDateBetween(@Param("start") LocalDate start,
+                                          @Param("end") LocalDate end);
+
     @Query("SELECT m FROM StockMovement m WHERE m.date BETWEEN :start AND :end")
     Page<StockMovement> findByDateBetween(@Param("start") LocalDate start,
                                           @Param("end") LocalDate end,

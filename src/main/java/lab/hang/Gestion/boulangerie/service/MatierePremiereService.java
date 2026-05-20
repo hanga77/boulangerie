@@ -94,6 +94,10 @@ public class MatierePremiereService {
         return stockMovementRepository.findByDate(date);
     }
 
+    public List<StockMovement> getStockMovementsByDateRange(LocalDate start, LocalDate end) {
+        return stockMovementRepository.findByDateBetween(start, end);
+    }
+
     public StockReportDTO generateStockReport(LocalDate date) {
         List<StockMovement> movements = getStockMovementsByDate(date);
         Map<MatierePremiere, StockReportDTO.StockSummary> stockSummary = new HashMap<>();
