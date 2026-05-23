@@ -82,6 +82,20 @@ public class UserController {
         return "redirect:/admin/users";
     }
 
+    @PostMapping("/admin/users/{id}/password")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String changePassword(@PathVariable Long id,
+                                 @RequestParam String newPassword,
+                                 RedirectAttributes ra) {
+        if (newPassword == null || newPassword.length() < 4) {
+            ra.addFlashAttribute("errorMessage", "Le mot de passe doit contenir au moins 4 caractères.");
+            return "redirect:/admin/users";
+        }
+        userService.changePassword(id, newPassword);
+        ra.addFlashAttribute("successMessage", "Mot de passe mis à jour.");
+        return "redirect:/admin/users";
+    }
+
     @DeleteMapping("/admin/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public String deleteUser(@PathVariable Long id) {

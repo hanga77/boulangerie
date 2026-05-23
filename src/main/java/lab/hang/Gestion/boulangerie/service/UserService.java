@@ -85,6 +85,13 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
+    @Transactional
+    public void changePassword(Long userId, String newPassword) {
+        User user = getUserById(userId);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
 
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
