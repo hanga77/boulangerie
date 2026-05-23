@@ -47,10 +47,7 @@
                     </div>
                     <div>
                         <div class="text-muted small">Dettes en retard</div>
-                        <div class="fw-bold fs-4 text-warning"
-                             th:text="${#lists.size(dettes.?[dateEcheance != null and dateEcheance.isBefore(#dates.createToday().toInstant().atZone(T(java.time.ZoneId).systemDefault()).toLocalDate())])}">
-                            0
-                        </div>
+                        <div class="fw-bold fs-4 text-warning" th:text="${nbEnRetard}">0</div>
                     </div>
                 </div>
             </div>
@@ -173,6 +170,6 @@
     </div>
 </div>
 
-<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

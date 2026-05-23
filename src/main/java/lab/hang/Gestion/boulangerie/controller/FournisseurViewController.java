@@ -30,8 +30,13 @@ public class FournisseurViewController {
 
     @GetMapping("/dettes")
     public String listDettes(Model model) {
-        model.addAttribute("dettes", creditService.getAllDettesEnCours());
+        var dettes = creditService.getAllDettesEnCours();
+        long nbEnRetard = dettes.stream()
+                .filter(d -> d.getDateEcheance() != null && d.getDateEcheance().isBefore(java.time.LocalDate.now()))
+                .count();
+        model.addAttribute("dettes", dettes);
         model.addAttribute("totalGlobal", creditService.getTotalGlobal());
+        model.addAttribute("nbEnRetard", nbEnRetard);
         return "fournisseurs/dettes";
     }
 
