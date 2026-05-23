@@ -1,6 +1,7 @@
 package lab.hang.Gestion.boulangerie.config;
 
 import lab.hang.Gestion.boulangerie.model.*;
+import lab.hang.Gestion.boulangerie.model.FournisseurDette;
 import lab.hang.Gestion.boulangerie.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ public class DataInitializer implements CommandLineRunner {
     private final PointDeVenteRepository pointDeVenteRepository;
     private final CommandeRepository commandeRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final FournisseurDetteRepository fournisseurDetteRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UserRepository userRepository,
@@ -38,6 +40,7 @@ public class DataInitializer implements CommandLineRunner {
                            PointDeVenteRepository pointDeVenteRepository,
                            CommandeRepository commandeRepository,
                            StockMovementRepository stockMovementRepository,
+                           FournisseurDetteRepository fournisseurDetteRepository,
                            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.matierePremiereRepository = matierePremiereRepository;
@@ -48,6 +51,7 @@ public class DataInitializer implements CommandLineRunner {
         this.pointDeVenteRepository = pointDeVenteRepository;
         this.commandeRepository = commandeRepository;
         this.stockMovementRepository = stockMovementRepository;
+        this.fournisseurDetteRepository = fournisseurDetteRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -58,7 +62,12 @@ public class DataInitializer implements CommandLineRunner {
         List<MatierePremiere> matieres = initMatieresPremieres();
         initProduits(matieres);
         initChargesFixes();
-        initFournisseurs();
+        List<Fournisseur> fournisseurs = initFournisseurs();
+        try {
+            initDettes(fournisseurs);
+        } catch (Exception e) {
+            log.warn("Seed dettes ignoré: {}", e.getMessage());
+        }
         List<PointDeVente> pdvs = initPointsDeVente();
         try {
             initCommandes(pdvs);
@@ -247,10 +256,10 @@ public class DataInitializer implements CommandLineRunner {
 
     // ── Fournisseurs ──────────────────────────────────────────────────────
 
-    private void initFournisseurs() {
-        if (fournisseurRepository.count() > 0) return;
+    private List<Fournisseur> initFournisseurs() {
+        if (fournisseurRepository.count() > 0) return fournisseurRepository.findAll();
 
-        fournisseurRepository.saveAll(List.of(
+        return fournisseurRepository.saveAll(List.of(
             fournisseur("SOSUCAM",        "Njombé, Littoral",       "+237 233 000 001",
                         "commercial@sosucam.cm",  "M. Mbarga Paul",   "Sucre, céréales"),
             fournisseur("Grands Moulins",  "Douala, Bonapriso",      "+237 233 421 100",
@@ -274,6 +283,44 @@ public class DataInitializer implements CommandLineRunner {
         f.setReferenceContact(contact);
         f.setCategorieProduits(categorie);
         return f;
+    }
+
+    // ── Dettes fournisseurs ───────────────────────────────────────────────
+
+    private void initDettes(List<Fournisseur> fournisseurs) {
+        if (fournisseurDetteRepository.count() > 0) return;
+        if (fournisseurs.size() < 3) return;
+
+        LocalDate today = LocalDate.now();
+        Fournisseur sosucam  = getFournisseur(fournisseurs, "SOSUCAM");
+        Fournisseur moulins  = getFournisseur(fournisseurs, "Grands Moulins");
+        Fournisseur laiterie = getFournisseur(fournisseurs, "Laiterie du Berger");
+
+        fournisseurDetteRepository.saveAll(List.of(
+            dette(sosucam,  85_000, today.minusDays(20), today.plusDays(10),  "EN_COURS"),
+            dette(sosucam,  30_000, today.minusDays(45), today.minusDays(5),  "EN_COURS"),
+            dette(moulins, 120_000, today.minusDays(10), today.plusDays(20),  "EN_COURS"),
+            dette(moulins,  50_000, today.minusDays(60), today.minusDays(30), "REMBOURSEE"),
+            dette(laiterie, 65_000, today.minusDays(15), today.plusDays(15),  "EN_COURS")
+        ));
+    }
+
+    private FournisseurDette dette(Fournisseur fournisseur, double montant,
+                                   LocalDate creation, LocalDate echeance, String status) {
+        FournisseurDette d = new FournisseurDette();
+        d.setFournisseur(fournisseur);
+        d.setMontantDette(montant);
+        d.setDateCreation(creation);
+        d.setDateEcheance(echeance);
+        d.setStatus(status);
+        return d;
+    }
+
+    private Fournisseur getFournisseur(List<Fournisseur> list, String nom) {
+        return list.stream()
+                .filter(f -> f.getNom().equals(nom))
+                .findFirst()
+                .orElse(list.get(0));
     }
 
     // ── Points de vente ───────────────────────────────────────────────────

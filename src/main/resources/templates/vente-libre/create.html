@@ -18,6 +18,7 @@
         <div class="card-body">
             <form th:action="@{/ventes-libres/save}" method="post"
                   th:object="${venteLibreRequest}" id="venteLibreForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
                 <!-- Sélection de la production -->
                 <div class="mb-4">

@@ -25,6 +25,13 @@ public class FournisseurViewController {
     @GetMapping
     public String list(Model model) {
         model.addAttribute("fournisseurs", fournisseurService.getAllFournisseurs());
+        var dettes = creditService.getAllDettesEnCours();
+        java.util.Map<Long, Double> dettesParFournisseur = dettes.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        d -> d.getFournisseur().getId(),
+                        java.util.stream.Collectors.summingDouble(
+                                lab.hang.Gestion.boulangerie.model.FournisseurDette::getMontantDette)));
+        model.addAttribute("dettesParFournisseur", dettesParFournisseur);
         return "fournisseurs/list";
     }
 

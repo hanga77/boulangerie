@@ -3,6 +3,7 @@ package lab.hang.Gestion.boulangerie.controller;
 import lab.hang.Gestion.boulangerie.model.Production;
 import lab.hang.Gestion.boulangerie.service.CommandeService;
 import lab.hang.Gestion.boulangerie.service.FinanceService;
+import lab.hang.Gestion.boulangerie.service.LivraisonService;
 import lab.hang.Gestion.boulangerie.service.MatierePremiereService;
 import lab.hang.Gestion.boulangerie.service.ProductionService;
 import org.springframework.stereotype.Controller;
@@ -16,17 +17,20 @@ import java.util.List;
 public class DashboardController {
 
     private final CommandeService commandeService;
-    private  final FinanceService financeService;
-    private  final MatierePremiereService matierePremiereService;
+    private final FinanceService financeService;
+    private final MatierePremiereService matierePremiereService;
+    private final ProductionService productionService;
+    private final LivraisonService livraisonService;
 
-    private  final ProductionService productionService;
-
-
-    public DashboardController(CommandeService commandeService, FinanceService financeService, MatierePremiereService matierePremiereService, ProductionService productionService) {
+    public DashboardController(CommandeService commandeService, FinanceService financeService,
+                               MatierePremiereService matierePremiereService,
+                               ProductionService productionService,
+                               LivraisonService livraisonService) {
         this.commandeService = commandeService;
         this.financeService = financeService;
         this.matierePremiereService = matierePremiereService;
         this.productionService = productionService;
+        this.livraisonService = livraisonService;
     }
 
     @GetMapping("/dashboard")
@@ -50,11 +54,10 @@ public class DashboardController {
         model.addAttribute("coutTotalAujourdhui", coutTotalAujourdhui);
         model.addAttribute("nombrePointsDeVenteActifs", nombrePointsDeVenteActifs);
         model.addAttribute("commandesRecentes", commandeService.getCommandesByDate(today));
-        model.addAttribute("stocks",matierePremiereService.getAllMatierePremieres());
+        model.addAttribute("stocks", matierePremiereService.getAllMatierePremieres());
         model.addAttribute("produits", productionDTOS);
+        model.addAttribute("livraisons", livraisonService.getLivraisonsByDateRange(today.minusDays(7), today));
 
         return "dashboard";
     }
-
-
 }

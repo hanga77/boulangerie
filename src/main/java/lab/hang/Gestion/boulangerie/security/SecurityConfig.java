@@ -46,6 +46,9 @@ public class SecurityConfig {
                         .requestMatchers(mvcMatcherBuilder.pattern("/v3/api-docs/**")).permitAll()
                         .requestMatchers(mvcMatcherBuilder.pattern("/api/credits/**")).hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(mvcMatcherBuilder.pattern("/api/fournisseurs/**")).hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(mvcMatcherBuilder.pattern("/rapports/**")).hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(mvcMatcherBuilder.pattern("/fournisseurs/dettes")).hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(mvcMatcherBuilder.pattern("/fournisseurs/dettes/**")).hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

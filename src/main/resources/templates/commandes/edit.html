@@ -16,6 +16,7 @@
         </div>
         <div class="card-body">
             <form th:action="@{/commandes/update/{id}(id=${commandeDTO.id})}" th:object="${commandeDTO}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <div class="mb-3">
                     <label for="dateCommande">Date de la Commande:</label>
                     <input type="date" id="dateCommande" th:field="*{dateCommande}" class="form-control" required />

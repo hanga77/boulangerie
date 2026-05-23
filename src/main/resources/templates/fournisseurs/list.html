@@ -33,6 +33,7 @@
                     <th class="d-none d-md-table-cell">Contact</th>
                     <th class="d-none d-md-table-cell">Téléphone</th>
                     <th class="d-none d-lg-table-cell">Catégorie</th>
+                    <th class="d-none d-md-table-cell text-end">Dette en cours</th>
                     <th class="text-end">Actions</th>
                 </tr>
                 </thead>
@@ -46,6 +47,14 @@
                     <td class="d-none d-md-table-cell" th:text="${f.telephone}"></td>
                     <td class="d-none d-lg-table-cell">
                         <span class="badge bg-secondary" th:text="${f.categorieProduits}"></span>
+                    </td>
+                    <td class="d-none d-md-table-cell text-end">
+                        <span th:with="dette=${dettesParFournisseur[f.id]}"
+                              th:if="${dette != null and dette > 0}"
+                              class="badge bg-danger"
+                              th:text="${#numbers.formatDecimal(dette, 0, 'COMMA', 0, 'POINT') + ' XAF'}"></span>
+                        <span th:unless="${dettesParFournisseur[f.id] != null and dettesParFournisseur[f.id] > 0}"
+                              class="text-muted small">—</span>
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-1 flex-wrap">
@@ -68,7 +77,7 @@
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(fournisseurs)}">
-                    <td colspan="5" class="text-center text-muted py-4">
+                    <td colspan="6" class="text-center text-muted py-4">
                         <i class="fas fa-truck fa-2x d-block mb-2 opacity-25"></i>
                         Aucun fournisseur enregistré
                     </td>
