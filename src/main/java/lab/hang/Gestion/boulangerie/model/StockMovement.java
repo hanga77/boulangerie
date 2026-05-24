@@ -24,7 +24,7 @@ public class StockMovement {
     private Long id;
 
     @Column(nullable = false)
-    @Pattern(regexp = "^(ENTREE|SORTIE|RETOUR)$")
+    @Pattern(regexp = "^(ENTREE|SORTIE|RETOUR|PERTE)$")
     private String type;
 
     @Column(nullable = false)
