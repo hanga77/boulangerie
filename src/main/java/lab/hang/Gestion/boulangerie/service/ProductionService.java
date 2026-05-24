@@ -220,6 +220,11 @@ public class ProductionService {
         return productionMapper.toDTO(production);
     }
 
+    public Production getProductionEntityById(Long id) {
+        return productionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Production non trouvée : " + id));
+    }
+
 
     public Page<Production> getProductionsByDateRange(LocalDate startDate, LocalDate endDate, Pageable pageable) {
         return productionRepository.findByDateProductionBetween(startDate, endDate, pageable);

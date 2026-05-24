@@ -289,14 +289,15 @@ public class StockService {
     public StockMovement lostStock(Long matierePremiereId, double quantite, String motif) {
         if (quantite <= 0) throw new IllegalArgumentException("La quantité doit être positive.");
         MatierePremiere matierePremiere = matierePremiereService.getMatierePremiereById(matierePremiereId);
-        double newStock = Math.max(0, matierePremiere.getStock() - quantite);
+        double actualLoss = Math.min(quantite, matierePremiere.getStock());
+        double newStock = matierePremiere.getStock() - actualLoss;
         matierePremiere.setStock(newStock);
         matierePremiereService.saveMatierePremiere(matierePremiere);
 
         User currentUser = userService.getCurrentUser();
         StockMovement movement = new StockMovement();
         movement.setType("PERTE");
-        movement.setQuantite(quantite);
+        movement.setQuantite(actualLoss);
         movement.setDate(LocalDate.now());
         movement.setMatierePremiere(matierePremiere);
         movement.setUser(currentUser);

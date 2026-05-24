@@ -143,10 +143,7 @@ public class ProductionController {
         if ("true".equals(formData.get("incidentSignaler"))) {
             try {
                 Long productionId = Long.valueOf(formData.get("productionId"));
-                ProductionDTO prod = productionService.getProductionById(productionId);
-                Production productionEntity = new Production();
-                productionEntity.setId(prod.getId());
-                productionEntity.setDateProduction(prod.getDateProduction());
+                Production productionEntity = productionService.getProductionEntityById(productionId);
 
                 TypeIncident type = TypeIncident.valueOf(formData.get("incidentType"));
                 double quantitePerdue = Double.parseDouble(
