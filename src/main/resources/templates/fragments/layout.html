@@ -124,6 +124,11 @@
                                 <i class="fas fa-truck me-2"></i>Livraisons
                             </a>
                         </li>
+                        <li sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                            <a class="dropdown-item" href="/production/incidents">
+                                <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Incidents production
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item">
