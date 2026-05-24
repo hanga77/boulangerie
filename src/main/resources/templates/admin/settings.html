@@ -67,6 +67,36 @@
         </div>
     </div>
 
+    <!-- Seuil incident production -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Production — seuil d'alerte incident
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">
+                Quand l'écart entre quantité théorique et réelle dépasse ce seuil (en %),
+                la section "Signaler un incident" apparaît automatiquement lors de la validation.
+            </p>
+            <form th:action="@{/admin/settings/seuil-incident}" method="post" class="row g-3 align-items-end">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="col-md-4">
+                    <label for="seuil" class="form-label fw-semibold">Seuil d'écart (%)</label>
+                    <div class="input-group">
+                        <input type="number" id="seuil" name="seuil" class="form-control"
+                               min="1" max="100" step="1"
+                               th:value="${seuilIncident != null ? seuilIncident : 10}"/>
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-save me-1"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </main>
 
 <div th:replace="~{fragments/layout :: scripts}"></div>
