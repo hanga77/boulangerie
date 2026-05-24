@@ -6,6 +6,10 @@ import lab.hang.Gestion.boulangerie.dto.ProduitDTO;
 import lab.hang.Gestion.boulangerie.model.*;
 import lab.hang.Gestion.boulangerie.repository.UserRepository;
 import lab.hang.Gestion.boulangerie.service.*;
+import lab.hang.Gestion.boulangerie.model.IncidentProduction;
+import lab.hang.Gestion.boulangerie.model.TypeIncident;
+import lab.hang.Gestion.boulangerie.service.IncidentProductionService;
+import lab.hang.Gestion.boulangerie.service.AppSettingsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -31,13 +35,17 @@ public class ProductionController {
     private final MatierePremiereService matierePremiereService;
     private final UserService userService;
     private final ProduitService produitService;
+    private final IncidentProductionService incidentProductionService;
+    private final AppSettingsService appSettingsService;
 
-    public ProductionController(CommandeService commandeService, ProductionService productionService, MatierePremiereService matierePremiereService, UserService userService, ProduitService produitService) {
+    public ProductionController(CommandeService commandeService, ProductionService productionService, MatierePremiereService matierePremiereService, UserService userService, ProduitService produitService, IncidentProductionService incidentProductionService, AppSettingsService appSettingsService) {
         this.commandeService = commandeService;
         this.productionService = productionService;
         this.matierePremiereService = matierePremiereService;
         this.userService = userService;
         this.produitService = produitService;
+        this.incidentProductionService = incidentProductionService;
+        this.appSettingsService = appSettingsService;
     }
 
 
@@ -87,6 +95,7 @@ public class ProductionController {
 
         // 5. Ajouter les détails de la production au modèle
         model.addAttribute("production", productionDTO);
+        model.addAttribute("seuil", appSettingsService.getSeuilIncident());
 
         return "production/confirm";
     }
@@ -104,26 +113,24 @@ public class ProductionController {
         model.addAttribute("production", productionDTO);
 
         // 4. Rediriger vers une page de confirmation
+        model.addAttribute("seuil", appSettingsService.getSeuilIncident());
         return "production/confirm";
     }
 
     @PreAuthorize("hasRole('BOULANGER')")
     @PostMapping("/valider-production")
-    public String validerProduction(@RequestParam Map<String, String> formData) {
+    public String validerProduction(@RequestParam Map<String, String> formData,
+                                    RedirectAttributes ra) {
         ProductionDTO productionDTO = new ProductionDTO();
-
         Map<Long, Double> quantitesReelles = new HashMap<>();
         Map<Long, Integer> produitsProduits = new HashMap<>();
 
-        // Convert String keys to Long when processing form data
         formData.forEach((key, value) -> {
             if (key.startsWith("quantitesReellesMatieres[")) {
-                String idStr = key.substring(key.indexOf("[") + 1, key.indexOf("]"));
-                Long id = Long.valueOf(idStr);
+                Long id = Long.valueOf(key.substring(key.indexOf("[") + 1, key.indexOf("]")));
                 quantitesReelles.put(id, Double.valueOf(value));
             } else if (key.startsWith("quantitesReellesProduits[")) {
-                String idStr = key.substring(key.indexOf("[") + 1, key.indexOf("]"));
-                Long id = Long.valueOf(idStr);
+                Long id = Long.valueOf(key.substring(key.indexOf("[") + 1, key.indexOf("]")));
                 produitsProduits.put(id, Integer.valueOf(value));
             }
         });
@@ -131,9 +138,76 @@ public class ProductionController {
         productionDTO.setId(Long.valueOf(formData.get("productionId")));
         productionDTO.setQuantitesReellesUtilisees(quantitesReelles);
         productionDTO.setProduitsProduits(produitsProduits);
-
         productionService.updateProduction(productionDTO);
+
+        if ("true".equals(formData.get("incidentSignaler"))) {
+            try {
+                Long productionId = Long.valueOf(formData.get("productionId"));
+                ProductionDTO prod = productionService.getProductionById(productionId);
+                Production productionEntity = new Production();
+                productionEntity.setId(prod.getId());
+                productionEntity.setDateProduction(prod.getDateProduction());
+
+                TypeIncident type = TypeIncident.valueOf(formData.get("incidentType"));
+                double quantitePerdue = Double.parseDouble(
+                        formData.getOrDefault("incidentQuantitePerdue", "0"));
+                String cause = formData.getOrDefault("incidentCause", "");
+                User boulanger = userService.getCurrentUser();
+
+                MatierePremiere matiere = null;
+                String matiereIdStr = formData.get("incidentMatiereId");
+                if (matiereIdStr != null && !matiereIdStr.isBlank()) {
+                    matiere = matierePremiereService.getMatierePremiereById(Long.valueOf(matiereIdStr));
+                }
+
+                Produit produit = null;
+                String produitIdStr = formData.get("incidentProduitId");
+                if (produitIdStr != null && !produitIdStr.isBlank()) {
+                    produit = produitService.getProduitEntityById(Long.valueOf(produitIdStr));
+                }
+
+                incidentProductionService.creerIncident(
+                        productionEntity, type, produit, matiere, quantitePerdue, cause, boulanger);
+
+                ra.addFlashAttribute("successMessage", "Production validée. Incident enregistré.");
+            } catch (Exception e) {
+                ra.addFlashAttribute("warningMessage",
+                        "Production validée mais erreur lors de l'enregistrement de l'incident : " + e.getMessage());
+            }
+        }
+
         return "redirect:/production";
+    }
+
+    @GetMapping("/incidents")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public String listIncidents(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate debut,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fin,
+            @RequestParam(required = false) String type,
+            Model model) {
+
+        if (debut == null) debut = LocalDate.now().withDayOfMonth(1);
+        if (fin == null) fin = LocalDate.now();
+
+        TypeIncident typeIncident = null;
+        if (type != null && !type.isBlank()) {
+            try { typeIncident = TypeIncident.valueOf(type); } catch (IllegalArgumentException ignored) {}
+        }
+
+        var incidents = incidentProductionService.getAllIncidents(debut, fin, typeIncident);
+        long avecImpactStock = incidents.stream().filter(IncidentProduction::isStockAjuste).count();
+
+        model.addAttribute("incidents", incidents);
+        model.addAttribute("debut", debut);
+        model.addAttribute("fin", fin);
+        model.addAttribute("typeSelectionne", type);
+        model.addAttribute("typesIncident", TypeIncident.values());
+        model.addAttribute("totalIncidents", incidents.size());
+        model.addAttribute("avecImpactStock", avecImpactStock);
+        model.addAttribute("sansImpactStock", incidents.size() - avecImpactStock);
+
+        return "production/incidents";
     }
 
     @GetMapping("/details/{productionId}")
@@ -154,6 +228,8 @@ public class ProductionController {
         model.addAttribute("production", productionDTO);
         model.addAttribute("produits", produitsMap);
         model.addAttribute("matiere", matieresMap);
+        model.addAttribute("incidents",
+                incidentProductionService.getIncidentsByProduction(productionId));
 
         // 3. Rediriger vers une page de détails
         return "production/details";
