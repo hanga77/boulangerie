@@ -29,6 +29,7 @@ public class DataInitializer implements CommandLineRunner {
     private final CommandeRepository commandeRepository;
     private final StockMovementRepository stockMovementRepository;
     private final FournisseurDetteRepository fournisseurDetteRepository;
+    private final AppSettingsRepository appSettingsRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UserRepository userRepository,
@@ -41,6 +42,7 @@ public class DataInitializer implements CommandLineRunner {
                            CommandeRepository commandeRepository,
                            StockMovementRepository stockMovementRepository,
                            FournisseurDetteRepository fournisseurDetteRepository,
+                           AppSettingsRepository appSettingsRepository,
                            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.matierePremiereRepository = matierePremiereRepository;
@@ -52,6 +54,7 @@ public class DataInitializer implements CommandLineRunner {
         this.commandeRepository = commandeRepository;
         this.stockMovementRepository = stockMovementRepository;
         this.fournisseurDetteRepository = fournisseurDetteRepository;
+        this.appSettingsRepository = appSettingsRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -59,6 +62,7 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         initComptesBancaires();
         initUsers();
+        initAppSettings();
         List<MatierePremiere> matieres = initMatieresPremieres();
         initProduits(matieres);
         initChargesFixes();
@@ -79,6 +83,13 @@ public class DataInitializer implements CommandLineRunner {
         } catch (Exception e) {
             log.warn("Seed mouvements ignoré: {}", e.getMessage());
         }
+    }
+
+    // ── Paramètres applicatifs ────────────────────────────────────────────
+
+    private void initAppSettings() {
+        if (appSettingsRepository.count() > 0) return;
+        appSettingsRepository.save(new AppSettings("seuil_incident_production", "10.0"));
     }
 
     // ── Comptes bancaires ──────────────────────────────────────────────────
