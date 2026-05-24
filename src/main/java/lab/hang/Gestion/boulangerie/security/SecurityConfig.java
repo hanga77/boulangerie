@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(mvcMatcherBuilder.pattern("/rapports/**")).hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(mvcMatcherBuilder.pattern("/fournisseurs/dettes")).hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(mvcMatcherBuilder.pattern("/fournisseurs/dettes/**")).hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(mvcMatcherBuilder.pattern("/production/incidents")).hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

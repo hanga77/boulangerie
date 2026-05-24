@@ -1,6 +1,7 @@
 package lab.hang.Gestion.boulangerie.controller;
 
 import lab.hang.Gestion.boulangerie.dto.RegisterRequest;
+import lab.hang.Gestion.boulangerie.service.AppSettingsService;
 import lab.hang.Gestion.boulangerie.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,9 +20,11 @@ import java.io.IOException;
 public class UserController {
 
     private final UserService userService;
+    private final AppSettingsService appSettingsService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, AppSettingsService appSettingsService) {
         this.userService = userService;
+        this.appSettingsService = appSettingsService;
     }
 
     @GetMapping("/register")
@@ -108,8 +111,21 @@ public class UserController {
 
     @GetMapping("/admin/settings")
     @PreAuthorize("hasRole('ADMIN')")
-    public String showSettings() {
+    public String showSettings(Model model) {
+        model.addAttribute("seuilIncident", appSettingsService.getSeuilIncident());
         return "admin/settings";
+    }
+
+    @PostMapping("/admin/settings/seuil-incident")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String updateSeuilIncident(@RequestParam double seuil, RedirectAttributes ra) {
+        if (seuil < 1 || seuil > 100) {
+            ra.addFlashAttribute("errorMessage", "Le seuil doit être entre 1 et 100 %.");
+            return "redirect:/admin/settings";
+        }
+        appSettingsService.updateSeuilIncident(seuil);
+        ra.addFlashAttribute("successMessage", "Seuil d'alerte mis à jour : " + seuil + " %");
+        return "redirect:/admin/settings";
     }
 
     @PostMapping("/admin/settings/logo")
