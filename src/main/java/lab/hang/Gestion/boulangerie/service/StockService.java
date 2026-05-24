@@ -285,6 +285,25 @@ public class StockService {
         return stockSummaryMap;
     }
 
+    @Transactional
+    public StockMovement lostStock(Long matierePremiereId, double quantite, String motif) {
+        if (quantite <= 0) throw new IllegalArgumentException("La quantité doit être positive.");
+        MatierePremiere matierePremiere = matierePremiereService.getMatierePremiereById(matierePremiereId);
+        double newStock = Math.max(0, matierePremiere.getStock() - quantite);
+        matierePremiere.setStock(newStock);
+        matierePremiereService.saveMatierePremiere(matierePremiere);
+
+        User currentUser = userService.getCurrentUser();
+        StockMovement movement = new StockMovement();
+        movement.setType("PERTE");
+        movement.setQuantite(quantite);
+        movement.setDate(LocalDate.now());
+        movement.setMatierePremiere(matierePremiere);
+        movement.setUser(currentUser);
+        movement.setMotif(motif);
+        return stockMovementRepository.save(movement);
+    }
+
     public static class StockSummary {
         private double stockHier; // Stock disponible hier
         private double sortiesJournee; // Sorties de la journée en cours
