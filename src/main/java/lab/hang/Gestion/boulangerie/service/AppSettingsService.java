@@ -19,12 +19,18 @@ public class AppSettingsService {
 
     public double getSeuilIncident() {
         return appSettingsRepository.findById(SEUIL_KEY)
-                .map(s -> Double.parseDouble(s.getValeur()))
+                .map(s -> {
+                    try { return Double.parseDouble(s.getValeur()); }
+                    catch (NumberFormatException e) { return SEUIL_DEFAULT; }
+                })
                 .orElse(SEUIL_DEFAULT);
     }
 
     @Transactional
     public void updateSeuilIncident(double seuil) {
+        if (!Double.isFinite(seuil) || seuil <= 0) {
+            throw new IllegalArgumentException("Seuil invalide : " + seuil);
+        }
         appSettingsRepository.save(new AppSettings(SEUIL_KEY, String.valueOf(seuil)));
     }
 }

@@ -52,4 +52,12 @@ class AppSettingsServiceTest {
             s.getValeur().equals("20.0")
         ));
     }
+
+    @Test
+    void updateSeuil_rejectsInvalidInput() {
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+            () -> appSettingsService.updateSeuilIncident(-5.0));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+            () -> appSettingsService.updateSeuilIncident(0));
+    }
 }
