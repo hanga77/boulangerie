@@ -52,6 +52,11 @@ public class BulletinDePaieService {
         double cnpsPatronal = salaireBrut * TAUX_CNPS_PATRONAL;
         double salaireNet   = salaireBrut - cnpsEmploye - avanceSurSalaire;
 
+        if (salaireNet < 0) {
+            throw new IllegalStateException(
+                "L'avance sur salaire dépasse le net calculé. Bulletin non généré.");
+        }
+
         BulletinDePaie bulletin = new BulletinDePaie();
         bulletin.setEmploye(employe);
         bulletin.setPeriode(periode);
