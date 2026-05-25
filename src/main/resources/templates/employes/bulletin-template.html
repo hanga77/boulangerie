@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; color: #333; margin: 30px; }
+        h1 { font-size: 18px; margin: 0; }
+        .header { text-align: center; margin-bottom: 24px; border-bottom: 2px solid #333; padding-bottom: 12px; }
+        .info-grid { display: table; width: 100%; margin-bottom: 20px; }
+        .info-col  { display: table-cell; width: 50%; vertical-align: top; }
+        .info-col p { margin: 2px 0; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        th, td { border: 1px solid #ccc; padding: 6px 10px; }
+        th { background-color: #f5f5f5; text-align: left; }
+        .text-right { text-align: right; }
+        .total-row { font-weight: bold; background-color: #e8f5e9; }
+        .deduction  { color: #c0392b; }
+        .info-box   { background-color: #f5f5f5; padding: 10px; font-size: 11px; color: #666; border-radius: 4px; }
+        .footer     { margin-top: 40px; display: table; width: 100%; }
+        .footer-col { display: table-cell; width: 50%; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1 th:text="${appName ?: 'Boulangerie'}"></h1>
+    <p>BULLETIN DE PAIE</p>
+    <p><strong th:text="${#temporals.format(bulletin.periode,'MMMM yyyy')}"></strong></p>
+</div>
+
+<div class="info-grid">
+    <div class="info-col">
+        <p><strong>Employ&#233; :</strong> <span th:text="${bulletin.employe.prenom + ' ' + bulletin.employe.nom}"></span></p>
+        <p><strong>Poste :</strong> <span th:text="${bulletin.employe.poste}"></span></p>
+        <p><strong>N&#176; CNPS :</strong> <span th:text="${bulletin.employe.numeroCnps ?: '&#8212;'}"></span></p>
+    </div>
+    <div class="info-col">
+        <p><strong>P&#233;riode :</strong> <span th:text="${#temporals.format(bulletin.periode,'MMMM yyyy')}"></span></p>
+        <p><strong>Date de g&#233;n&#233;ration :</strong> <span th:text="${#temporals.format(bulletin.dateGeneration,'dd/MM/yyyy')}"></span></p>
+        <p th:if="${bulletin.datePaiement != null}">
+            <strong>Date de paiement :</strong>
+            <span th:text="${#temporals.format(bulletin.datePaiement,'dd/MM/yyyy')}"></span>
+        </p>
+    </div>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Libell&#233;</th>
+        <th class="text-right">Montant</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Salaire de base</td>
+        <td class="text-right" th:text="${#numbers.formatDecimal(bulletin.salaireBase,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+    </tr>
+    <tr>
+        <td>Primes</td>
+        <td class="text-right" th:text="${#numbers.formatDecimal(bulletin.primes,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+    </tr>
+    <tr>
+        <td>Indemnit&#233; de transport</td>
+        <td class="text-right" th:text="${#numbers.formatDecimal(bulletin.indemnitesTransport,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+    </tr>
+    <tr class="total-row">
+        <td>Salaire brut</td>
+        <td class="text-right" th:text="${#numbers.formatDecimal(bulletin.salaireBrut,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+    </tr>
+    <tr class="deduction">
+        <td>Cotisation CNPS employ&#233; (4,2%)</td>
+        <td class="text-right" th:text="${'- ' + #numbers.formatDecimal(bulletin.cnpsEmploye,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+    </tr>
+    <tr class="deduction">
+        <td>Avance sur salaire</td>
+        <td class="text-right" th:text="${'- ' + #numbers.formatDecimal(bulletin.avanceSurSalaire,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+    </tr>
+    <tr class="total-row">
+        <td><strong>Net &#224; payer</strong></td>
+        <td class="text-right"><strong th:text="${#numbers.formatDecimal(bulletin.salaireNet,1,'COMMA',0,'POINT') + ' XAF'}"></strong></td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="info-box">
+    Information : Cotisation patronale CNPS (16,2%) =
+    <span th:text="${#numbers.formatDecimal(bulletin.cnpsPatronal,1,'COMMA',0,'POINT') + ' XAF'}"></span>
+    &#8212; &#224; la charge de l'employeur.
+</div>
+
+<div class="footer">
+    <div class="footer-col">
+        <p>Signature employ&#233;</p>
+        <br/><br/>
+        <p>__________________________</p>
+    </div>
+    <div class="footer-col" style="text-align:right">
+        <p>Signature employeur</p>
+        <br/><br/>
+        <p>__________________________</p>
+    </div>
+</div>
+
+</body>
+</html>

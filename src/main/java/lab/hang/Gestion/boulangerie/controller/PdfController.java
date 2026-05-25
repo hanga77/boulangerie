@@ -5,10 +5,12 @@ import lab.hang.Gestion.boulangerie.dto.LivraisonDTO;
 import lab.hang.Gestion.boulangerie.dto.ProductionDTO;
 import lab.hang.Gestion.boulangerie.dto.ProduitDTO;
 import lab.hang.Gestion.boulangerie.mapper.ProductionMapper;
+import lab.hang.Gestion.boulangerie.model.BulletinDePaie;
 import lab.hang.Gestion.boulangerie.model.MatierePremiere;
 import lab.hang.Gestion.boulangerie.service.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,7 +51,8 @@ public class PdfController {
     private final FacturationService facturationService;
 
     private final KPIService kpiService;
-
+    private final BulletinDePaieService bulletinDePaieService;
+    private final EmployeService employeService;
 
     @Value("${app.name}")
     private String appName;
@@ -57,7 +60,7 @@ public class PdfController {
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
-    public PdfController(TemplateEngine templateEngine, CommandeService commandeService, ProductionService productionService, UserService userService, ProduitService produitService, ProductionMapper productionMapper, LivraisonService livraisonService, MatierePremiereService matierePremiereService, FinanceService financeService, ChargeFixeService chargeFixeService, FacturationService facturationService, KPIService kpiService) {
+    public PdfController(TemplateEngine templateEngine, CommandeService commandeService, ProductionService productionService, UserService userService, ProduitService produitService, ProductionMapper productionMapper, LivraisonService livraisonService, MatierePremiereService matierePremiereService, FinanceService financeService, ChargeFixeService chargeFixeService, FacturationService facturationService, KPIService kpiService, BulletinDePaieService bulletinDePaieService, EmployeService employeService) {
         this.templateEngine = templateEngine;
         this.commandeService = commandeService;
         this.productionService = productionService;
@@ -70,6 +73,8 @@ public class PdfController {
         this.chargeFixeService = chargeFixeService;
         this.facturationService = facturationService;
         this.kpiService = kpiService;
+        this.bulletinDePaieService = bulletinDePaieService;
+        this.employeService = employeService;
     }
 
     private void addBrandToContext(Context context) {
@@ -215,6 +220,36 @@ public class PdfController {
                     BaseFont.EMBEDDED
             );
 
+            renderer.setDocumentFromString(html);
+            renderer.layout();
+            renderer.createPDF(outputStream);
+        }
+    }
+
+    @GetMapping("/bulletins/{id}/pdf")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER') or @bulletinSecurity.isBulletinOwner(#id, authentication)")
+    public void getBulletinPdf(@PathVariable Long id, HttpServletResponse response) throws Exception {
+        BulletinDePaie bulletin = bulletinDePaieService.getById(id);
+
+        Context context = new Context();
+        context.setVariable("bulletin", bulletin);
+        addBrandToContext(context);
+
+        String html = templateEngine.process("employes/bulletin-template", context);
+
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition",
+            "attachment; filename=bulletin-" + bulletin.getEmploye().getNom()
+            + "-" + bulletin.getPeriode() + ".pdf");
+
+        try (OutputStream outputStream = response.getOutputStream()) {
+            ITextRenderer renderer = new ITextRenderer();
+            ClassPathResource fontResource = new ClassPathResource("static/fonts/arial.ttf");
+            renderer.getFontResolver().addFont(
+                fontResource.getFile().getAbsolutePath(),
+                BaseFont.IDENTITY_H,
+                BaseFont.EMBEDDED
+            );
             renderer.setDocumentFromString(html);
             renderer.layout();
             renderer.createPDF(outputStream);
