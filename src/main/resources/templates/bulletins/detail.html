@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Bulletin de paie')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<div class="container mt-4" style="max-width:680px">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h4 fw-bold mb-0">
+                <i class="fas fa-file-invoice-dollar me-2 text-primary"></i>
+                Bulletin de paie —
+                <span th:text="${#temporals.format(bulletin.periode,'MMMM yyyy')}"></span>
+            </h1>
+            <p class="text-muted small mb-0" th:text="${bulletin.employe.prenom + ' ' + bulletin.employe.nom + ' — ' + bulletin.employe.poste}"></p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <span th:if="${bulletin.statut.name() == 'GENERE'}" class="badge bg-warning text-dark fs-6">En attente</span>
+            <span th:if="${bulletin.statut.name() == 'PAYE'}"   class="badge bg-success fs-6">Payé</span>
+            <a th:href="@{/bulletins/{id}/pdf(id=${bulletin.id})}"
+               class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-file-pdf me-1"></i>PDF
+            </a>
+            <form th:if="${bulletin.statut.name() == 'GENERE'}"
+                  sec:authorize="hasAnyRole('ADMIN','MANAGER')"
+                  th:action="@{/bulletins/{id}/payer(id=${bulletin.id})}" method="post"
+                  onsubmit="return confirm('Confirmer le paiement ?')">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="btn btn-success btn-sm">
+                    <i class="fas fa-check me-1"></i>Payer
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <!-- En-tête employé -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p class="mb-1 small text-muted">Employé</p>
+                    <p class="fw-semibold mb-0" th:text="${bulletin.employe.prenom + ' ' + bulletin.employe.nom}"></p>
+                    <p class="small text-muted mb-0" th:text="${bulletin.employe.poste}"></p>
+                </div>
+                <div class="col-md-3">
+                    <p class="mb-1 small text-muted">N° CNPS</p>
+                    <p class="mb-0" th:text="${bulletin.employe.numeroCnps ?: '—'}"></p>
+                </div>
+                <div class="col-md-3">
+                    <p class="mb-1 small text-muted">Période</p>
+                    <p class="mb-0" th:text="${#temporals.format(bulletin.periode,'MMMM yyyy')}"></p>
+                </div>
+            </div>
+
+            <!-- Tableau des composantes -->
+            <table class="table table-bordered mb-0">
+                <tbody>
+                <tr>
+                    <td>Salaire de base</td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(bulletin.salaireBase,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+                </tr>
+                <tr>
+                    <td>Primes</td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(bulletin.primes,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+                </tr>
+                <tr>
+                    <td>Indemnité de transport</td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(bulletin.indemnitesTransport,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+                </tr>
+                <tr class="fw-semibold table-light">
+                    <td>Salaire brut</td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(bulletin.salaireBrut,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+                </tr>
+                <tr class="text-danger">
+                    <td>Cotisation CNPS employé (4,2%)</td>
+                    <td class="text-end" th:text="${'− ' + #numbers.formatDecimal(bulletin.cnpsEmploye,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+                </tr>
+                <tr class="text-danger">
+                    <td>Avance sur salaire</td>
+                    <td class="text-end" th:text="${'− ' + #numbers.formatDecimal(bulletin.avanceSurSalaire,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+                </tr>
+                <tr class="fw-bold table-success">
+                    <td>Net à payer</td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(bulletin.salaireNet,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <!-- Section informatif CNPS patronal -->
+            <div class="mt-3 p-3 bg-light rounded small text-muted">
+                <strong>Information :</strong>
+                Cotisation patronale CNPS (16,2%) =
+                <span th:text="${#numbers.formatDecimal(bulletin.cnpsPatronal,1,'COMMA',0,'POINT') + ' XAF'}"></span>
+                — à la charge de l'employeur, non déduite du net.
+            </div>
+
+            <!-- Infos paiement si payé -->
+            <div th:if="${bulletin.statut.name() == 'PAYE'}" class="mt-3 alert alert-success small mb-0">
+                <i class="fas fa-check-circle me-2"></i>
+                Payé le <strong th:text="${#temporals.format(bulletin.datePaiement,'dd/MM/yyyy')}"></strong>.
+                <span th:if="${bulletin.transaction != null}">
+                    Transaction #<span th:text="${bulletin.transaction.id}"></span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="/bulletins" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Retour aux bulletins
+        </a>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

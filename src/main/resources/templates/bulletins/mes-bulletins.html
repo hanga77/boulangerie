@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mes bulletins')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<div class="container mt-4">
+    <h1 class="h4 fw-bold mb-4"><i class="fas fa-file-invoice-dollar me-2 text-primary"></i>Mes bulletins de paie</h1>
+
+    <div th:if="${aucunProfil}" class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>Aucun profil employé associé à votre compte.
+    </div>
+
+    <div th:unless="${aucunProfil}">
+        <p class="text-muted small mb-3" th:text="${employe.prenom + ' ' + employe.nom + ' — ' + employe.poste}"></p>
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Période</th>
+                        <th class="text-end">Net</th>
+                        <th>Statut</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="b : ${bulletins}">
+                        <td th:text="${#temporals.format(b.periode,'MMMM yyyy')}"></td>
+                        <td class="text-end fw-semibold" th:text="${#numbers.formatDecimal(b.salaireNet,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+                        <td>
+                            <span th:if="${b.statut.name() == 'GENERE'}" class="badge bg-warning text-dark">En attente</span>
+                            <span th:if="${b.statut.name() == 'PAYE'}"   class="badge bg-success">Payé</span>
+                        </td>
+                        <td class="text-end">
+                            <a th:href="@{/bulletins/{id}(id=${b.id})}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>Voir
+                            </a>
+                            <a th:href="@{/bulletins/{id}/pdf(id=${b.id})}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-file-pdf"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(bulletins)}">
+                        <td colspan="4" class="text-center text-muted py-4">Aucun bulletin disponible.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
