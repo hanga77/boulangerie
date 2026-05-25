@@ -239,8 +239,9 @@ public class PdfController {
 
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition",
-            "attachment; filename=bulletin-" + bulletin.getEmploye().getNom()
-            + "-" + bulletin.getPeriode() + ".pdf");
+            "attachment; filename=bulletin-" + bulletin.getId()
+            + "-" + bulletin.getPeriode().getYear()
+            + "-" + bulletin.getPeriode().getMonthValue() + ".pdf");
 
         try (OutputStream outputStream = response.getOutputStream()) {
             ITextRenderer renderer = new ITextRenderer();
