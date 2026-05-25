@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Employés')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h4 fw-bold mb-0"><i class="fas fa-users me-2 text-primary"></i>Employés</h1>
+            <p class="text-muted small mb-0">Registre des employés actifs</p>
+        </div>
+        <a href="/employes/nouveau" class="btn btn-primary btn-sm">
+            <i class="fas fa-user-plus me-1"></i>Nouvel employé
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Poste</th>
+                    <th class="text-end">Salaire base</th>
+                    <th>Compte lié</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${employes}">
+                    <td class="fw-semibold" th:text="${e.nom}"></td>
+                    <td th:text="${e.prenom}"></td>
+                    <td><span class="badge bg-secondary" th:text="${e.poste}"></span></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(e.salaireBase,1,'COMMA',0,'POINT') + ' XAF'}"></td>
+                    <td>
+                        <span th:if="${e.user != null}" class="badge bg-info text-dark" th:text="${e.user.username}"></span>
+                        <span th:unless="${e.user != null}" class="text-muted small">—</span>
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1 flex-wrap">
+                            <a th:href="@{/employes/{id}/modifier(id=${e.id})}"
+                               class="btn btn-outline-primary btn-sm" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a th:href="@{/bulletins/generer(employeId=${e.id})}"
+                               class="btn btn-outline-success btn-sm" title="Nouveau bulletin">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </a>
+                            <form th:action="@{/employes/{id}/desactiver(id=${e.id})}" method="post"
+                                  onsubmit="return confirm('Désactiver cet employé ?')">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Désactiver">
+                                    <i class="fas fa-user-slash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(employes)}">
+                    <td colspan="6" class="text-center text-muted py-4">Aucun employé actif.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
