@@ -104,12 +104,18 @@
                             <span th:unless="${charge.paye}" class="badge bg-danger">En attente</span>
                         </td>
                         <td>
-                            <a th:if="${!charge.paye}"
-                               th:href="@{/comptabilite/charges-fixes/{id}/payer(id=${charge.id})}"
-                               class="btn btn-sm btn-success">
-                                <i class="fas fa-check me-1"></i>Payer
-                            </a>
-                            <span th:if="${charge.paye}" class="text-muted">—</span>
+                            <div class="d-flex gap-1">
+                                <a th:if="${!charge.paye}"
+                                   th:href="@{/comptabilite/charges-fixes/{id}/payer(id=${charge.id})}"
+                                   class="btn btn-sm btn-success">
+                                    <i class="fas fa-check me-1"></i>Payer
+                                </a>
+                                <a th:if="${charge.paye}"
+                                   th:href="@{/comptabilite/charges-fixes/{id}/recu(id=${charge.id})}"
+                                   class="btn btn-sm btn-outline-secondary" title="T&#233;l&#233;charger le re&#231;u">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(charges)}">

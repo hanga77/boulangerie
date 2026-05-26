@@ -97,12 +97,21 @@ public class ComptabiliteController {
     }
 
     @GetMapping("/charges-fixes/{id}/payer")
-    public String payerChargeFixe(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String showPayerChargeForm(@PathVariable Long id, Model model) {
+        model.addAttribute("charge", chargeFixeService.getById(id));
+        model.addAttribute("comptes", chargeFixeService.getAllComptesBancaires());
+        return "comptabilite/payer-charge";
+    }
+
+    @PostMapping("/charges-fixes/{id}/payer")
+    public String payerChargeFixe(@PathVariable Long id,
+                                   @RequestParam Long compteBancaireId,
+                                   RedirectAttributes ra) {
         try {
-            chargeFixeService.payerChargeFixe(id);
-            redirectAttributes.addFlashAttribute("success", "Charge fixe marquée comme payée");
+            chargeFixeService.payerChargeFixe(id, compteBancaireId);
+            ra.addFlashAttribute("success", "Paiement enregistré avec succès.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
+            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
         }
         return "redirect:/comptabilite/charges-fixes";
     }

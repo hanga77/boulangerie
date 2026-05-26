@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Payer une charge')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<div class="container mt-4" style="max-width:640px">
+    <div class="mb-4">
+        <h1 class="h4 fw-bold mb-0">
+            <i class="fas fa-money-check-alt me-2 text-primary"></i>Payer une charge fixe
+        </h1>
+    </div>
+
+    <!-- Résumé de la charge -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Type</dt>
+                <dd class="col-sm-8"><span class="badge bg-secondary" th:text="${charge.type}"></span></dd>
+                <dt class="col-sm-4">Description</dt>
+                <dd class="col-sm-8" th:text="${charge.description}"></dd>
+                <dt class="col-sm-4">Montant</dt>
+                <dd class="col-sm-8 fw-bold"
+                    th:text="${#numbers.formatDecimal(charge.montant,1,'COMMA',0,'POINT') + ' XAF'}"></dd>
+                <dt class="col-sm-4">&#201;ch&#233;ance</dt>
+                <dd class="col-sm-8" th:text="${#temporals.format(charge.dateEcheance,'dd/MM/yyyy')}"></dd>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form th:action="@{/comptabilite/charges-fixes/{id}/payer(id=${charge.id})}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">
+                        Compte &#224; d&#233;biter <span class="text-danger">*</span>
+                    </label>
+                    <select name="compteBancaireId" id="compteSelect" class="form-select" required
+                            onchange="verifierSolde(this)">
+                        <option value="">&#8212; S&#233;lectionner &#8212;</option>
+                        <option th:each="c : ${comptes}"
+                                th:value="${c.id}"
+                                th:text="${c.nom + ' — ' + #numbers.formatDecimal(c.solde,1,'COMMA',0,'POINT') + ' XAF'}"
+                                th:data-solde="${c.solde}">
+                        </option>
+                    </select>
+                    <div id="soldeAlert" class="alert alert-warning mt-2 d-none">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Solde insuffisant pour couvrir ce paiement.
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-1"></i>Confirmer le paiement
+                    </button>
+                    <a href="/comptabilite/charges-fixes" class="btn btn-outline-secondary">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script th:inline="javascript">
+    const montant = [[${charge.montant}]];
+    function verifierSolde(sel) {
+        const opt = sel.options[sel.selectedIndex];
+        const solde = parseFloat(opt.getAttribute('data-solde') || 'Infinity');
+        document.getElementById('soldeAlert').classList.toggle('d-none', isNaN(solde) || solde >= montant);
+    }
+</script>
+</body>
+</html>
