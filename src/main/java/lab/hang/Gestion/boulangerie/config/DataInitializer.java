@@ -30,6 +30,7 @@ public class DataInitializer implements CommandLineRunner {
     private final StockMovementRepository stockMovementRepository;
     private final FournisseurDetteRepository fournisseurDetteRepository;
     private final AppSettingsRepository appSettingsRepository;
+    private final EmployeRepository employeRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UserRepository userRepository,
@@ -43,6 +44,7 @@ public class DataInitializer implements CommandLineRunner {
                            StockMovementRepository stockMovementRepository,
                            FournisseurDetteRepository fournisseurDetteRepository,
                            AppSettingsRepository appSettingsRepository,
+                           EmployeRepository employeRepository,
                            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.matierePremiereRepository = matierePremiereRepository;
@@ -55,6 +57,7 @@ public class DataInitializer implements CommandLineRunner {
         this.stockMovementRepository = stockMovementRepository;
         this.fournisseurDetteRepository = fournisseurDetteRepository;
         this.appSettingsRepository = appSettingsRepository;
+        this.employeRepository = employeRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -63,6 +66,7 @@ public class DataInitializer implements CommandLineRunner {
         initComptesBancaires();
         initUsers();
         initAppSettings();
+        initEmployes();
         List<MatierePremiere> matieres = initMatieresPremieres();
         initProduits(matieres);
         initChargesFixes();
@@ -83,6 +87,35 @@ public class DataInitializer implements CommandLineRunner {
         } catch (Exception e) {
             log.warn("Seed mouvements ignoré: {}", e.getMessage());
         }
+    }
+
+    // ── Employés ──────────────────────────────────────────────────────────
+
+    private void initEmployes() {
+        if (employeRepository.count() > 0) return;
+
+        User boulanger1 = userRepository.findByUsername("boulanger1").orElse(null);
+        User boulanger2 = userRepository.findByUsername("boulanger2").orElse(null);
+        User manager    = userRepository.findByUsername("manager").orElse(null);
+
+        employeRepository.saveAll(List.of(
+            employe("Martin",  "Pierre",  "Boulanger",  80_000.0, boulanger1),
+            employe("Nguema",  "Sylvie",  "Boulanger",  80_000.0, boulanger2),
+            employe("Mbarga",  "Jacques", "Manager",   120_000.0, manager)
+        ));
+    }
+
+    private Employe employe(String nom, String prenom, String poste,
+                            double salaireBase, User user) {
+        Employe e = new Employe();
+        e.setNom(nom);
+        e.setPrenom(prenom);
+        e.setPoste(poste);
+        e.setSalaireBase(salaireBase);
+        e.setDateEmbauche(LocalDate.now().minusYears(1));
+        e.setActif(true);
+        e.setUser(user);
+        return e;
     }
 
     // ── Paramètres applicatifs ────────────────────────────────────────────

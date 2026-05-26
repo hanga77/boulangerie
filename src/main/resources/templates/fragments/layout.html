@@ -61,6 +61,11 @@
                         <i class="fas fa-store me-1"></i>Ventes
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded px-2" href="/bulletins/mes-bulletins">
+                        <i class="fas fa-file-invoice-dollar me-1"></i>Mes bulletins
+                    </a>
+                </li>
 
                 <!-- Gestion dropdown -->
                 <li class="nav-item dropdown">
@@ -129,6 +134,11 @@
                                 <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Incidents production
                             </a>
                         </li>
+                        <li sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                            <a class="dropdown-item" href="/bulletins">
+                                <i class="fas fa-file-invoice-dollar me-2 text-success"></i>Bulletins de paie
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item">
@@ -151,6 +161,11 @@
                         <li>
                             <a class="dropdown-item" href="/admin/users">
                                 <i class="fas fa-users me-2"></i>Utilisateurs
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="/employes">
+                                <i class="fas fa-id-badge me-2"></i>Employés
                             </a>
                         </li>
                         <li>
