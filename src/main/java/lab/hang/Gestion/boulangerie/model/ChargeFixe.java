@@ -1,6 +1,7 @@
 package lab.hang.Gestion.boulangerie.model;
 
 import jakarta.persistence.*;
+import lab.hang.Gestion.boulangerie.model.Transaction;
 
 import java.time.LocalDate;
 
@@ -16,6 +17,10 @@ public class ChargeFixe {
     private LocalDate dateEcheance;
     private boolean paye;
     private String periodicite; // MENSUEL, TRIMESTRIEL, ANNUEL
+    private LocalDate datePaiement;
+
+    @OneToOne(optional = true)
+    private Transaction transaction;
 
     @ManyToOne
     private CompteBancaire compteBancaire;
@@ -76,6 +81,22 @@ public class ChargeFixe {
 
     public void setPeriodicite(String periodicite) {
         this.periodicite = periodicite;
+    }
+
+    public LocalDate getDatePaiement() {
+        return datePaiement;
+    }
+
+    public void setDatePaiement(LocalDate datePaiement) {
+        this.datePaiement = datePaiement;
+    }
+
+    public Transaction getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(Transaction transaction) {
+        this.transaction = transaction;
     }
 
     public CompteBancaire getCompteBancaire() {
