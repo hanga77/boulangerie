@@ -6,6 +6,7 @@ import lab.hang.Gestion.boulangerie.dto.ProductionDTO;
 import lab.hang.Gestion.boulangerie.dto.ProduitDTO;
 import lab.hang.Gestion.boulangerie.mapper.ProductionMapper;
 import lab.hang.Gestion.boulangerie.model.BulletinDePaie;
+import lab.hang.Gestion.boulangerie.model.ChargeFixe;
 import lab.hang.Gestion.boulangerie.model.MatierePremiere;
 import lab.hang.Gestion.boulangerie.service.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -242,6 +243,42 @@ public class PdfController {
             "attachment; filename=bulletin-" + bulletin.getId()
             + "-" + bulletin.getPeriode().getYear()
             + "-" + bulletin.getPeriode().getMonthValue() + ".pdf");
+
+        try (OutputStream outputStream = response.getOutputStream()) {
+            ITextRenderer renderer = new ITextRenderer();
+            ClassPathResource fontResource = new ClassPathResource("static/fonts/arial.ttf");
+            renderer.getFontResolver().addFont(
+                fontResource.getFile().getAbsolutePath(),
+                BaseFont.IDENTITY_H,
+                BaseFont.EMBEDDED
+            );
+            renderer.setDocumentFromString(html);
+            renderer.layout();
+            renderer.createPDF(outputStream);
+        }
+    }
+
+    @GetMapping("/comptabilite/charges-fixes/{id}/recu")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public void getRecuChargePdf(@PathVariable Long id, HttpServletResponse response) throws Exception {
+        ChargeFixe charge = chargeFixeService.getByIdForPdf(id);
+
+        if (!charge.isPaye()) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                "Cette charge n'est pas encore payée — reçu indisponible.");
+            return;
+        }
+
+        Context context = new Context();
+        context.setVariable("charge", charge);
+        addBrandToContext(context);
+
+        String html = templateEngine.process("comptabilite/recu-charge-template", context);
+
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition",
+            "attachment; filename=recu-charge-" + charge.getId()
+            + "-" + charge.getDatePaiement() + ".pdf");
 
         try (OutputStream outputStream = response.getOutputStream()) {
             ITextRenderer renderer = new ITextRenderer();
