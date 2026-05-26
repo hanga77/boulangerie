@@ -4,7 +4,6 @@ import lab.hang.Gestion.boulangerie.exception.ResourceNotFoundException;
 import lab.hang.Gestion.boulangerie.model.ChargeFixe;
 import lab.hang.Gestion.boulangerie.model.CompteBancaire;
 import lab.hang.Gestion.boulangerie.model.Transaction;
-import lab.hang.Gestion.boulangerie.repository.AlerteRepository;
 import lab.hang.Gestion.boulangerie.repository.ChargeFixeRepository;
 import lab.hang.Gestion.boulangerie.repository.CompteBancaireRepository;
 import lab.hang.Gestion.boulangerie.repository.TransactionRepository;
@@ -21,6 +20,8 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -96,5 +97,42 @@ class ChargeFixeServiceTest {
 
         assertThatThrownBy(() -> chargeFixeService.getById(99L))
             .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void payerChargeFixe_createsNextEcheanceWhenPeriodique() {
+        ChargeFixe c = charge(false);
+        c.setPeriodicite("MENSUEL");
+        CompteBancaire compte = new CompteBancaire();
+        compte.setId(2L);
+        compte.setNom("Compte Principal");
+        compte.setSolde(500_000.0);
+
+        when(chargeFixeRepository.findById(1L)).thenReturn(Optional.of(c));
+        when(compteBancaireRepository.findById(2L)).thenReturn(Optional.of(compte));
+        when(transactionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(chargeFixeRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        chargeFixeService.payerChargeFixe(1L, 2L);
+
+        // Deux saves : la charge originale + la nouvelle échéance
+        verify(chargeFixeRepository, times(2)).save(any(ChargeFixe.class));
+        verify(alerteService).creerAlerte(eq("CHARGE_FIXE"), eq("INFO"), anyString());
+    }
+
+    @Test
+    void payerChargeFixe_throwsWhenSoldeInsuffisant() {
+        ChargeFixe c = charge(false);
+        CompteBancaire compte = new CompteBancaire();
+        compte.setId(2L);
+        compte.setNom("Compte Principal");
+        compte.setSolde(50_000.0); // Moins que le montant 150_000
+
+        when(chargeFixeRepository.findById(1L)).thenReturn(Optional.of(c));
+        when(compteBancaireRepository.findById(2L)).thenReturn(Optional.of(compte));
+
+        assertThatThrownBy(() -> chargeFixeService.payerChargeFixe(1L, 2L))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Solde insuffisant");
     }
 }

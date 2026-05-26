@@ -72,6 +72,12 @@ public class ChargeFixeService {
         transaction.setDescription("Paiement " + charge.getType() + " — " + charge.getDescription());
         transaction.setCompteBancaire(compte);
 
+        if (compte.getSolde() < charge.getMontant()) {
+            throw new IllegalStateException(
+                "Solde insuffisant sur le compte " + compte.getNom()
+                + " pour couvrir ce paiement.");
+        }
+
         compte.setSolde(compte.getSolde() - charge.getMontant());
         compteBancaireRepository.save(compte);
         Transaction savedTx = transactionRepository.save(transaction);
@@ -79,6 +85,7 @@ public class ChargeFixeService {
         charge.setPaye(true);
         charge.setDatePaiement(LocalDate.now());
         charge.setTransaction(savedTx);
+        charge.setCompteBancaire(compte);
 
         if (charge.getPeriodicite() != null) {
             creerProchaineEcheance(charge);
