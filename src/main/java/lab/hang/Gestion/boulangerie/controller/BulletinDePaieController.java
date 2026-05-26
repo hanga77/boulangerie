@@ -101,6 +101,7 @@ public class BulletinDePaieController {
     }
 
     @GetMapping("/mes-bulletins")
+    @PreAuthorize("isAuthenticated()")
     public String mesBulletins(Model model) {
         User currentUser = userService.getCurrentUser();
         employeService.findByUser(currentUser).ifPresentOrElse(
