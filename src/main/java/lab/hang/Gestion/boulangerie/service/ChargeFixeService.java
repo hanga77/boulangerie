@@ -65,18 +65,18 @@ public class ChargeFixeService {
         CompteBancaire compte = compteBancaireRepository.findById(compteBancaireId)
             .orElseThrow(() -> new ResourceNotFoundException("Compte bancaire introuvable : " + compteBancaireId));
 
+        if (compte.getSolde() < charge.getMontant()) {
+            throw new IllegalStateException(
+                "Solde insuffisant sur le compte " + compte.getNom()
+                + " pour couvrir ce paiement.");
+        }
+
         Transaction transaction = new Transaction();
         transaction.setType("CHARGE");
         transaction.setMontant(charge.getMontant());
         transaction.setDate(LocalDate.now());
         transaction.setDescription("Paiement " + charge.getType() + " — " + charge.getDescription());
         transaction.setCompteBancaire(compte);
-
-        if (compte.getSolde() < charge.getMontant()) {
-            throw new IllegalStateException(
-                "Solde insuffisant sur le compte " + compte.getNom()
-                + " pour couvrir ce paiement.");
-        }
 
         compte.setSolde(compte.getSolde() - charge.getMontant());
         compteBancaireRepository.save(compte);
