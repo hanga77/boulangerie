@@ -29,13 +29,13 @@
         <p><strong>Type de charge :</strong> <span th:text="${charge.type}"></span></p>
         <p><strong>Description :</strong> <span th:text="${charge.description}"></span></p>
         <p><strong>P&#233;riodicit&#233; :</strong>
-            <span th:text="${charge.periodicite != null ? charge.periodicite : '&#8212;'}"></span></p>
+            <span th:text="${charge.periodicite != null ? charge.periodicite : '—'}"></span></p>
     </div>
     <div class="info-col">
         <p><strong>Date d'&#233;ch&#233;ance :</strong>
             <span th:text="${#temporals.format(charge.dateEcheance,'dd/MM/yyyy')}"></span></p>
         <p><strong>Date de paiement :</strong>
-            <span th:text="${#temporals.format(charge.datePaiement,'dd/MM/yyyy')}"></span></p>
+            <span th:text="${charge.datePaiement != null ? #temporals.format(charge.datePaiement,'dd/MM/yyyy') : 'N/A'}"></span></p>
         <p th:if="${charge.transaction != null}">
             <strong>R&#233;f&#233;rence :</strong>
             <span th:text="${'#' + charge.transaction.id}"></span>
@@ -52,7 +52,7 @@
     </thead>
     <tbody>
     <tr class="total-row">
-        <td th:text="${charge.type + ' — ' + charge.description}"></td>
+        <td><span th:text="${charge.type}"></span> &#8212; <span th:text="${charge.description}"></span></td>
         <td class="text-right"
             th:text="${#numbers.formatDecimal(charge.montant,1,'COMMA',0,'POINT') + ' XAF'}"></td>
     </tr>
