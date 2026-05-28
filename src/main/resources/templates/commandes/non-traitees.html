@@ -29,7 +29,7 @@
         <tr th:each="commande : ${commandes}">
             <td th:text="${commande.id}"></td>
             <td th:text="${commande.dateCommande}"></td>
-            <td th:text="${commande.pointDeVente}"></td>
+            <td th:text="${commande.nomPointDeVente}"></td>
             <td>
                 <ul>
                     <li th:each="produit : ${commande.nomsProduits}">

@@ -60,14 +60,14 @@
 <div class="container">
     <!-- En-tête -->
     <div class="header">
-        <h1 th:text="${'Commande de ' + commande.pointDeVente}"></h1>
+        <h1 th:text="${'Commande de ' + commande.nomPointDeVente}"></h1>
     </div>
 
     <!-- Informations de la commande -->
     <div class="details">
         <p><strong>ID de la Commande:</strong> <span th:text="${commande.id}"></span></p>
         <p><strong>Date de la Commande:</strong> <span th:text="${commande.dateCommande}"></span></p>
-        <p><strong>Point de Vente:</strong> <span th:text="${commande.pointDeVente}"></span></p>
+        <p><strong>Point de Vente:</strong> <span th:text="${commande.nomPointDeVente}"></span></p>
         <p><strong>Coût Total:</strong> <span th:text="${commande.coutTotal +' XAF'}"></span></p>
         <p><strong>Utilisateur:</strong> <span th:text="${user.username}"></span></p>
     </div>

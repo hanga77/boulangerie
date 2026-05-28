@@ -63,7 +63,7 @@
                 <a href="/production/passer-a-la-production" class="btn btn-success btn-sm">
                     <i class="fas fa-industry me-1"></i>Démarrer production
                 </a>
-                <a href="/livraisons/create"               class="btn btn-info btn-sm">
+                <a href="/livraisons/new"                  class="btn btn-info btn-sm">
                     <i class="fas fa-truck me-1"></i>Créer livraison
                 </a>
                 <a href="/matieres-premieres/add-stock"    class="btn btn-warning btn-sm">
@@ -98,7 +98,7 @@
                         <tbody>
                         <tr th:each="commande : ${commandesRecentes}">
                             <td th:text="${commande.dateCommande}"></td>
-                            <td th:text="${commande.pointDeVente}"></td>
+                            <td th:text="${commande.nomPointDeVente}"></td>
                             <td class="text-end fw-bold" th:text="${commande.coutTotal != null ? commande.coutTotal + ' XAF' : '—'}"></td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(commandesRecentes)}">
