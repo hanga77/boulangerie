@@ -30,6 +30,7 @@ public class LivraisonMapper {
         });
         dto.setProduitsLivres(produitsDTO);
         dto.setMontantTotal(livraison.getMontantTotal());
+        dto.setRevenuEnregistre(livraison.isRevenuEnregistre());
         return dto;
     }
 }

@@ -82,6 +82,10 @@ public class UserService {
     }
 
     public void deleteUser(Long userId) {
+        User user = getUserById(userId);
+        if ("ADMIN".equals(user.getRole()) && userRepository.countByRole("ADMIN") <= 1) {
+            throw new IllegalStateException("Impossible de supprimer le dernier administrateur.");
+        }
         userRepository.deleteById(userId);
     }
 

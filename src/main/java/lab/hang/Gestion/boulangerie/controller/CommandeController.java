@@ -108,7 +108,7 @@ public class CommandeController {
         return "redirect:/commandes";
     }
 
-    @GetMapping("/delete/{id}")
+    @PostMapping("/delete/{id}")
     public String deleteCommande(@PathVariable Long id) {
         commandeService.deleteCommande(id);
         return "redirect:/commandes";

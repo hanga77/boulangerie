@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn test *)",
+      "Bash(./mvnw test *)",
+      "Bash(mvn compile *)",
+      "Read(//usr/local/bin/**)",
+      "Bash(find /usr /opt -name \"mvn\")",
+      "PowerShell(Get-Command mvn -ErrorAction SilentlyContinue; Get-Command mvnw -ErrorAction SilentlyContinue; Test-Path \"d:\\\\xavier\\\\gestion-boulangerie\\\\mvnw.cmd\"; $env:MAVEN_HOME; $env:M2_HOME; $env:PATH -split \";\" | Where-Object { $_ -match \"maven|mvn\" -or \\(Test-Path \"$_\\\\mvn.cmd\" -ErrorAction SilentlyContinue\\) })",
+      "Bash(cmd /c \"cd /d d:\\\\xavier\\\\gestion-boulangerie && mvn test -Dtest=StockServiceTest -q 2>&1\")",
+      "Read(//d/xavier/gestion-boulangerie/**)",
+      "Bash(cmd /c \"cd /d d:\\\\xavier\\\\gestion-boulangerie && mvn test -Dtest=IncidentProductionServiceTest -q 2>&1\")",
+      "Bash(cmd /c \"cd /d d:\\\\xavier\\\\gestion-boulangerie && mvn test -Dtest=IncidentProductionServiceTest 2>&1\")"
+    ]
+  }
+}

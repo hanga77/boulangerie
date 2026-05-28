@@ -140,7 +140,6 @@ public class LivraisonController {
 
         } catch (Exception e) {
             response.put("error", "Error: " + e.getMessage());
-            response.put("stackTrace", e.getStackTrace());
             return response;
         }
     }

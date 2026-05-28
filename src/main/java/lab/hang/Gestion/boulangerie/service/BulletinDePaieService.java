@@ -86,6 +86,12 @@ public class BulletinDePaieService {
         CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal")
             .orElseThrow(() -> new ResourceNotFoundException("Compte Principal introuvable"));
 
+        if (compte.getSolde() < bulletin.getSalaireNet()) {
+            throw new IllegalStateException(
+                "Solde insuffisant : " + compte.getSolde() + " XAF disponibles, "
+                + bulletin.getSalaireNet() + " XAF requis.");
+        }
+
         Employe employe = bulletin.getEmploye();
         String moisAnnee = bulletin.getPeriode()
             .getMonth().getDisplayName(TextStyle.FULL, Locale.FRENCH)

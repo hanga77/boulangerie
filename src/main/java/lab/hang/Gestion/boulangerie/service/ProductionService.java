@@ -131,6 +131,7 @@ public class ProductionService {
         return productionMapper.toDTO(savedProduction);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public void updateProduitsRestants(ProductionDTO productionDTO, Map<Long, Integer> quantitesLivrees) {
         Map<Long, Integer> produitsRestants = productionDTO.getProduitsRestants();
 

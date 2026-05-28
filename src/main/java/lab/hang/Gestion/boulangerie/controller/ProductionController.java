@@ -101,23 +101,6 @@ public class ProductionController {
     }
 
     @PreAuthorize("hasRole('BOULANGER')")
-    @PostMapping("/confirmer-production")
-    public String confirmerProduction(@RequestParam LocalDate date, Model model) {
-        // 1. Récupérer l'utilisateur actuellement connecté
-        User user = userService.getCurrentUser();
-
-        // 2. Démarrer la production (cette méthode calcule les quantités nécessaires en interne)
-        ProductionDTO productionDTO = productionService.startProduction(date, user);
-
-        // 3. Ajouter les détails de la production au modèle
-        model.addAttribute("production", productionDTO);
-
-        // 4. Rediriger vers une page de confirmation
-        model.addAttribute("seuil", appSettingsService.getSeuilIncident());
-        return "production/confirm";
-    }
-
-    @PreAuthorize("hasRole('BOULANGER')")
     @PostMapping("/valider-production")
     public String validerProduction(@RequestParam Map<String, String> formData,
                                     RedirectAttributes ra) {

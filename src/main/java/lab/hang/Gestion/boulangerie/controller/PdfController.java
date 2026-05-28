@@ -295,14 +295,15 @@ public class PdfController {
     }
 
     @GetMapping("/rapport-financier")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public void genererRapportFinancierMensuel(HttpServletResponse response) throws Exception {
         YearMonth moisActuel = YearMonth.now();
         LocalDate debutMois = moisActuel.atDay(1);
         LocalDate finMois = moisActuel.atEndOfMonth();
 
-        double revenus = financeService.calculerRevenusTotaux();
-        double depenses = financeService.calculerDepensesTotales();
-        double salaires = financeService.calculerDepensesSalariales();
+        double revenus = financeService.calculerRevenusTotaux(debutMois, finMois);
+        double depenses = financeService.calculerDepensesTotales(debutMois, finMois);
+        double salaires = financeService.calculerDepensesSalariales(debutMois, finMois);
         double coutProduction = productionService.calculerCoutTotalProduction(debutMois, finMois);
         double profit = revenus - (depenses + salaires + coutProduction);
 

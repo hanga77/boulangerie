@@ -39,10 +39,9 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="commande, iterStat : ${commandes}"
-                    th:if="${iterStat.index >= (currentPage * size) and iterStat.index < ((currentPage + 1) * size)}">
+                <tr th:each="commande : ${commandes}">
                     <td th:text="${commande.dateCommande}" class="text-nowrap"></td>
-                    <td th:text="${commande.pointDeVente}"></td>
+                    <td th:text="${commande.nomPointDeVente}"></td>
                     <td class="text-end fw-bold"
                         th:text="${commande.coutTotal != null ? commande.coutTotal + ' XAF' : '—'}"></td>
                     <td class="text-center">

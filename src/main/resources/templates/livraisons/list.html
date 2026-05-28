@@ -12,7 +12,7 @@
             <h1 class="h4 fw-bold mb-0"><i class="fas fa-truck me-2 text-info"></i>Livraisons</h1>
             <p class="text-muted small mb-0">Suivi des livraisons clients</p>
         </div>
-        <a href="/livraisons/create" class="btn btn-primary btn-sm">
+        <a href="/livraisons/new" class="btn btn-primary btn-sm">
             <i class="fas fa-plus me-1"></i>Nouvelle livraison
         </a>
     </div>
@@ -29,8 +29,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="livraison, iterStat : ${livraisons}"
-                    th:if="${iterStat.index >= (currentPage * size) and iterStat.index < ((currentPage + 1) * size)}">
+                <tr th:each="livraison : ${livraisons}">
                     <td class="text-nowrap" th:text="${livraison.dateLivraison}"></td>
                     <td th:text="${livraison.nomClient}"></td>
                     <td class="text-end fw-bold"

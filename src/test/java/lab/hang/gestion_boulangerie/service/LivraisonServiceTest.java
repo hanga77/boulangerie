@@ -183,6 +183,10 @@ class LivraisonServiceTest {
 
     @Test
     void enregistrerRevenuLivraison_augmente_solde_et_cree_transaction() {
+        Livraison livraison = new Livraison();
+        livraison.setRevenuEnregistre(false);
+        when(livraisonRepository.findById(1L)).thenReturn(Optional.of(livraison));
+
         CompteBancaire compte = new CompteBancaire();
         compte.setSolde(5000.0);
         when(compteBancaireRepository.findByNom("Compte Principal"))
@@ -199,6 +203,9 @@ class LivraisonServiceTest {
 
     @Test
     void enregistrerRevenuLivraison_compte_absent_leve_ResourceNotFoundException() {
+        Livraison livraison = new Livraison();
+        livraison.setRevenuEnregistre(false);
+        when(livraisonRepository.findById(1L)).thenReturn(Optional.of(livraison));
         when(compteBancaireRepository.findByNom("Compte Principal"))
                 .thenReturn(Optional.empty());
 

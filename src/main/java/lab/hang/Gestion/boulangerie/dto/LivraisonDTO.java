@@ -13,6 +13,7 @@ public class LivraisonDTO {
     private String livreurUsername;
     private Map<Long, ProduitLivreDTO> produitsLivres;
     private double montantTotal;
+    private boolean revenuEnregistre;
 
     // Getters and setters
 
@@ -71,5 +72,13 @@ public class LivraisonDTO {
 
     public void setMontantTotal(double montantTotal) {
         this.montantTotal = montantTotal;
+    }
+
+    public boolean isRevenuEnregistre() {
+        return revenuEnregistre;
+    }
+
+    public void setRevenuEnregistre(boolean revenuEnregistre) {
+        this.revenuEnregistre = revenuEnregistre;
     }
 }

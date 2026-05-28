@@ -37,4 +37,7 @@ public class Livraison {
     private User user;
 
     private double montantTotal;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean revenuEnregistre = false;
 }

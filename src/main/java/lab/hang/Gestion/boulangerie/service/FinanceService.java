@@ -197,4 +197,19 @@ public class FinanceService {
         Double total = transactionRepository.sumMontantByTypeIn(List.of("SALAIRE", "SALAIRE_ENFOIS"));
         return total != null ? total : 0.0;
     }
+
+    public double calculerRevenusTotaux(java.time.LocalDate debut, java.time.LocalDate fin) {
+        Double total = transactionRepository.sumMontantByTypeAndDateBetween("VENTE", debut, fin);
+        return total != null ? total : 0.0;
+    }
+
+    public double calculerDepensesTotales(java.time.LocalDate debut, java.time.LocalDate fin) {
+        Double total = transactionRepository.sumMontantByTypeInAndDateBetween(List.of("PRODUCTION", "ACHAT"), debut, fin);
+        return total != null ? total : 0.0;
+    }
+
+    public double calculerDepensesSalariales(java.time.LocalDate debut, java.time.LocalDate fin) {
+        Double total = transactionRepository.sumMontantByTypeInAndDateBetween(List.of("SALAIRE", "SALAIRE_ENFOIS"), debut, fin);
+        return total != null ? total : 0.0;
+    }
 }

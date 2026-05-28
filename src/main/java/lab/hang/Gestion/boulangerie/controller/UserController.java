@@ -90,8 +90,8 @@ public class UserController {
     public String changePassword(@PathVariable Long id,
                                  @RequestParam String newPassword,
                                  RedirectAttributes ra) {
-        if (newPassword == null || newPassword.length() < 4) {
-            ra.addFlashAttribute("errorMessage", "Le mot de passe doit contenir au moins 4 caractères.");
+        if (newPassword == null || newPassword.length() < 8) {
+            ra.addFlashAttribute("errorMessage", "Le mot de passe doit contenir au moins 8 caractères.");
             return "redirect:/admin/users";
         }
         userService.changePassword(id, newPassword);
@@ -101,8 +101,12 @@ public class UserController {
 
     @DeleteMapping("/admin/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public String deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+    public String deleteUser(@PathVariable Long id, RedirectAttributes ra) {
+        try {
+            userService.deleteUser(id);
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/admin/users";
     }
 

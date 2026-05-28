@@ -169,6 +169,14 @@ public class LivraisonService {
 
     @Transactional
     public void enregistrerRevenuLivraison(Long livraisonId, double montantTotal) {
+        Livraison livraison = livraisonRepository.findById(livraisonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Livraison non trouvée"));
+        if (livraison.isRevenuEnregistre()) {
+            throw new IllegalStateException("Le revenu de cette livraison a déjà été enregistré");
+        }
+        livraison.setRevenuEnregistre(true);
+        livraisonRepository.save(livraison);
+
         CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal")
                 .orElseThrow(() -> new ResourceNotFoundException("Compte bancaire principal non trouvé"));
         compte.setSolde(compte.getSolde() + montantTotal);
