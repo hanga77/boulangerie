@@ -8,6 +8,7 @@ import lab.hang.Gestion.boulangerie.service.ProduitService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.data.domain.PageRequest;
@@ -54,6 +55,7 @@ public class CommandeController {
     }
 
     @GetMapping("/new")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public String showCreateForm(Model model) {
         model.addAttribute("commandeDTO", new CommandeDTO());
         model.addAttribute("produits", produitService.getAllProduits());
@@ -63,6 +65,7 @@ public class CommandeController {
     }
 
     @GetMapping("/edit/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public String showEditForm(@PathVariable Long id, Model model) {
         CommandeDTO commandeDTO = commandeService.getCommandeById(id);
         model.addAttribute("commandeDTO", commandeDTO);
@@ -73,6 +76,7 @@ public class CommandeController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public String saveCommande(@Valid @ModelAttribute("commandeDTO") CommandeDTO commandeDTO,
                                BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
@@ -95,6 +99,7 @@ public class CommandeController {
     }
 
     @PostMapping("/update/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public String updateCommande(@PathVariable Long id,
                                  @Valid @ModelAttribute("commandeDTO") CommandeDTO commandeDTO,
                                  BindingResult result, Model model) {
@@ -109,6 +114,7 @@ public class CommandeController {
     }
 
     @PostMapping("/delete/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public String deleteCommande(@PathVariable Long id) {
         commandeService.deleteCommande(id);
         return "redirect:/commandes";

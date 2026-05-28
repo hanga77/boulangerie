@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mouvements de stock')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0">
+                <i class="fas fa-print me-2 text-secondary"></i>Mouvements du
+                <span th:text="${#temporals.format(date, 'dd/MM/yyyy')}"></span>
+            </h1>
+        </div>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-print me-1"></i>Imprimer
+        </button>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-success text-center">
+                <div class="card-body py-2">
+                    <div class="text-muted small">Entrées totales</div>
+                    <div class="fw-bold text-success fs-5" th:text="${totalEntrees}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-danger text-center">
+                <div class="card-body py-2">
+                    <div class="text-muted small">Sorties totales</div>
+                    <div class="fw-bold text-danger fs-5" th:text="${totalSorties}">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Heure</th>
+                    <th>Matière première</th>
+                    <th>Type</th>
+                    <th class="text-end">Quantité</th>
+                    <th>Motif</th>
+                    <th>Utilisateur</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="m : ${mouvements}">
+                    <td th:text="${m.date}" class="text-nowrap text-muted small"></td>
+                    <td th:text="${m.matierePremiere.nom}" class="fw-semibold"></td>
+                    <td>
+                        <span th:if="${m.type == 'ENTREE'}" class="badge bg-success">Entrée</span>
+                        <span th:unless="${m.type == 'ENTREE'}" class="badge bg-danger">Sortie</span>
+                    </td>
+                    <td class="text-end fw-bold" th:text="${m.quantite}"></td>
+                    <td th:text="${m.motif}" class="text-muted small"></td>
+                    <td th:text="${m.user != null ? m.user.username : '—'}" class="text-muted small"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(mouvements)}">
+                    <td colspan="6" class="text-center text-muted py-4">Aucun mouvement ce jour-là</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

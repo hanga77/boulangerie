@@ -84,7 +84,8 @@ public class MatierePremiereController {
     @GetMapping("/search")
     public String searchMatierePremieres(@RequestParam String nom, Model model) {
         model.addAttribute("matieresPremieres", matierePremiereService.searchMatierePremieres(nom));
-        return "redirect:/matieres-premieres";
+        model.addAttribute("searchQuery", nom);
+        return "matiere-premerie/search";
     }
 
 

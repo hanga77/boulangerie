@@ -6,6 +6,7 @@ import lab.hang.Gestion.boulangerie.dto.ProductionDTO;
 import lab.hang.Gestion.boulangerie.dto.ProduitDTO;
 import lab.hang.Gestion.boulangerie.model.Production;
 import lab.hang.Gestion.boulangerie.service.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -51,6 +52,7 @@ public class LivraisonController {
     }
 
     @GetMapping("/new")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public String showCreateForm(Model model) {
         // Récupérer les productions du jour et de la veille
         LocalDate today = LocalDate.now();
@@ -64,6 +66,7 @@ public class LivraisonController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public String saveLivraison(@ModelAttribute CreateLivraisonRequest request,
                                 RedirectAttributes redirectAttributes) {
         try {
@@ -145,6 +148,7 @@ public class LivraisonController {
     }
 
     @PostMapping("/{id}/enregistrer-revenu")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public String enregistrerRevenuLivraison(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             LivraisonDTO livraison = livraisonService.getLivraisonById(id);

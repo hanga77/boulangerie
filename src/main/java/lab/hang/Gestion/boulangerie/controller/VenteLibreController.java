@@ -9,6 +9,7 @@ import lab.hang.Gestion.boulangerie.service.PointDeVenteService;
 import lab.hang.Gestion.boulangerie.service.ProductionService;
 import lab.hang.Gestion.boulangerie.service.ProduitService;
 import lab.hang.Gestion.boulangerie.service.VenteLibreService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -46,6 +47,7 @@ public class VenteLibreController {
     }
 
     @GetMapping("/new")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public String showCreateForm(Model model) {
         LocalDate today = LocalDate.now();
         List<Production> productions = new ArrayList<>();
@@ -59,6 +61,7 @@ public class VenteLibreController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public String saveVenteLibre(@ModelAttribute CreateVenteLibreRequest request,
                                  RedirectAttributes redirectAttributes) {
         try {

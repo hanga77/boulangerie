@@ -76,7 +76,7 @@
                                 <i class="fas fa-eye"></i>
                             </a>
                             <a class="btn btn-outline-secondary btn-sm"
-                               th:href="@{/production/print/{id}(id=${production.id})}">
+                               th:href="@{/production/print(id=${production.id})}">
                                 <i class="fas fa-print"></i>
                             </a>
                         </div>
@@ -96,16 +96,17 @@
             <nav aria-label="Pagination productions">
                 <ul class="pagination pagination-sm justify-content-center mb-0">
                     <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                        <a class="page-link" th:href="@{/production(page=${currentPage - 1}, size=${size})}">&laquo;</a>
+                        <a class="page-link" th:href="@{/production(page=${currentPage - 1}, size=${size}, startDate=${startDate}, endDate=${endDate})}">&laquo;</a>
                     </li>
                     <li class="page-item"
                         th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                         th:classappend="${i == currentPage} ? 'active'">
-                        <a class="page-link" th:href="@{/production(page=${i}, size=${size})}"
+                        <a class="page-link"
+                           th:href="@{/production(page=${i}, size=${size}, startDate=${startDate}, endDate=${endDate})}"
                            th:text="${i + 1}"></a>
                     </li>
                     <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                        <a class="page-link" th:href="@{/production(page=${currentPage + 1}, size=${size})}">&raquo;</a>
+                        <a class="page-link" th:href="@{/production(page=${currentPage + 1}, size=${size}, startDate=${startDate}, endDate=${endDate})}">&raquo;</a>
                     </li>
                 </ul>
             </nav>

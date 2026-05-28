@@ -124,10 +124,11 @@ public class ChargeFixeService {
         nouvelleCharge.setPeriodicite(charge.getPeriodicite());
 
         LocalDate prochaineEcheance = switch (charge.getPeriodicite()) {
-            case "MENSUEL"     -> charge.getDateEcheance().plusMonths(1);
-            case "TRIMESTRIEL" -> charge.getDateEcheance().plusMonths(3);
-            case "ANNUEL"      -> charge.getDateEcheance().plusYears(1);
-            default            -> null;
+            case "MENSUEL"      -> charge.getDateEcheance().plusMonths(1);
+            case "TRIMESTRIEL"  -> charge.getDateEcheance().plusMonths(3);
+            case "SEMESTRIEL"   -> charge.getDateEcheance().plusMonths(6);
+            case "ANNUEL"       -> charge.getDateEcheance().plusYears(1);
+            default             -> null;
         };
 
         if (prochaineEcheance != null) {

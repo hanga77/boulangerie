@@ -1,22 +1,89 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Compte Bancaire')}">
-</head>
-<body>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Comptes Bancaires')}"></head>
+<body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
 
-<div class="container mt-4">
-    <h1>Compte Bancaire</h1>
-    <div class="card">
-        <div class="card-header">
-            Solde du Compte
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0"><i class="fas fa-university me-2 text-success"></i>Comptes Bancaires</h1>
+            <p class="text-muted small mb-0">Soldes et mouvements des comptes</p>
         </div>
-        <div class="card-body">
-            <p class="card-text">Solde actuel : <span th:text="${compteBancaire.solde} + ' €'"></span></p>
+        <a th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
+           href="/compte-bancaire/creer" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-1"></i>Nouveau compte
+        </a>
+    </div>
+
+    <!-- Vue liste (GET /compte-bancaire) -->
+    <div th:if="${comptes != null}">
+        <div class="row g-3 mb-4" th:if="${comptePrincipal != null}">
+            <div class="col-md-4">
+                <div class="card border-success">
+                    <div class="card-body">
+                        <h6 class="card-subtitle text-muted mb-1">Compte Principal</h6>
+                        <h3 class="card-title text-success fw-bold"
+                            th:text="${comptePrincipal.solde + ' XAF'}">—</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Nom</th>
+                        <th class="text-end">Solde</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="c : ${comptes}">
+                        <td th:text="${c.nom}" class="fw-semibold"></td>
+                        <td class="text-end fw-bold"
+                            th:classappend="${c.solde < 0} ? 'text-danger' : 'text-success'"
+                            th:text="${c.solde + ' XAF'}"></td>
+                        <td class="text-end">
+                            <a th:href="@{/compte-bancaire/{id}(id=${c.id})}"
+                               class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(comptes)}">
+                        <td colspan="3" class="text-center text-muted py-4">Aucun compte enregistré</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
+
+    <!-- Vue détail (GET /compte-bancaire/{id}) -->
+    <div th:if="${compte != null}">
+        <div class="card mb-3">
+            <div class="card-header bg-light fw-semibold">
+                <i class="fas fa-university me-2"></i><span th:text="${compte.nom}">Compte</span>
+            </div>
+            <div class="card-body">
+                <p class="mb-1">Solde actuel :
+                    <strong th:classappend="${compte.solde < 0} ? 'text-danger' : 'text-success'"
+                            th:text="${compte.solde + ' XAF'}"></strong>
+                </p>
+            </div>
+        </div>
+        <a href="/compte-bancaire" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>
