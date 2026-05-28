@@ -67,4 +67,43 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     });
+
+    /* ── Modals Bootstrap ───────────────────────────────────────────────── */
+    function openModal(targetSelector) {
+        const modal = document.querySelector(targetSelector);
+        if (!modal) return;
+        let backdrop = document.getElementById('_bs-backdrop');
+        if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.id = '_bs-backdrop';
+            backdrop.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1040;';
+            document.body.appendChild(backdrop);
+        }
+        backdrop.onclick = function () { closeModal(modal); };
+        modal.style.display = 'block';
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+        const backdrop = document.getElementById('_bs-backdrop');
+        if (backdrop) backdrop.remove();
+    }
+
+    document.querySelectorAll('[data-bs-toggle="modal"]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const target = this.getAttribute('data-bs-target');
+            if (target) openModal(target);
+        });
+    });
+
+    document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const modal = this.closest('.modal');
+            if (modal) closeModal(modal);
+        });
+    });
 });

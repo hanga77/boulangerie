@@ -161,6 +161,11 @@
         document.getElementById('commandeForm').addEventListener('submit', function(e) {
             e.preventDefault();
             updateHiddenInputs();
+            const hiddenCount = hiddenInputsContainer.querySelectorAll('input[type="hidden"]').length;
+            if (hiddenCount === 0) {
+                alert('Veuillez sélectionner au moins un produit avec une quantité.');
+                return;
+            }
             this.submit();
         });
     });

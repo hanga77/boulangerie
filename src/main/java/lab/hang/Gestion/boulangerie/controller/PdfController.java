@@ -81,7 +81,7 @@ public class PdfController {
     private void addBrandToContext(Context context) {
         context.setVariable("appName", appName);
         java.io.File logo = new java.io.File(uploadDir, "logo.png").getAbsoluteFile();
-        context.setVariable("customLogoUrl", logo.exists() ? "/uploads/logo.png" : null);
+        context.setVariable("customLogoUrl", logo.exists() ? logo.toURI().toString() : null);
     }
 
     @GetMapping("/commande/imprimer")

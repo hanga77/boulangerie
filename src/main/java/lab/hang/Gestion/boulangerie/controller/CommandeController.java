@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -73,14 +74,23 @@ public class CommandeController {
 
     @PostMapping
     public String saveCommande(@Valid @ModelAttribute("commandeDTO") CommandeDTO commandeDTO,
-                               BindingResult result, Model model) {
+                               BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("produits", produitService.getAllProduits());
             model.addAttribute("pointsDeVente", pointDeVenteService.getPointsDeVenteActifs());
             model.addAttribute("guichets", pointDeVenteService.getAllGuichetsActifs());
             return "commandes/create";
         }
-        commandeService.createCommande(commandeDTO);
+        try {
+            commandeService.createCommande(commandeDTO);
+        } catch (Exception e) {
+            log.error("Erreur création commande", e);
+            model.addAttribute("error", "Impossible de créer la commande : " + e.getMessage());
+            model.addAttribute("produits", produitService.getAllProduits());
+            model.addAttribute("pointsDeVente", pointDeVenteService.getPointsDeVenteActifs());
+            model.addAttribute("guichets", pointDeVenteService.getAllGuichetsActifs());
+            return "commandes/create";
+        }
         return "redirect:/commandes";
     }
 
