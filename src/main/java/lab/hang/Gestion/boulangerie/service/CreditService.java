@@ -3,6 +3,8 @@ package lab.hang.Gestion.boulangerie.service;
 import lab.hang.Gestion.boulangerie.exception.EntityNotFoundException;
 import lab.hang.Gestion.boulangerie.model.*;
 import lab.hang.Gestion.boulangerie.repository.FournisseurDetteRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
@@ -11,9 +13,10 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 public class CreditService {
+    private static final Logger log = LoggerFactory.getLogger(CreditService.class);
     private final FournisseurDetteRepository detteRepository;
     private final NotificationService notificationService;
-    private static final double SEUIL_ALERTE = 10000.0; // Seuil d'alerte en devise locale
+    private static final double SEUIL_ALERTE = 10000.0;
 
     public CreditService(FournisseurDetteRepository detteRepository,
                          NotificationService notificationService) {
@@ -32,10 +35,13 @@ public class CreditService {
 
         detteRepository.save(dette);
 
-        // Vérifier le seuil d'alerte
         double detteTotale = calculerDetteTotale(fournisseur);
         if (detteTotale > SEUIL_ALERTE) {
-            notificationService.envoyerAlerteDetteElevee(fournisseur, detteTotale);
+            try {
+                notificationService.envoyerAlerteDetteElevee(fournisseur, detteTotale);
+            } catch (Exception e) {
+                log.warn("Notification email non envoyée : {}", e.getMessage());
+            }
         }
     }
 

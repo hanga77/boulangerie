@@ -98,14 +98,7 @@
             </div>
 
             <!-- Infos paiement si payé -->
-            <div th:if="${bulletin.statut.name() == 'PAYE'}" class="mt-3 alert alert-success small mb-0">
-                <i class="fas fa-check-circle me-2"></i>
-                Payé le <strong th:text="${#temporals.format(bulletin.datePaiement,'dd/MM/yyyy')}"></strong>.
-                <span th:if="${bulletin.transaction != null}">
-                    Transaction #<span th:text="${bulletin.transaction.id}"></span>
-                </span>
-            </div>
-        </div>
+</div>
     </div>
 
     <div class="mt-3">

@@ -16,11 +16,7 @@
         </a>
     </div>
 
-    <div th:if="${#lists.isEmpty(alertes)}" class="alert alert-success">
-        <i class="fas fa-check-circle me-2"></i>Aucune alerte active. Tout est en ordre.
-    </div>
-
-    <div th:unless="${#lists.isEmpty(alertes)}" class="list-group">
+<div th:unless="${#lists.isEmpty(alertes)}" class="list-group">
         <div th:each="alerte : ${alertes}"
              th:class="'list-group-item list-group-item-action mb-2 rounded border-start border-4 '
                        + (${alerte.niveau == 'CRITICAL'} ? 'border-danger'

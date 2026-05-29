@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Licence')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<div class="container mt-4" style="max-width:600px">
+
+    <div class="d-flex align-items-center gap-2 mb-4">
+        <div class="rounded-circle p-3"
+             th:classappend="${status.name() == 'FULL'} ? 'bg-success bg-opacity-10' : (${status.name() == 'DEMO_ACTIVE'} ? 'bg-warning bg-opacity-10' : 'bg-danger bg-opacity-10')">
+            <i class="fas fa-key fa-lg"
+               th:classappend="${status.name() == 'FULL'} ? 'text-success' : (${status.name() == 'DEMO_ACTIVE'} ? 'text-warning' : 'text-danger')"></i>
+        </div>
+        <div>
+            <h1 class="h4 fw-bold mb-0">Licence Gestiboul</h1>
+            <p class="text-muted small mb-0">Installé le <span th:text="${#temporals.format(installedAt, 'dd/MM/yyyy')}"></span></p>
+        </div>
+    </div>
+
+    <!-- Bannière expiration interceptée -->
+    <div th:if="${expired}" class="card border-danger mb-4">
+        <div class="card-body text-center text-danger">
+            <i class="fas fa-lock fa-2x mb-2"></i>
+            <p class="fw-semibold mb-0">Votre période de démonstration est terminée.</p>
+            <p class="small mb-0">Saisissez votre clé d'activation pour continuer à utiliser toutes les fonctionnalités.</p>
+        </div>
+    </div>
+
+    <!-- Statut actuel -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <div th:switch="${status.name()}">
+                <div th:case="'FULL'" class="d-flex align-items-center gap-3">
+                    <span class="badge bg-success fs-6 px-3 py-2"><i class="fas fa-infinity me-1"></i>Licence complète — À vie</span>
+                </div>
+                <div th:case="'DEMO_ACTIVE'" class="d-flex align-items-center gap-3">
+                    <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                        <i class="fas fa-clock me-1"></i>Démonstration —
+                        <span th:text="${joursRestants}"></span> jour(s) restant(s)
+                    </span>
+                </div>
+                <div th:case="'DEMO_EXPIRED'">
+                    <span class="badge bg-danger fs-6 px-3 py-2"><i class="fas fa-lock me-1"></i>Démonstration expirée</span>
+                    <p class="text-muted small mt-2 mb-0">L'application est en lecture seule. Activez votre licence pour reprendre.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activation (masqué si déjà FULL) -->
+    <div th:if="${status.name() != 'FULL'}" class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-unlock me-2"></i>Activer la licence complète
+        </div>
+        <div class="card-body">
+            <div th:if="${activationOk}" class="text-success mb-3">
+                <i class="fas fa-check-circle me-1"></i>Licence activée avec succès. Accès complet à vie.
+            </div>
+            <div th:if="${activationErreur}" class="text-danger mb-3">
+                <i class="fas fa-times-circle me-1"></i>Clé invalide. Vérifiez la clé reçue.
+            </div>
+            <form th:action="@{/admin/licence/activer}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Clé d'activation</label>
+                    <input type="text" name="key" class="form-control font-monospace"
+                           placeholder="GESTIBOUL-XXXXXX-YYYYYY" required autocomplete="off">
+                    <div class="form-text">Clé fournie par votre revendeur après paiement.</div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-key me-1"></i>Activer
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${status.name() == 'FULL'}" class="text-center text-muted mt-4 small">
+        <i class="fas fa-shield-alt me-1 text-success"></i>Application entièrement déverrouillée.
+    </div>
+
+    <div class="mt-4">
+        <a href="/dashboard" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Retour au tableau de bord
+        </a>
+    </div>
+
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

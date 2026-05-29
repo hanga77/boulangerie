@@ -19,12 +19,7 @@
         </div>
     </div>
 
-    <div th:if="${warning}" class="alert alert-warning d-flex align-items-center gap-2">
-        <i class="fas fa-exclamation-triangle flex-shrink-0"></i>
-        <span th:text="${warning}"></span>
-    </div>
-
-    <form th:action="@{/production/valider-production}" method="post"
+<form th:action="@{/production/valider-production}" method="post"
           id="productionForm" th:data-seuil="${seuil}">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
         <input type="hidden" th:name="productionId" th:value="${production.id}"/>

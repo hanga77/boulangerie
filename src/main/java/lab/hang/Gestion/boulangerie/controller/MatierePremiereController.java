@@ -105,13 +105,13 @@ public class MatierePremiereController {
     public String addStock(@RequestParam Long id,
                            @RequestParam double quantite,
                            @RequestParam double prixUnitaire,
+                           @RequestParam(required = false) Double quantiteCommandee,
+                           @RequestParam(required = false) Double quantiteAvariee,
                            RedirectAttributes redirectAttributes) {
         try {
-            stockService.addStock(id, quantite, prixUnitaire);
-            redirectAttributes.addFlashAttribute("success", "Stock ajouté avec succès");
+            stockService.addStock(id, quantite, prixUnitaire, quantiteCommandee, quantiteAvariee);
         } catch (Exception e) {
             log.error("Erreur lors de l'ajout du stock", e);
-            redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
             return "redirect:/matieres-premieres/add-stock?id=" + id;
         }
         return "redirect:/matieres-premieres";
@@ -157,6 +157,8 @@ public class MatierePremiereController {
             @RequestParam double quantite,
             @RequestParam String type,
             @RequestParam(required = false) Double prixUnitaire,
+            @RequestParam(required = false) Double quantiteCommandee,
+            @RequestParam(required = false) Double quantiteAvariee,
             @RequestParam(required = false) Long productionId,
             @RequestParam(required = false) String motif,
             RedirectAttributes redirectAttributes) {
@@ -165,12 +167,9 @@ public class MatierePremiereController {
             switch (type) {
                 case "ENTREE" -> {
                     if (prixUnitaire == null || prixUnitaire <= 0) {
-                        redirectAttributes.addFlashAttribute("error",
-                                "Le prix unitaire est requis et doit être supérieur à 0 pour une entrée de stock.");
                         return "redirect:/matieres-premieres/mouvements-stock";
                     }
-                    stockService.addStock(matierePremiereId, quantite, prixUnitaire);
-                    redirectAttributes.addFlashAttribute("success", "Entrée de stock enregistrée avec succès.");
+                    stockService.addStock(matierePremiereId, quantite, prixUnitaire, quantiteCommandee, quantiteAvariee);
                 }
                 case "SORTIE" -> {
                     if (productionId == null) {

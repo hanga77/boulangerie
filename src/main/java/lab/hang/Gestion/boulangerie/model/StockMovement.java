@@ -47,6 +47,12 @@ public class StockMovement {
 
     private String motif;
 
+    /** Quantité commandée au fournisseur (ENTRÉE uniquement). */
+    private Double quantiteCommandee;
+
+    /** Quantité avariée à la réception (ENTRÉE uniquement). Net reçu = quantite - quantiteAvariee. */
+    private Double quantiteAvariee;
+
     /** Non-null uniquement pour les sorties manuelles enregistrées par le magasinier. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "production_id")

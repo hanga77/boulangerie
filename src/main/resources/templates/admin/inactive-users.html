@@ -10,26 +10,14 @@
 
 <div class="container">
     <!-- Message d'erreur -->
-    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
-        <span th:text="${errorMessage}"></span>
-    </div>
-
-    <!-- Message de succès -->
-    <div th:if="${successMessage}" class="alert alert-success" role="alert">
-        <span th:text="${successMessage}"></span>
-    </div>
-
-    <div class="card">
+<!-- Message de succès -->
+<div class="card">
         <div class="card-header">
             <h2>Utilisateurs en attente d'activation</h2>
         </div>
         <div class="card-body">
             <!-- Si aucun utilisateur inactif -->
-            <div th:if="${#lists.isEmpty(inactiveUsers)}" class="alert alert-info">
-                Aucun utilisateur en attente d'activation.
-            </div>
-
-            <!-- Liste des utilisateurs inactifs -->
+<!-- Liste des utilisateurs inactifs -->
             <div th:if="${!#lists.isEmpty(inactiveUsers)}" class="table-responsive">
                 <table class="table table-striped">
                     <thead>

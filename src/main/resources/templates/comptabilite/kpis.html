@@ -16,11 +16,7 @@
         </a>
     </div>
 
-    <div th:if="${#maps.isEmpty(kpisParCategorie)}" class="alert alert-info">
-        <i class="fas fa-info-circle me-2"></i>Aucun KPI enregistré pour le moment.
-    </div>
-
-    <div th:unless="${#maps.isEmpty(kpisParCategorie)}">
+<div th:unless="${#maps.isEmpty(kpisParCategorie)}">
         <div th:each="entry : ${kpisParCategorie}" class="mb-4">
             <h4 class="text-uppercase text-muted border-bottom pb-2 mb-3"
                 th:text="${entry.key}">Catégorie</h4>

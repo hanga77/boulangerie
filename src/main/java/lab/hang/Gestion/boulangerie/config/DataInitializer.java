@@ -151,13 +151,17 @@ public class DataInitializer implements CommandLineRunner {
     // ── Utilisateurs ──────────────────────────────────────────────────────
 
     private void initUsers() {
-        if (userRepository.count() > 0) return;
+        ensureUser("xavier",     "admin123",   "ADMIN",      true);
+        ensureUser("manager",    "manager123", "MANAGER",    true);
+        ensureUser("boulanger1", "pain2024",   "BOULANGER",  true);
+        ensureUser("boulanger2", "pain2024",   "BOULANGER",  true);
+        ensureUser("magasinier", "stock2024",  "MAGASINIER", true);
+    }
 
-        userRepository.save(buildUser("xavier",     "admin123",   "ADMIN",      true));
-        userRepository.save(buildUser("manager",    "manager123", "MANAGER",    true));
-        userRepository.save(buildUser("boulanger1", "pain2024",   "BOULANGER",  true));
-        userRepository.save(buildUser("boulanger2", "pain2024",   "BOULANGER",  true));
-        userRepository.save(buildUser("magasinier", "stock2024",  "MAGASINIER", true));
+    private void ensureUser(String username, String password, String role, boolean active) {
+        if (userRepository.findByUsername(username).isEmpty()) {
+            userRepository.save(buildUser(username, password, role, active));
+        }
     }
 
     private User buildUser(String username, String password, String role, boolean active) {

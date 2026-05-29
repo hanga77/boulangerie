@@ -121,11 +121,7 @@
 
                 if (!data.produitsRestants || Object.keys(data.produitsRestants).length === 0) {
                     produitsSection.innerHTML = `
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        Aucun produit disponible pour cette production
-                    </div>
-                `;
+`;
                     return;
                 }
 
@@ -197,11 +193,7 @@
             .catch(error => {
                 console.error('Erreur:', error);
                 produitsSection.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Erreur lors du chargement des produits: ${error.message}
-                </div>
-            `;
+`;
             });
     }
 

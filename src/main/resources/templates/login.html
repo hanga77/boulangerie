@@ -10,20 +10,7 @@
         <p class="text-muted small">Connectez-vous à votre espace</p>
     </div>
 
-    <div th:if="${param.error}" class="alert alert-danger d-flex align-items-center" role="alert">
-        <i class="fas fa-exclamation-circle me-2 flex-shrink-0"></i>
-        <span>Nom d'utilisateur ou mot de passe incorrect.</span>
-    </div>
-    <div th:if="${param.logout}" class="alert alert-success d-flex align-items-center" role="alert">
-        <i class="fas fa-check-circle me-2 flex-shrink-0"></i>
-        <span>Vous avez été déconnecté avec succès.</span>
-    </div>
-    <div th:if="${session.errorMessage}" class="alert alert-danger d-flex align-items-center" role="alert">
-        <i class="fas fa-exclamation-circle me-2 flex-shrink-0"></i>
-        <span th:text="${session.errorMessage}"></span>
-    </div>
-
-    <form th:action="@{/login}" method="post">
+<form th:action="@{/login}" method="post">
         <div class="mb-3">
             <label for="username" class="form-label">Nom d'utilisateur</label>
             <div class="input-group">

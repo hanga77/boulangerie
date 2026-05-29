@@ -36,7 +36,7 @@
                 </thead>
                 <tbody>
                 <tr th:each="c : ${commandes}">
-                    <td th:text="${c.pointDeVenteNom ?: 'N/A'}"></td>
+                    <td th:text="${c.nomPointDeVente ?: 'N/A'}"></td>
                     <td class="text-end" th:text="${#maps.size(c.produitsCommandes)}"></td>
                     <td class="text-end fw-semibold"
                         th:text="${#numbers.formatDecimal(c.coutTotal, 0, 'COMMA', 0, 'POINT') + ' XAF'}"></td>
@@ -62,11 +62,7 @@
                            th:value="${dateActuelle}" readonly required>
                     <div class="form-text">La production est lancée pour la date du jour.</div>
                 </div>
-                <div class="alert alert-warning d-flex align-items-start gap-2 py-2">
-                    <i class="fas fa-exclamation-triangle mt-1 flex-shrink-0"></i>
-                    <span>Cette action va déduire les matières premières du stock et marquer toutes les commandes en attente comme traitées.</span>
-                </div>
-                <div class="d-flex gap-2 mt-3">
+<div class="d-flex gap-2 mt-3">
                     <a href="/production" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left me-1"></i>Annuler
                     </a>

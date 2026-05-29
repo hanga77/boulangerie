@@ -28,15 +28,7 @@
     </div>
 
     <!-- Alertes actives -->
-    <div th:if="${not #lists.isEmpty(alertesNonVues)}"
-         class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
-        <i class="fas fa-exclamation-triangle me-2"></i>
-        <strong th:text="${#lists.size(alertesNonVues)}">0</strong> alerte(s) non lue(s).
-        <a href="/comptabilite/alertes" class="alert-link ms-2">Voir les alertes</a>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
-    <div class="row mb-4">
+<div class="row mb-4">
         <!-- Charges à venir -->
         <div class="col-md-6">
             <div class="card h-100">

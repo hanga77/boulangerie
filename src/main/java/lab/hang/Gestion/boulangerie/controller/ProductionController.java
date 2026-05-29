@@ -37,8 +37,9 @@ public class ProductionController {
     private final ProduitService produitService;
     private final IncidentProductionService incidentProductionService;
     private final AppSettingsService appSettingsService;
+    private final StockService stockService;
 
-    public ProductionController(CommandeService commandeService, ProductionService productionService, MatierePremiereService matierePremiereService, UserService userService, ProduitService produitService, IncidentProductionService incidentProductionService, AppSettingsService appSettingsService) {
+    public ProductionController(CommandeService commandeService, ProductionService productionService, MatierePremiereService matierePremiereService, UserService userService, ProduitService produitService, IncidentProductionService incidentProductionService, AppSettingsService appSettingsService, StockService stockService) {
         this.commandeService = commandeService;
         this.productionService = productionService;
         this.matierePremiereService = matierePremiereService;
@@ -46,6 +47,7 @@ public class ProductionController {
         this.produitService = produitService;
         this.incidentProductionService = incidentProductionService;
         this.appSettingsService = appSettingsService;
+        this.stockService = stockService;
     }
 
 
@@ -210,6 +212,8 @@ public class ProductionController {
         model.addAttribute("matiere", matieresMap);
         model.addAttribute("incidents",
                 incidentProductionService.getIncidentsByProduction(productionId));
+        model.addAttribute("sortiesMagasinier",
+                stockService.getSortiesParProduction(productionId));
 
         // 3. Rediriger vers une page de détails
         return "production/details";
@@ -256,11 +260,9 @@ public class ProductionController {
         for (Production production : productionPage.getContent()) {
             List<CommandeDTO> commandes = commandeService.getCommandesByProductionId(production.getId());
             int quantiteCommandee = commandes.stream()
-                    .flatMap(commande -> commande.getProduitsCommandes().entrySet().stream())
-                    .filter(entry -> entry.getKey().equals(production.getProduitsProduits().keySet().iterator().next().getId()))
-                    .mapToInt(Map.Entry::getValue)
+                    .flatMap(commande -> commande.getProduitsCommandes().values().stream())
+                    .mapToInt(Integer::intValue)
                     .sum();
-
             production.setQuantiteCommandee(quantiteCommandee);
         }
 

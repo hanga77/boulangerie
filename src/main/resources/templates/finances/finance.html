@@ -38,7 +38,7 @@
                     <td th:text="${transaction.date}"></td>
                     <td th:text="${transaction.type}"></td>
                     <td th:text="${transaction.description}"></td>
-                    <td th:text="${transaction.montant} + ' €'"></td>
+                    <td th:text="${transaction.montant} + ' XAF'"></td>
                 </tr>
                 </tbody>
             </table>
@@ -69,9 +69,9 @@
             <i class="fas fa-chart-line me-2"></i>Résumé Financier
         </div>
         <div class="card-body">
-            <p>Revenus totaux : <span th:text="${revenusTotaux} + ' €'"></span></p>
-            <p>Dépenses totales : <span th:text="${depensesTotales} + ' €'"></span></p>
-            <p>Profit : <span th:text="${profit} + ' €'"></span></p>
+            <p>Revenus totaux : <span th:text="${revenusTotaux} + ' XAF'"></span></p>
+            <p>Dépenses totales : <span th:text="${depensesTotales} + ' XAF'"></span></p>
+            <p>Profit : <span th:text="${profit} + ' XAF'"></span></p>
         </div>
     </div>
 </div>

@@ -1,8 +1,82 @@
-# Gestion Boulangerie
+# Gestiboul — Gestion complète de boulangerie
 
-Application web de gestion complète pour boulangerie : production, stock, commandes, livraisons, ventes, comptabilité, RH.
+**Gestiboul** est une application web de gestion tout-en-un conçue pour les boulangeries artisanales et industrielles. Elle couvre l'intégralité du cycle opérationnel : commandes clients, production, gestion des stocks, livraisons, ventes, comptabilité, paie des employés et suivi des fournisseurs.
 
-**Stack :** Spring Boot 3.4.2 · Thymeleaf · MySQL 8 · Spring Security · Flying Saucer (PDF) · Java 17
+**Stack :** Spring Boot 3.4.2 · Java 17 · Thymeleaf · MySQL 8 · Spring Security · Flying Saucer (PDF)
+
+---
+
+## Fonctionnalités
+
+### Commandes & Production
+- Création de commandes par point de vente avec quantités par produit
+- Lancement de la production depuis les commandes du jour : calcul automatique des matières premières nécessaires et débit du stock
+- Saisie des quantités réellement produites par les boulangers
+- Comparaison tripartite : quantité de la recette / donnée par le magasinier / utilisée par le boulanger
+- Détection automatique des incidents de production si les écarts dépassent un seuil configurable
+
+### Stock des matières premières
+- Quatre types de mouvements : ENTRÉE (réception fournisseur), SORTIE (liée à une production), RETOUR, PERTE
+- À la réception : saisie de la quantité commandée et des avaries — la quantité nette est calculée automatiquement
+- Prix unitaire obligatoire à l'entrée → Transaction ACHAT générée automatiquement
+- Alertes de stock bas dans le tableau de bord
+- Historique complet avec traçabilité (utilisateur, motif, production liée)
+
+### Livraisons & Ventes
+- Création de livraisons depuis les productions du jour ou de la veille
+- Chargement AJAX des produits disponibles selon la production sélectionnée
+- Génération automatique d'une facture PDF à chaque livraison
+- Ventes libres aux guichets directement depuis les stocks produits
+- Enregistrement du revenu → Transaction VENTE créditée sur le compte principal
+
+### Finances & Comptabilité
+- Tableau de bord financier : soldes de comptes, flux mensuels, résultat
+- Charges fixes (loyer, électricité…) avec périodicité et renouvellement automatique
+- Paiement des charges avec choix du compte bancaire et reçu PDF téléchargeable
+- Facturation clients avec suivi des paiements
+- Rapport mensuel des transactions par catégorie
+
+### Gestion des fournisseurs
+- Annuaire des fournisseurs avec contacts
+- Enregistrement des dettes (achat à crédit ou impayé)
+- Remboursements partiels ou totaux avec historique
+- Vue globale des dettes en cours avec détection des retards
+
+### Ressources humaines & Paie
+- Registre des employés avec poste et salaire de base
+- Génération des bulletins de paie mensuels (primes, indemnités, avance sur salaire)
+- Calcul automatique CNPS employé (4,2 %) et patronal (16,2 %)
+- Paiement des salaires depuis un compte bancaire avec vérification du solde
+- Bulletin PDF téléchargeable par l'employé depuis son espace personnel
+
+### Administration
+- Gestion des utilisateurs et des rôles (ADMIN / MANAGER / BOULANGER / MAGASINIER)
+- Paramètres de l'application : logo personnalisé, seuil d'incident production
+- Rapports : stocks, production, livraisons, incidents, bulletins
+- **Système de licence** : démo 90 jours puis activation à vie par clé
+
+---
+
+## Système de licence
+
+Gestiboul intègre un système de licence hors-ligne :
+
+| État | Description |
+|------|-------------|
+| **DEMO_ACTIVE** | Démo 90 jours à compter de la première installation — accès complet |
+| **DEMO_EXPIRED** | Démo expirée — mode lecture seule (GET uniquement, toute écriture bloquée) |
+| **FULL** | Licence complète activée à vie — accès complet permanent |
+
+### Générer une clé pour un client
+
+```bash
+cd tools
+javac KeyGenerator.java
+java KeyGenerator NOM_CLIENT
+# → GESTIBOUL-NOMCLIENT-XXXXXX
+```
+
+La clé est vérifiée hors-ligne (SHA-256 du salt + identifiant client). L'admin saisit la clé dans `/admin/licence`.
 
 ---
 
@@ -11,13 +85,13 @@ Application web de gestion complète pour boulangerie : production, stock, comma
 ### Prérequis
 
 - Java 17+
-- MySQL 8 en cours d'exécution sur `localhost:3306`
-- Maven (ou utiliser `./mvnw`)
+- MySQL 8 sur `localhost:3306`
+- Maven (ou `./mvnw` inclus)
 
-### Lancer l'application
+### Lancer en développement
 
 ```bash
-# Avec le mot de passe MySQL par défaut (vide)
+# Mot de passe MySQL vide (par défaut)
 ./mvnw spring-boot:run
 
 # Avec identifiants MySQL personnalisés
@@ -26,14 +100,24 @@ DB_USERNAME=root DB_PASSWORD=monmotdepasse ./mvnw spring-boot:run
 
 L'application démarre sur **http://localhost:9000**
 
-La base de données `boulangerie_bd` est créée automatiquement au premier démarrage.
-Les données de démonstration (utilisateurs, produits, fournisseurs, etc.) sont injectées automatiquement.
+La base `boulangerie_bd` est créée automatiquement. Les données de démonstration (utilisateurs, produits, fournisseurs, stock…) sont injectées au premier démarrage.
 
 ### Build JAR exécutable
 
 ```bash
 ./mvnw package -DskipTests
 java -jar target/gestion-boulangerie-0.0.1-SNAPSHOT.jar
+```
+
+### Déploiement production
+
+```bash
+java -jar gestion-boulangerie-0.0.1-SNAPSHOT.jar \
+  --spring.profiles.active=prod \
+  --DB_URL=jdbc:mysql://localhost:3306/boulangerie_bd \
+  --DB_USERNAME=prod_user \
+  --DB_PASSWORD=motdepasse_securise \
+  --UPLOAD_DIR=/var/gestiboul/uploads
 ```
 
 ---
@@ -48,242 +132,120 @@ java -jar target/gestion-boulangerie-0.0.1-SNAPSHOT.jar
 | Boulanger | `boulanger2` | `pain2024` | BOULANGER |
 | Magasinier | `magasinier` | `stock2024` | MAGASINIER |
 
-> Ces comptes sont créés automatiquement si la base est vide. Ne jamais utiliser ces mots de passe en production.
+> Ces comptes sont créés automatiquement s'ils n'existent pas encore. Ne jamais utiliser ces mots de passe en production.
 
 ---
 
-## Profils et permissions
+## Rôles et accès
 
-### ADMIN — `xavier`
+### ADMIN
+Accès total à toutes les fonctionnalités, y compris la gestion des utilisateurs, les paramètres système et la page de licence.
 
-Accès total à toutes les fonctionnalités.
+### MANAGER
+Gestion opérationnelle quotidienne (commandes, production, livraisons, ventes, finances, paie, fournisseurs). Pas d'accès à l'administration système.
 
-| Module | Permissions |
-|--------|-------------|
-| **Utilisateurs** | Créer, modifier, supprimer, changer le mot de passe, activer/désactiver |
-| **Points de vente & guichets** | Créer, modifier, supprimer |
-| **Produits** | Créer, modifier, supprimer |
-| **Matières premières** | Gérer le stock, achats, ajustements |
-| **Commandes** | Créer, modifier, supprimer, calculer matières nécessaires |
-| **Production** | Voir l'historique, gérer les incidents, supprimer |
-| **Livraisons** | Créer, imprimer facture PDF, enregistrer revenu |
-| **Ventes libres** | Créer, consulter |
-| **Finances** | Voir toutes les transactions, comptes bancaires, rapport mensuel |
-| **Charges fixes** | Créer, payer, télécharger reçu PDF |
-| **Facturation** | Créer factures, marquer payées |
-| **Fournisseurs** | Gérer fournisseurs, dettes, remboursements |
-| **Employés** | Créer, modifier, gérer les bulletins de paie, payer salaires |
-| **Bulletins de paie** | Créer, payer, télécharger PDF (tous les employés) |
-| **Rapports** | Accès à tous les rapports et KPIs |
-| **Paramètres** | Seuil d'incident production, logo de l'application |
+### BOULANGER
+- Consulter les commandes en attente
+- Lancer et valider la production du jour
+- Signaler un incident de production
+- Consulter et télécharger ses propres bulletins de paie
 
----
-
-### MANAGER — `manager`
-
-Gestion opérationnelle quotidienne. Pas d'accès à l'administration système.
-
-| Module | Permissions |
-|--------|-------------|
-| **Utilisateurs** | Aucune (lecture seule de son propre profil) |
-| **Points de vente & guichets** | Consultation uniquement |
-| **Produits** | Créer, modifier, supprimer |
-| **Matières premières** | Gérer le stock, achats, ajustements |
-| **Commandes** | Créer, modifier, supprimer, calculer matières nécessaires |
-| **Production** | Voir l'historique, gérer les incidents |
-| **Livraisons** | Créer, imprimer facture PDF, enregistrer revenu |
-| **Ventes libres** | Créer, consulter |
-| **Finances** | Voir toutes les transactions, comptes bancaires, rapport mensuel |
-| **Charges fixes** | Créer, payer, télécharger reçu PDF |
-| **Facturation** | Créer factures, marquer payées |
-| **Fournisseurs** | Gérer fournisseurs, dettes, remboursements |
-| **Employés** | Créer, modifier, gérer les bulletins de paie, payer salaires |
-| **Bulletins de paie** | Créer, payer, télécharger PDF (tous les employés) |
-| **Rapports** | Accès à tous les rapports et KPIs |
-| **Paramètres** | Aucun accès |
-
----
-
-### BOULANGER — `boulanger1` / `boulanger2`
-
-Accès limité aux opérations de production.
-
-| Module | Permissions |
-|--------|-------------|
-| **Commandes** | Consulter la liste et le détail (lecture seule) |
-| **Production** | Lancer la production du jour, saisir les quantités réelles, signaler un incident |
-| **Bulletin de paie** | Consulter et télécharger son propre bulletin PDF |
-| **Tout le reste** | Accès refusé (403) |
-
-**Scénario typique boulanger :**
-1. Se connecter → Dashboard
-2. Voir les commandes en attente → `/commandes`
-3. Démarrer la production → `/production/passer-a-la-production`
-4. Saisir les quantités réelles produites → formulaire de validation
-5. Signaler un incident si les quantités réelles < théoriques
-6. Consulter son bulletin de paie → `/bulletins/mes-bulletins`
-
----
-
-### MAGASINIER — `magasinier`
-
-Accès exclusif à la gestion du stock des matières premières.
-
-| Module | Permissions |
-|--------|-------------|
-| **Matières premières** | Consulter les niveaux de stock, enregistrer des mouvements |
-| **Mouvements de stock** | ENTREE (réception fournisseur), SORTIE (liée à une production obligatoire), RETOUR, PERTE |
-| **Bulletin de paie** | Consulter et télécharger son propre bulletin PDF |
-| **Tout le reste** | Accès refusé (403) |
-
-**Règle clé :** toute **SORTIE** de matière première doit être liée à une production existante — garantit la traçabilité stock ↔ production.
-
-**Scénario typique magasinier :**
-1. Se connecter → Dashboard
-2. Aller dans Gestion → Mouvements Stock → `/matieres-premieres/mouvements-stock`
-3. Enregistrer une **ENTREE** lors de la réception d'un fournisseur (prix unitaire obligatoire → Transaction ACHAT)
-4. Enregistrer une **SORTIE** en sélectionnant la production de référence dans le menu déroulant
-5. Enregistrer un **RETOUR** si une matière non utilisée revient au stock (motif optionnel)
-6. Enregistrer une **PERTE** pour casse ou péremption (motif obligatoire)
+### MAGASINIER
+- Consulter et gérer les niveaux de stock des matières premières
+- Enregistrer les mouvements (ENTRÉE, SORTIE, RETOUR, PERTE)
+- Consulter et télécharger ses propres bulletins de paie
 
 ---
 
 ## Flux métier principaux
 
-### Cycle journalier complet
+### Cycle journalier
 
 ```
-Manager crée commandes (points de vente)
+Manager crée les commandes par point de vente  →  /commandes
     ↓
-Boulanger lance la production
+Boulanger lance la production du jour  →  /production/passer-a-la-production
+   (calcul des matières nécessaires + débit automatique du stock)
     ↓
-Production calcule les matières nécessaires et débite le stock
+Boulanger saisit les quantités réellement produites  →  /production/valider-production
+   (réconciliation stock, détection d'incidents si écart > seuil)
     ↓
-Boulanger valide avec quantités réelles (+ incident si écart)
+Manager crée la livraison  →  /livraisons/new
+   (facture PDF générée automatiquement)
     ↓
-Manager crée livraisons depuis la production du jour
-    ↓
-Manager enregistre le revenu de la livraison (→ Transaction VENTE)
+Manager enregistre le revenu  →  Transaction VENTE sur le compte principal
 ```
 
-### Gestion des charges fixes
+### Charges fixes
 
 ```
-Admin/Manager crée une charge fixe (loyer, électricité…)
+Création de la charge (type, montant, périodicité, échéance)
     ↓
-À l'échéance : formulaire de paiement (choix du compte bancaire)
+Paiement → choix du compte, vérification solde, Transaction CHARGE
     ↓
-Transaction CHARGE_FIXE créée, solde débité
+Si charge périodique : prochaine échéance créée automatiquement
     ↓
-Reçu PDF téléchargeable
-    ↓
-Nouvelle échéance créée automatiquement selon la périodicité
-   (MENSUEL / TRIMESTRIEL / SEMESTRIEL / ANNUEL)
+Reçu PDF téléchargeable  →  /comptabilite/charges-fixes/{id}/recu
 ```
 
-### Gestion des stocks matières premières (magasin)
-
-> Ce flux est **indépendant de la production**. Il couvre les achats fournisseurs,
-> les pertes/ajustements manuels et les retours — sans déclencher le cycle de production.
+### Paie mensuelle
 
 ```
-Admin/Manager va dans Matières premières → Gestion des mouvements
+Génération du bulletin  →  /bulletins/generer
+   (salaire base + primes + indemnités - CNPS 4,2% - avance)
     ↓
-Choisit la matière et le type de mouvement :
-    ENTREE  — réception fournisseur (prix unitaire obligatoire → Transaction ACHAT)
-    SORTIE  — perte, casse, consommation hors-production
-    RETOUR  — surplus retourné en stock
-
-Stock mis à jour immédiatement
+Paiement  →  vérification solde, Transaction SALAIRE
     ↓
-Mouvement tracé dans l'historique (/matieres-premieres/mouvements-stock)
-```
-
-**Alertes automatiques** : si le stock descend sous le seuil minimum (`stockMinimum`),
-un badge d'alerte s'affiche dans le dashboard.
-
----
-
-### Paie des employés
-
-```
-Admin/Manager crée les bulletins de paie (période mensuelle)
-    ↓
-Calcul automatique : salaire brut → cotisations CNPS → salaire net
-    (Employé 4,2% · Patronal 16,2%)
-    ↓
-Paiement via le Compte Principal (vérification de solde)
-    ↓
-Transaction SALAIRE créée
-    ↓
-Bulletin PDF téléchargeable par l'employé (ou par admin/manager)
+Bulletin PDF  →  /bulletins/mes-bulletins  (employé)  ou  /bulletins/{id}  (admin/manager)
 ```
 
 ---
 
-## Application desktop installable ?
+## Fichiers générés
 
-**À l'état actuel : non.** L'application est une application web qui nécessite :
-- Un serveur Java en cours d'exécution
-- Une instance MySQL séparée
-
-**Deux options pour en faire un exécutable desktop :**
-
-### Option A — JAR + MySQL local (simple, recommandé pour usage interne)
-1. Installer MySQL une fois sur le poste
-2. Distribuer le JAR + un script de démarrage `.bat` / `.sh`
-3. L'utilisateur ouvre `http://localhost:9000` dans son navigateur
-
-```bat
-REM start.bat
-start "" "http://localhost:9000"
-java -jar gestion-boulangerie.jar
-```
-
-### Option B — Exécutable natif avec base embarquée (plus complexe)
-Nécessite de modifier l'application :
-1. Remplacer MySQL par **H2 en mode fichier** (base embarquée, zéro installation)
-   ```properties
-   spring.datasource.url=jdbc:h2:file:./boulangerie-data
-   ```
-2. Utiliser **`jpackage`** (inclus dans JDK 17) pour créer un `.exe` / `.msi` Windows avec le JRE bundlé
-3. Résultat : installeur Windows autonome, aucune dépendance externe
-
-> Option B implique des tests de migration des données MySQL → H2 et la validation de la compatibilité des requêtes JPA.
+| Type | Mode | Stockage |
+|------|------|----------|
+| PDFs (bulletins, factures, reçus) | Streamé à la demande | Aucun — généré à la volée |
+| Fichiers uploadés (logos…) | Persistant | `uploads/` (configurable via `UPLOAD_DIR`) |
 
 ---
 
 ## Variables d'environnement
 
-| Variable | Valeur par défaut | Description |
-|----------|------------------|-------------|
+| Variable | Défaut | Description |
+|----------|--------|-------------|
 | `DB_USERNAME` | `root` | Utilisateur MySQL |
 | `DB_PASSWORD` | *(vide)* | Mot de passe MySQL |
+| `DB_URL` | *(dev local)* | URL JDBC complète (prod) |
+| `UPLOAD_DIR` | `uploads` | Répertoire des fichiers uploadés |
 | `MAIL_USERNAME` | `changeme@gmail.com` | Compte Gmail pour les emails |
 | `MAIL_PASSWORD` | `changeme` | Mot de passe d'application Gmail |
 
 ---
 
-## Structure des modules
+## Structure du projet
 
 ```
 src/main/java/.../
-├── config/         DataInitializer, GlobalModelAttributes, AppSettings
-├── controller/     Tous les contrôleurs web
+├── config/         DataInitializer, WebMvcConfig, LicenseInterceptor, AppSettings
+├── controller/     Contrôleurs web (un par module)
 ├── dto/            Objets de transfert (formulaires, vues)
-├── exception/      Gestion globale des erreurs
+├── exception/      Gestion globale des erreurs (GlobalExceptionHandler)
 ├── mapper/         Conversions Entity ↔ DTO
 ├── model/          Entités JPA
-├── repository/     Interfaces Spring Data
-├── security/       SecurityConfig, JWT, rate limiting
+├── repository/     Interfaces Spring Data JPA
+├── security/       SecurityConfig, UserDetailsService, rate limiting
 └── service/        Logique métier
 
 src/main/resources/
 ├── static/
-│   ├── css/        Bootstrap 5 + styles custom
-│   ├── js/         scripts.js (remplacement Bootstrap JS, sans CDN)
-│   └── fonts/      arial.ttf (pour les PDF Flying Saucer)
-└── templates/      Templates Thymeleaf par module
+│   ├── css/        Bootstrap 5 + styles personnalisés
+│   ├── js/         scripts.js
+│   └── fonts/      arial.ttf (pour les PDFs Flying Saucer)
+└── templates/      Templates Thymeleaf (organisés par module)
+
+tools/
+└── KeyGenerator.java   Générateur de clés de licence (outil standalone)
 ```
 
 ---
@@ -295,3 +257,17 @@ src/main/resources/
 ```
 
 81 tests unitaires couvrant les services principaux.
+
+---
+
+## Option bureau (Windows)
+
+Pour distribuer Gestiboul comme une application de bureau sur un poste Windows :
+
+```bat
+REM start.bat
+start "" "http://localhost:9000"
+java -jar gestion-boulangerie.jar --spring.profiles.active=prod ...
+```
+
+L'utilisateur ouvre simplement `start.bat`. Le navigateur s'ouvre sur l'interface. Pour une installation entièrement autonome (sans MySQL séparé), remplacer MySQL par H2 en mode fichier et utiliser `jpackage` pour créer un `.exe` avec JRE bundlé.

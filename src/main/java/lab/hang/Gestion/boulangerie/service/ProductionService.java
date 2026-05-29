@@ -112,13 +112,6 @@ public class ProductionService {
         // Save production
         Production savedProduction = productionRepository.save(productionMapper.toEntity(productionDTO));
 
-        // Générer les sorties de stock pour les matières premières (quantités théoriques)
-        if (!matieresUtilisees.isEmpty()) {
-            String motif = "PRODUCTION " + dateProduction + " (prod. #" + savedProduction.getId() + ")";
-            matieresUtilisees.forEach((matiereId, quantite) ->
-                    stockService.removeStock(matiereId, quantite, motif));
-        }
-
         // Update orders
         for (CommandeDTO commande : commandesDuJour) {
             Commande commandeEntity = commandeMapper.toEntity(commande);
@@ -168,46 +161,20 @@ public class ProductionService {
             MatierePremiere matiere = matierePremiereService.getMatierePremiereById(matiereId);
             quantitesReelles.put(matiere, entry.getValue());
         }
-        production.setQuantitesReellesUtilisees(quantitesReelles);
+        production.getQuantitesReellesUtilisees().clear();
+        production.getQuantitesReellesUtilisees().putAll(quantitesReelles);
 
-        // Réconcilier stock théorique vs réel
-        String motifBase = "RECONCILIATION prod. #" + production.getId();
-        Map<MatierePremiere, Double> theorique = production.getMatieresPremieresUtilisees();
-        for (Map.Entry<MatierePremiere, Double> entry : theorique.entrySet()) {
-            MatierePremiere matiere = entry.getKey();
-            double qteTheorique = entry.getValue();
-            double qteReelle = quantitesReelles.getOrDefault(matiere, 0.0);
-            double diff = qteTheorique - qteReelle;
-            if (diff > 0.0001) {
-                // Moins utilisé que prévu → retour au magasin
-                try {
-                    stockService.returnStock(matiere.getId(), diff,
-                            "RETOUR " + motifBase + " (" + matiere.getNom() + ")");
-                } catch (Exception e) {
-                    log.warn("Impossible d'enregistrer le retour pour {} : {}", matiere.getNom(), e.getMessage());
-                }
-            } else if (diff < -0.0001) {
-                // Plus utilisé que prévu → sortie supplémentaire
-                try {
-                    stockService.removeStock(matiere.getId(), -diff,
-                            "SUPPLEMENT " + motifBase + " (" + matiere.getNom() + ")");
-                } catch (Exception e) {
-                    log.warn("Impossible d'enregistrer la sortie supplément pour {} : {}", matiere.getNom(), e.getMessage());
-                }
-            }
-        }
-
-        // 3. Mettre à jour les produits produits
+        // 3. Mettre à jour les produits produits (clear+putAll pour respecter la dirty-tracking Hibernate)
         Map<Produit, Integer> produitsProduits = new HashMap<>();
         for (Map.Entry<Long, Integer> entry : productionDTO.getProduitsProduits().entrySet()) {
-            // Parse the key as Long if it's a String
             Long produitId = entry.getKey();
-
             Produit produit = produitService.getProduitEntityById(produitId);
             produitsProduits.put(produit, entry.getValue());
         }
-        production.setProduitsProduits(produitsProduits);
-        production.setProduitsRestants(produitsProduits);
+        production.getProduitsProduits().clear();
+        production.getProduitsProduits().putAll(produitsProduits);
+        production.getProduitsRestants().clear();
+        production.getProduitsRestants().putAll(produitsProduits);
 
         // 4. Sauvegarder les modifications
         productionRepository.save(production);

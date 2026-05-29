@@ -23,6 +23,7 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
 
     boolean existsByDateCommande(LocalDate date);
 
+    @Query("SELECT DISTINCT c FROM Commande c LEFT JOIN FETCH c.produitsCommandes WHERE c.processed = false")
     List<Commande> findByProcessedFalse();
 
     List<Commande> findByDateCommandeAndProcessed(LocalDate date, boolean processed);

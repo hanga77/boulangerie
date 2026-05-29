@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,8 +70,8 @@ public class StockService {
 
 
     @Transactional
-    public void addStock(Long matierePremiereId, double quantite, double prixUnitaire) {
-        // Input validation
+    public void addStock(Long matierePremiereId, double quantite, double prixUnitaire,
+                         Double quantiteCommandee, Double quantiteAvariee) {
         if (matierePremiereId == null) {
             throw new IllegalArgumentException("L'ID de la matière première ne peut pas être null");
         }
@@ -80,51 +79,51 @@ public class StockService {
             throw new IllegalArgumentException("La quantité et le prix unitaire doivent être positifs");
         }
 
-        // Get current user
+        // quantite = net already computed by the form (commandée - avariée); use it directly
+        double avariee = (quantiteAvariee != null && quantiteAvariee > 0) ? quantiteAvariee : 0;
+
         User currentUser = userService.getCurrentUser();
         if (currentUser == null || currentUser.getId() == null) {
             throw new SecurityException("Utilisateur non authentifié ou ID utilisateur manquant");
         }
 
-        // Get matiere premiere
         MatierePremiere matierePremiere = matierePremiereService.getMatierePremiereById(matierePremiereId);
         if (matierePremiere == null) {
             throw new EntityNotFoundException("Matière première non trouvée avec l'ID: " + matierePremiereId);
         }
 
-        // Get compte bancaire
         CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal")
                 .orElseThrow(() -> new EntityNotFoundException("Compte bancaire principal non trouvé"));
 
-        // Calculate total cost
         double coutTotal = quantite * prixUnitaire;
 
-
         try {
-            // Update stock
             matierePremiere.setStock(matierePremiere.getStock() + quantite);
             matierePremiere.setPrixUnitaire(prixUnitaire);
 
-            // Create new lot
             Lot lot = new Lot();
             lot.setQuantite(quantite);
             lot.setDatePeremption(LocalDate.now().plusDays(32));
             lot.setMatierePremiere(matierePremiere);
             lotRepository.save(lot);
 
-            log.debug("Enregistrement mouvement stock ENTREE - matière: {}, quantité: {}", matierePremiere.getNom(), quantite);
-            // Record stock movement
-            recordStockMovement(matierePremiere, quantite, "ENTREE");
-            log.debug("Mouvement stock ENTREE enregistré avec succès");
+            // Record movement with avaries details
+            User user = userService.getCurrentUser();
+            StockMovement movement = new StockMovement();
+            movement.setType("ENTREE");
+            movement.setQuantite(quantite);
+            movement.setDate(LocalDate.now());
+            movement.setMatierePremiere(matierePremiere);
+            movement.setUser(user);
+            movement.setMotif("ENTREE");
+            movement.setQuantiteCommandee(quantiteCommandee != null ? quantiteCommandee : quantite);
+            movement.setQuantiteAvariee(avariee > 0 ? avariee : null);
+            stockMovementRepository.save(movement);
 
-            // Create transaction with credit handling
             boolean isSoldeInsuffisant = compte.getSolde() < coutTotal;
             String transactionType = isSoldeInsuffisant ? "ACHAT_CREDIT" : "ACHAT";
             String description = String.format("Achat de %.2f unités de %s par %s",
-                    quantite,
-                    matierePremiere.getNom(),
-                    currentUser.getUsername());
-
+                    quantite, matierePremiere.getNom(), currentUser.getUsername());
             if (isSoldeInsuffisant) {
                 description += " (CRÉDIT)";
                 log.warn("Achat à crédit - utilisateur: {}, montant: {}, solde disponible: {}",
@@ -138,17 +137,9 @@ public class StockService {
             transaction.setDescription(description);
             transaction.setCompteBancaire(compte);
 
-            // Update account balance
             compte.setSolde(compte.getSolde() - coutTotal);
-
-            // Save all changes
             transactionRepository.save(transaction);
             compteBancaireRepository.save(compte);
-
-            if (isSoldeInsuffisant) {
-                log.warn("Achat effectué avec solde insuffisant - dette: {}, matière: {}",
-                        Math.abs(compte.getSolde()), matierePremiere.getNom());
-            }
 
         } catch (Exception e) {
             throw new RuntimeException("Erreur lors de l'ajout du stock: " + e.getMessage(), e);
@@ -248,8 +239,16 @@ public class StockService {
 
     /** Tous les mouvements, du plus récent au plus ancien. */
     public List<StockMovement> getAllMovementsDesc() {
-        return stockMovementRepository.findAll(
-                Sort.by(Sort.Direction.DESC, "date").and(Sort.by(Sort.Direction.DESC, "id")));
+        return stockMovementRepository.findAllWithAssociationsOrderByDateDesc();
+    }
+
+    /** Sorties de stock liées à une production (ce que le magasinier a donné). */
+    public Map<Long, Double> getSortiesParProduction(Long productionId) {
+        Map<Long, Double> result = new HashMap<>();
+        for (StockMovement m : stockMovementRepository.findSortiesByProductionId(productionId)) {
+            result.merge(m.getMatierePremiere().getId(), m.getQuantite(), Double::sum);
+        }
+        return result;
     }
 
     /** Sortie manuelle liée à une production (magasinier). */

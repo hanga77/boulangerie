@@ -32,4 +32,10 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
     List<StockMovement> findByDateAndMatierePremiere(LocalDate date, MatierePremiere matierePremiere);
 
     List<StockMovement> findByDateAndMatierePremiereAndType(LocalDate date, MatierePremiere matierePremiere, String type);
+
+    @Query("SELECT m FROM StockMovement m LEFT JOIN FETCH m.matierePremiere LEFT JOIN FETCH m.production LEFT JOIN FETCH m.user ORDER BY m.date DESC, m.id DESC")
+    List<StockMovement> findAllWithAssociationsOrderByDateDesc();
+
+    @Query("SELECT m FROM StockMovement m JOIN FETCH m.matierePremiere WHERE m.production.id = :productionId AND m.type = 'SORTIE'")
+    List<StockMovement> findSortiesByProductionId(@Param("productionId") Long productionId);
 }
