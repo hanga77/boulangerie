@@ -17,7 +17,7 @@
                class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-list me-1"></i>Non traitées
             </a>
-            <a href="/production/passer-a-la-production" class="btn btn-success btn-sm">
+            <a href="/production/passer-a-la-production" sec:authorize="hasRole('BOULANGER')" class="btn btn-success btn-sm">
                 <i class="fas fa-industry me-1"></i>Démarrer prod.
             </a>
             <a href="/commandes/new" class="btn btn-primary btn-sm">

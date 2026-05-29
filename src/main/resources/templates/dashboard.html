@@ -60,7 +60,7 @@
                 <a href="/commandes/new"                   class="btn btn-primary btn-sm">
                     <i class="fas fa-plus me-1"></i>Nouvelle commande
                 </a>
-                <a href="/production/passer-a-la-production" class="btn btn-success btn-sm">
+                <a href="/production/passer-a-la-production" sec:authorize="hasRole('BOULANGER')" class="btn btn-success btn-sm">
                     <i class="fas fa-industry me-1"></i>Démarrer production
                 </a>
                 <a href="/livraisons/new"                  class="btn btn-info btn-sm">
@@ -182,7 +182,7 @@
                 </div>
                 <div class="card-body d-flex flex-column justify-content-center text-center">
                     <p class="text-muted mb-3">Gérez la production quotidienne en fonction des commandes reçues.</p>
-                    <a href="/production/passer-a-la-production" class="btn btn-primary">
+                    <a href="/production/passer-a-la-production" sec:authorize="hasRole('BOULANGER')" class="btn btn-primary">
                         <i class="fas fa-play-circle me-1"></i>Démarrer la production
                     </a>
                 </div>

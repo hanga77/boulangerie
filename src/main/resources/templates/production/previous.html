@@ -14,7 +14,7 @@
             </h1>
             <p class="text-muted small mb-0">Historique de production</p>
         </div>
-        <a href="/production/passer-a-la-production" class="btn btn-primary btn-sm">
+        <a href="/production/passer-a-la-production" sec:authorize="hasRole('BOULANGER')" class="btn btn-primary btn-sm">
             <i class="fas fa-play-circle me-1"></i>Nouvelle production
         </a>
     </div>

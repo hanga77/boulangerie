@@ -157,6 +157,29 @@ Nouvelle échéance créée automatiquement selon la périodicité
    (MENSUEL / TRIMESTRIEL / SEMESTRIEL / ANNUEL)
 ```
 
+### Gestion des stocks matières premières (magasin)
+
+> Ce flux est **indépendant de la production**. Il couvre les achats fournisseurs,
+> les pertes/ajustements manuels et les retours — sans déclencher le cycle de production.
+
+```
+Admin/Manager va dans Matières premières → Gestion des mouvements
+    ↓
+Choisit la matière et le type de mouvement :
+    ENTREE  — réception fournisseur (prix unitaire obligatoire → Transaction ACHAT)
+    SORTIE  — perte, casse, consommation hors-production
+    RETOUR  — surplus retourné en stock
+
+Stock mis à jour immédiatement
+    ↓
+Mouvement tracé dans l'historique (/matieres-premieres/mouvements-stock)
+```
+
+**Alertes automatiques** : si le stock descend sous le seuil minimum (`stockMinimum`),
+un badge d'alerte s'affiche dans le dashboard.
+
+---
+
 ### Paie des employés
 
 ```
