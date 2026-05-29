@@ -4,12 +4,14 @@ import lab.hang.Gestion.boulangerie.exception.*;
 import lab.hang.Gestion.boulangerie.model.*;
 import lab.hang.Gestion.boulangerie.repository.CompteBancaireRepository;
 import lab.hang.Gestion.boulangerie.repository.LotRepository;
+import lab.hang.Gestion.boulangerie.repository.ProductionRepository;
 import lab.hang.Gestion.boulangerie.repository.StockMovementRepository;
 import lab.hang.Gestion.boulangerie.repository.TransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,23 +28,26 @@ public class StockService {
 
     private final StockMovementRepository stockMovementRepository;
     private final MatierePremiereService matierePremiereService;
-
     private final LotRepository lotRepository;
     private final UserService userService;
-
     private final CompteBancaireRepository compteBancaireRepository;
     private final TransactionRepository transactionRepository;
+    private final ProductionRepository productionRepository;
 
-
-
-
-    public StockService(StockMovementRepository stockMovementRepository, MatierePremiereService matierePremiereService, LotRepository lotRepository, UserService userService, CompteBancaireRepository compteBancaireRepository, TransactionRepository transactionRepository) {
+    public StockService(StockMovementRepository stockMovementRepository,
+                        MatierePremiereService matierePremiereService,
+                        LotRepository lotRepository,
+                        UserService userService,
+                        CompteBancaireRepository compteBancaireRepository,
+                        TransactionRepository transactionRepository,
+                        ProductionRepository productionRepository) {
         this.stockMovementRepository = stockMovementRepository;
         this.matierePremiereService = matierePremiereService;
         this.lotRepository = lotRepository;
         this.userService = userService;
         this.compteBancaireRepository = compteBancaireRepository;
         this.transactionRepository = transactionRepository;
+        this.productionRepository = productionRepository;
     }
 
     /*@Transactional
@@ -240,6 +245,40 @@ public class StockService {
         }
     }
 
+
+    /** Tous les mouvements, du plus récent au plus ancien. */
+    public List<StockMovement> getAllMovementsDesc() {
+        return stockMovementRepository.findAll(
+                Sort.by(Sort.Direction.DESC, "date").and(Sort.by(Sort.Direction.DESC, "id")));
+    }
+
+    /** Sortie manuelle liée à une production (magasinier). */
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    public void removeStockForProduction(Long matierePremiereId, double quantite, Long productionId) {
+        if (quantite <= 0) throw new IllegalArgumentException("La quantité doit être positive.");
+        if (productionId == null) throw new IllegalArgumentException("La production de référence est obligatoire.");
+        MatierePremiere matierePremiere = matierePremiereService.getMatierePremiereByIdWithLock(matierePremiereId);
+        if (matierePremiere.getStock() < quantite) {
+            throw new StockInsuffisantException("Stock insuffisant pour : " + matierePremiere.getNom());
+        }
+        Production production = productionRepository.findById(productionId)
+                .orElseThrow(() -> new EntityNotFoundException("Production introuvable : " + productionId));
+
+        matierePremiere.setStock(matierePremiere.getStock() - quantite);
+
+        User currentUser = userService.getCurrentUser();
+        StockMovement movement = new StockMovement();
+        movement.setType("SORTIE");
+        movement.setQuantite(quantite);
+        movement.setDate(LocalDate.now());
+        movement.setMatierePremiere(matierePremiere);
+        movement.setUser(currentUser);
+        movement.setMotif("Sortie production du " + production.getDateProduction());
+        movement.setProduction(production);
+        stockMovementRepository.save(movement);
+
+        matierePremiereService.saveMatierePremiere(matierePremiere);
+    }
 
     public List<StockMovement> getStockMovementsByDate(LocalDate date) {
         return stockMovementRepository.findByDateOrderByDateDesc(date);

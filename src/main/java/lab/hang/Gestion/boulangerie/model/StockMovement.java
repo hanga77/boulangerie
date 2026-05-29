@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -34,6 +35,9 @@ public class StockMovement {
     @Column(nullable = false)
     private LocalDate date;
 
+    @Column(nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "matiere_premiere_id", nullable = false)
     private MatierePremiere matierePremiere;
@@ -42,4 +46,9 @@ public class StockMovement {
     private User user;
 
     private String motif;
+
+    /** Non-null uniquement pour les sorties manuelles enregistrées par le magasinier. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "production_id")
+    private Production production;
 }

@@ -46,6 +46,7 @@ java -jar target/gestion-boulangerie-0.0.1-SNAPSHOT.jar
 | Responsable | `manager` | `manager123` | MANAGER |
 | Boulanger | `boulanger1` | `pain2024` | BOULANGER |
 | Boulanger | `boulanger2` | `pain2024` | BOULANGER |
+| Magasinier | `magasinier` | `stock2024` | MAGASINIER |
 
 > Ces comptes sont créés automatiquement si la base est vide. Ne jamais utiliser ces mots de passe en production.
 
@@ -121,6 +122,29 @@ Accès limité aux opérations de production.
 4. Saisir les quantités réelles produites → formulaire de validation
 5. Signaler un incident si les quantités réelles < théoriques
 6. Consulter son bulletin de paie → `/bulletins/mes-bulletins`
+
+---
+
+### MAGASINIER — `magasinier`
+
+Accès exclusif à la gestion du stock des matières premières.
+
+| Module | Permissions |
+|--------|-------------|
+| **Matières premières** | Consulter les niveaux de stock, enregistrer des mouvements |
+| **Mouvements de stock** | ENTREE (réception fournisseur), SORTIE (liée à une production obligatoire), RETOUR, PERTE |
+| **Bulletin de paie** | Consulter et télécharger son propre bulletin PDF |
+| **Tout le reste** | Accès refusé (403) |
+
+**Règle clé :** toute **SORTIE** de matière première doit être liée à une production existante — garantit la traçabilité stock ↔ production.
+
+**Scénario typique magasinier :**
+1. Se connecter → Dashboard
+2. Aller dans Gestion → Mouvements Stock → `/matieres-premieres/mouvements-stock`
+3. Enregistrer une **ENTREE** lors de la réception d'un fournisseur (prix unitaire obligatoire → Transaction ACHAT)
+4. Enregistrer une **SORTIE** en sélectionnant la production de référence dans le menu déroulant
+5. Enregistrer un **RETOUR** si une matière non utilisée revient au stock (motif optionnel)
+6. Enregistrer une **PERTE** pour casse ou péremption (motif obligatoire)
 
 ---
 

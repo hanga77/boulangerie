@@ -94,14 +94,16 @@ public class DataInitializer implements CommandLineRunner {
     private void initEmployes() {
         if (employeRepository.count() > 0) return;
 
-        User boulanger1 = userRepository.findByUsername("boulanger1").orElse(null);
-        User boulanger2 = userRepository.findByUsername("boulanger2").orElse(null);
-        User manager    = userRepository.findByUsername("manager").orElse(null);
+        User boulanger1  = userRepository.findByUsername("boulanger1").orElse(null);
+        User boulanger2  = userRepository.findByUsername("boulanger2").orElse(null);
+        User manager     = userRepository.findByUsername("manager").orElse(null);
+        User magasinier  = userRepository.findByUsername("magasinier").orElse(null);
 
         employeRepository.saveAll(List.of(
-            employe("Martin",  "Pierre",  "Boulanger",  80_000.0, boulanger1),
-            employe("Nguema",  "Sylvie",  "Boulanger",  80_000.0, boulanger2),
-            employe("Mbarga",  "Jacques", "Manager",   120_000.0, manager)
+            employe("Martin",  "Pierre",  "Boulanger",   80_000.0, boulanger1),
+            employe("Nguema",  "Sylvie",  "Boulanger",   80_000.0, boulanger2),
+            employe("Mbarga",  "Jacques", "Manager",    120_000.0, manager),
+            employe("Bello",   "Awa",     "Magasinier",  75_000.0, magasinier)
         ));
     }
 
@@ -151,10 +153,11 @@ public class DataInitializer implements CommandLineRunner {
     private void initUsers() {
         if (userRepository.count() > 0) return;
 
-        userRepository.save(buildUser("xavier",    "admin123",   "ADMIN",     true));
-        userRepository.save(buildUser("manager",   "manager123", "MANAGER",   true));
-        userRepository.save(buildUser("boulanger1","pain2024",   "BOULANGER", true));
-        userRepository.save(buildUser("boulanger2","pain2024",   "BOULANGER", true));
+        userRepository.save(buildUser("xavier",     "admin123",   "ADMIN",      true));
+        userRepository.save(buildUser("manager",    "manager123", "MANAGER",    true));
+        userRepository.save(buildUser("boulanger1", "pain2024",   "BOULANGER",  true));
+        userRepository.save(buildUser("boulanger2", "pain2024",   "BOULANGER",  true));
+        userRepository.save(buildUser("magasinier", "stock2024",  "MAGASINIER", true));
     }
 
     private User buildUser(String username, String password, String role, boolean active) {

@@ -1,14 +1,14 @@
 package lab.hang.Gestion.boulangerie.controller;
 
 
-import jakarta.servlet.http.HttpServletResponse;
-import lab.hang.Gestion.boulangerie.dto.StockReportDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import lab.hang.Gestion.boulangerie.exception.SoldeInsuffisantException;
 import lab.hang.Gestion.boulangerie.exception.StockInsuffisantException;
 import lab.hang.Gestion.boulangerie.model.MatierePremiere;
+import lab.hang.Gestion.boulangerie.model.Production;
 import lab.hang.Gestion.boulangerie.model.StockMovement;
+import lab.hang.Gestion.boulangerie.repository.ProductionRepository;
 import lab.hang.Gestion.boulangerie.service.MatierePremiereService;
 import lab.hang.Gestion.boulangerie.service.StockService;
 import org.springframework.data.domain.Page;
@@ -20,6 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -31,10 +32,14 @@ public class MatierePremiereController {
 
     private final MatierePremiereService matierePremiereService;
     private final StockService stockService;
+    private final ProductionRepository productionRepository;
 
-    public MatierePremiereController(MatierePremiereService matierePremiereService, StockService stockService) {
+    public MatierePremiereController(MatierePremiereService matierePremiereService,
+                                     StockService stockService,
+                                     ProductionRepository productionRepository) {
         this.matierePremiereService = matierePremiereService;
         this.stockService = stockService;
+        this.productionRepository = productionRepository;
     }
 
     @GetMapping
@@ -135,14 +140,13 @@ public class MatierePremiereController {
 
     @GetMapping("/mouvements-stock")
     public String gestionMouvementsStock(Model model) {
-        // Récupérer la liste des matières premières
-        List<MatierePremiere> matieresPremieres = matierePremiereService.getAllMatierePremieres();
-        model.addAttribute("matieresPremieres", matieresPremieres);
+        model.addAttribute("matieresPremieres", matierePremiereService.getAllMatierePremieres());
+        model.addAttribute("mouvementsStock", stockService.getAllMovementsDesc());
 
-        // Récupérer les mouvements de stock pour aujourd'hui
         LocalDate today = LocalDate.now();
-        List<StockMovement> mouvementsStock = stockService.getStockMovementsByDate(today);
-        model.addAttribute("mouvementsStock", mouvementsStock);
+        List<Production> productions = productionRepository.findByDateProductionBetween(today.minusDays(30), today);
+        productions.sort(Comparator.comparing(Production::getDateProduction).reversed());
+        model.addAttribute("productions", productions);
 
         return "matiere-premerie/gestion";
     }
@@ -153,38 +157,54 @@ public class MatierePremiereController {
             @RequestParam double quantite,
             @RequestParam String type,
             @RequestParam(required = false) Double prixUnitaire,
+            @RequestParam(required = false) Long productionId,
+            @RequestParam(required = false) String motif,
             RedirectAttributes redirectAttributes) {
 
         try {
-            if (type.equals("ENTREE")) {
-                if (prixUnitaire == null || prixUnitaire <= 0) {
-                    redirectAttributes.addFlashAttribute("error",
-                            "Le prix unitaire est requis et doit être supérieur à 0 pour une entrée de stock");
+            switch (type) {
+                case "ENTREE" -> {
+                    if (prixUnitaire == null || prixUnitaire <= 0) {
+                        redirectAttributes.addFlashAttribute("error",
+                                "Le prix unitaire est requis et doit être supérieur à 0 pour une entrée de stock.");
+                        return "redirect:/matieres-premieres/mouvements-stock";
+                    }
+                    stockService.addStock(matierePremiereId, quantite, prixUnitaire);
+                    redirectAttributes.addFlashAttribute("success", "Entrée de stock enregistrée avec succès.");
+                }
+                case "SORTIE" -> {
+                    if (productionId == null) {
+                        redirectAttributes.addFlashAttribute("error",
+                                "Une production de référence est obligatoire pour une sortie de stock.");
+                        return "redirect:/matieres-premieres/mouvements-stock";
+                    }
+                    stockService.removeStockForProduction(matierePremiereId, quantite, productionId);
+                    redirectAttributes.addFlashAttribute("success", "Sortie de stock enregistrée et liée à la production.");
+                }
+                case "RETOUR" -> {
+                    stockService.returnStock(matierePremiereId, quantite,
+                            motif != null && !motif.isBlank() ? motif : "RETOUR MANUEL");
+                    redirectAttributes.addFlashAttribute("success", "Retour de stock enregistré avec succès.");
+                }
+                case "PERTE" -> {
+                    stockService.lostStock(matierePremiereId, quantite,
+                            motif != null && !motif.isBlank() ? motif : "Perte non spécifiée");
+                    redirectAttributes.addFlashAttribute("success", "Perte enregistrée avec succès.");
+                }
+                default -> {
+                    redirectAttributes.addFlashAttribute("error", "Type de mouvement inconnu : " + type);
                     return "redirect:/matieres-premieres/mouvements-stock";
                 }
-                stockService.addStock(matierePremiereId, quantite, prixUnitaire);
-                redirectAttributes.addFlashAttribute("success",
-                        "Entrée de stock enregistrée avec succès" +
-                                (prixUnitaire != null ? " (Prix unitaire: " + prixUnitaire + "€)" : ""));
-            } else if (type.equals("SORTIE")) {
-                stockService.removeStock(matierePremiereId, quantite);
-                redirectAttributes.addFlashAttribute("success", "Sortie de stock enregistrée avec succès");
-            } else if (type.equals("RETOUR")) {
-                stockService.returnStock(matierePremiereId, quantite, "RETOUR MANUEL");
-                redirectAttributes.addFlashAttribute("success", "Retour de stock enregistré avec succès");
             }
         } catch (SoldeInsuffisantException e) {
             redirectAttributes.addFlashAttribute("warning",
-                    "Mouvement enregistré mais attention : " + e.getMessage() +
-                            ". Le mouvement a été enregistré en tant qu'achat à crédit.");
+                    "Mouvement enregistré (achat à crédit) : " + e.getMessage());
         } catch (StockInsuffisantException e) {
-            redirectAttributes.addFlashAttribute("error",
-                    "Erreur : " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Stock insuffisant : " + e.getMessage());
             return "redirect:/matieres-premieres/mouvements-stock";
         } catch (Exception e) {
             log.error("Erreur lors de l'enregistrement du mouvement de stock", e);
-            redirectAttributes.addFlashAttribute("error",
-                    "Une erreur est survenue : " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Une erreur est survenue : " + e.getMessage());
             return "redirect:/matieres-premieres/mouvements-stock";
         }
 

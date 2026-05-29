@@ -41,22 +41,22 @@
                         <i class="fas fa-home me-1"></i>Accueil
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')">
                     <a class="nav-link rounded px-2" href="/commandes">
                         <i class="fas fa-shopping-cart me-1"></i>Commandes
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')">
                     <a class="nav-link rounded px-2" href="/production">
                         <i class="fas fa-industry me-1"></i>Production
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
                     <a class="nav-link rounded px-2" href="/livraisons">
                         <i class="fas fa-truck me-1"></i>Livraisons
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
                     <a class="nav-link rounded px-2" href="/ventes-libres">
                         <i class="fas fa-store me-1"></i>Ventes
                     </a>
@@ -68,7 +68,7 @@
                 </li>
 
                 <!-- Gestion dropdown -->
-                <li class="nav-item dropdown">
+                <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMIN','MANAGER','MAGASINIER')">
                     <a class="nav-link rounded px-2 dropdown-toggle" href="#"
                        data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-boxes me-1"></i>Gestion
@@ -80,26 +80,26 @@
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="/produits">
-                                <i class="fas fa-cookie-bite me-2"></i>Produits
-                            </a>
-                        </li>
-                        <li>
                             <a class="dropdown-item" href="/matieres-premieres/mouvements-stock">
                                 <i class="fas fa-warehouse me-2"></i>Mouvements Stock
                             </a>
                         </li>
-                        <li>
+                        <li sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                            <a class="dropdown-item" href="/produits">
+                                <i class="fas fa-cookie-bite me-2"></i>Produits
+                            </a>
+                        </li>
+                        <li sec:authorize="hasAnyRole('ADMIN','MANAGER')">
                             <a class="dropdown-item" href="/points-de-vente">
                                 <i class="fas fa-map-marker-alt me-2"></i>Points de Vente
                             </a>
                         </li>
-                        <li>
+                        <li sec:authorize="hasAnyRole('ADMIN','MANAGER')">
                             <a class="dropdown-item" href="/fournisseurs">
                                 <i class="fas fa-truck-loading me-2"></i>Fournisseurs
                             </a>
                         </li>
-                        <li>
+                        <li sec:authorize="hasAnyRole('ADMIN','MANAGER')">
                             <a class="dropdown-item" href="/fournisseurs/dettes">
                                 <i class="fas fa-hand-holding-usd me-2 text-danger"></i>Dettes fournisseurs
                             </a>
@@ -108,7 +108,7 @@
                 </li>
 
                 <!-- Rapports dropdown -->
-                <li class="nav-item dropdown">
+                <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')">
                     <a class="nav-link rounded px-2 dropdown-toggle" href="#"
                        data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-chart-bar me-1"></i>Rapports
@@ -141,12 +141,12 @@
                         </li>
                     </ul>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
                     <a class="nav-link rounded px-2" href="/finances">
                         <i class="fas fa-chart-line me-1"></i>Finances
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
                     <a class="nav-link rounded px-2" href="/comptabilite/dashboard">
                         <i class="fas fa-calculator me-1"></i>Comptabilité
                     </a>
