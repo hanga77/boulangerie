@@ -225,11 +225,11 @@ public class DataInitializer implements CommandLineRunner {
 
             // Croissant — 350 XAF
             produit("Croissant", 350.0, 80, 30,
-                Map.of(farine, 0.05, beurre, 25.0, sucre, 8.0, levure, 2.0, lait, 20.0)),
+                Map.of(farine, 0.05, beurre, 25.0, sucre, 0.008, levure, 2.0, lait, 20.0)),
 
             // Pain de mie — 800 XAF
             produit("Pain de mie", 800.0, 60, 20,
-                Map.of(farine, 0.25, beurre, 30.0, sucre, 20.0, lait, 100.0, levure, 5.0, sel, 5.0)),
+                Map.of(farine, 0.25, beurre, 30.0, sucre, 0.020, lait, 100.0, levure, 5.0, sel, 5.0)),
 
             // Brioche — 500 XAF
             produit("Brioche", 500.0, 50, 15,
@@ -242,7 +242,7 @@ public class DataInitializer implements CommandLineRunner {
 
             // Donut — 250 XAF
             produit("Donut", 250.0, 100, 40,
-                Map.of(farine, 0.06, sucre, 15.0, oeufs, 1.0,
+                Map.of(farine, 0.06, sucre, 0.015, oeufs, 1.0,
                        lait, 40.0, levure, 2.0, huile, 20.0))
         ));
     }
@@ -407,10 +407,10 @@ public class DataInitializer implements CommandLineRunner {
         Produit painMie = getProduit(produits, "Pain de mie");
         Produit donut   = getProduit(produits, "Donut");
 
-        PointDeVente boutique = pdvs.get(0);
-        PointDeVente mokolo   = pdvs.get(1);
-        PointDeVente mfoundi  = pdvs.get(2);
-        PointDeVente essos    = pdvs.get(3);
+        PointDeVente boutique = getPointDeVente(pdvs, "Boutique Centrale");
+        PointDeVente mokolo   = getPointDeVente(pdvs, "Marché Mokolo");
+        PointDeVente mfoundi  = getPointDeVente(pdvs, "Marché Mfoundi");
+        PointDeVente essos    = getPointDeVente(pdvs, "Dépôt Essos");
 
         LocalDate today = LocalDate.now();
 
@@ -444,6 +444,13 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private Produit getProduit(List<Produit> list, String nom) {
+        return list.stream()
+                .filter(p -> p.getNom().equals(nom))
+                .findFirst()
+                .orElse(list.get(0));
+    }
+
+    private PointDeVente getPointDeVente(List<PointDeVente> list, String nom) {
         return list.stream()
                 .filter(p -> p.getNom().equals(nom))
                 .findFirst()
