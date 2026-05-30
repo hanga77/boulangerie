@@ -31,6 +31,7 @@ public class DataInitializer implements CommandLineRunner {
     private final FournisseurDetteRepository fournisseurDetteRepository;
     private final AppSettingsRepository appSettingsRepository;
     private final EmployeRepository employeRepository;
+    private final GuichetRepository guichetRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UserRepository userRepository,
@@ -45,6 +46,7 @@ public class DataInitializer implements CommandLineRunner {
                            FournisseurDetteRepository fournisseurDetteRepository,
                            AppSettingsRepository appSettingsRepository,
                            EmployeRepository employeRepository,
+                           GuichetRepository guichetRepository,
                            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.matierePremiereRepository = matierePremiereRepository;
@@ -58,6 +60,7 @@ public class DataInitializer implements CommandLineRunner {
         this.fournisseurDetteRepository = fournisseurDetteRepository;
         this.appSettingsRepository = appSettingsRepository;
         this.employeRepository = employeRepository;
+        this.guichetRepository = guichetRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -77,6 +80,7 @@ public class DataInitializer implements CommandLineRunner {
             log.warn("Seed dettes ignoré: {}", e.getMessage());
         }
         List<PointDeVente> pdvs = initPointsDeVente();
+        initGuichets(pdvs);
         try {
             initCommandes(pdvs);
         } catch (Exception e) {
@@ -393,6 +397,30 @@ public class DataInitializer implements CommandLineRunner {
             pdv("Dépôt Essos",         "Quartier Essos, Yaoundé",             TypePointDeVente.DEPOT),
             pdv("Guichet Boulangerie", "Boulangerie principale, Yaoundé",     TypePointDeVente.GUICHET_CENTRAL)
         ));
+    }
+
+    private void initGuichets(List<PointDeVente> pdvs) {
+        if (guichetRepository.count() > 0) return;
+        PointDeVente boulangerie = pdvs.stream()
+                .filter(p -> p.getNom().equals("Guichet Boulangerie")).findFirst()
+                .orElse(pdvs.get(0));
+        PointDeVente boutique = pdvs.stream()
+                .filter(p -> p.getNom().equals("Boutique Centrale")).findFirst()
+                .orElse(pdvs.get(0));
+        guichetRepository.saveAll(List.of(
+            guichet("Guichet 1", 1, boulangerie),
+            guichet("Guichet 2", 2, boulangerie),
+            guichet("Caisse Boutique", 1, boutique)
+        ));
+    }
+
+    private Guichet guichet(String nom, int numero, PointDeVente pdv) {
+        Guichet g = new Guichet();
+        g.setNom(nom);
+        g.setNumero(numero);
+        g.setPointDeVente(pdv);
+        g.setActif(true);
+        return g;
     }
 
     private PointDeVente pdv(String nom, String adresse, TypePointDeVente type) {

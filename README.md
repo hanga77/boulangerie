@@ -42,18 +42,28 @@
 - Remboursements partiels ou totaux avec historique
 - Vue globale des dettes en cours avec détection des retards
 
+### Guichet POS (caissier)
+- Interface caisse tactile : tuiles +/− par produit, total mis à jour en temps réel
+- Chargement automatique des produits restants de la production du jour (ou veille)
+- Choix du moyen de paiement : Espèces ou Mobile Money (Orange Money, MTN)
+- Impression ticket thermique après encaissement via `window.print()` CSS @media print
+- Largeur ticket configurable (58mm ou 80mm) dans les Paramètres admin
+- Séparation stricte : `/guichet/**` CAISSIER uniquement, `/ventes-libres/**` MANAGER/ADMIN
+
 ### Ressources humaines & Paie
 - Registre des employés avec poste et salaire de base
-- Génération des bulletins de paie mensuels (primes, indemnités, avance sur salaire)
+- Génération des bulletins de paie **mensuels ou hebdomadaires** (primes, indemnités, avance sur salaire)
+- Paiement hebdomadaire : salaire de base ÷ 4, sélecteur de semaine dans le formulaire
 - Calcul automatique CNPS employé (4,2 %) et patronal (16,2 %)
 - Paiement des salaires depuis un compte bancaire avec vérification du solde
 - Bulletin PDF téléchargeable par l'employé depuis son espace personnel
 
 ### Administration
-- Gestion des utilisateurs et des rôles (ADMIN / MANAGER / BOULANGER / MAGASINIER)
-- Paramètres de l'application : logo personnalisé, seuil d'incident production
+- Gestion des utilisateurs et des rôles (SUPERADMIN / ADMIN / MANAGER / BOULANGER / MAGASINIER / CAISSIER)
+- Paramètres : logo personnalisé, seuil d'incident production, largeur ticket thermique
 - Rapports : stocks, production, livraisons, incidents, bulletins
-- **Système de licence** : démo 90 jours puis activation à vie par clé
+- **Système de licence** : démo 90 jours, activation à vie par clé liée à l'ID machine
+- Page **À propos** (`/a-propos`) avec les coordonnées du développeur
 
 ---
 
@@ -126,11 +136,14 @@ java -jar gestion-boulangerie-0.0.1-SNAPSHOT.jar \
 
 | Profil | Nom d'utilisateur | Mot de passe | Rôle |
 |--------|------------------|--------------|------|
+| Développeur | `hanga` | `Hanga@Gestiboul2024` | SUPERADMIN |
 | Administrateur | `xavier` | `admin123` | ADMIN |
 | Responsable | `manager` | `manager123` | MANAGER |
 | Boulanger | `boulanger1` | `pain2024` | BOULANGER |
 | Boulanger | `boulanger2` | `pain2024` | BOULANGER |
 | Magasinier | `magasinier` | `stock2024` | MAGASINIER |
+| Caissier | `caissier1` | `caisse2024` | CAISSIER |
+| Caissier | `caissier2` | `caisse2024` | CAISSIER |
 
 > Ces comptes sont créés automatiquement s'ils n'existent pas encore. Ne jamais utiliser ces mots de passe en production.
 
