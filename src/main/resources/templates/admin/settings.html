@@ -97,6 +97,37 @@
         </div>
     </div>
 
+    <!-- Ticket de caisse -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-receipt me-2"></i>Impression ticket de caisse
+        </div>
+        <div class="card-body">
+            <form th:action="@{/admin/settings/ticket-largeur}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Largeur du papier thermique</label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="largeur" value="58"
+                                   id="r58" th:checked="${largeurTicketMm == 58}">
+                            <label class="form-check-label" for="r58">58 mm</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="largeur" value="80"
+                                   id="r80" th:checked="${largeurTicketMm == 80}">
+                            <label class="form-check-label" for="r80">80 mm (défaut)</label>
+                        </div>
+                    </div>
+                    <div class="form-text">Correspond à la largeur du rouleau dans votre imprimante thermique.</div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fas fa-save me-1"></i>Enregistrer
+                </button>
+            </form>
+        </div>
+    </div>
+
 </main>
 
 <div th:replace="~{fragments/layout :: scripts}"></div>

@@ -33,4 +33,18 @@ public class AppSettingsService {
         }
         appSettingsRepository.save(new AppSettings(SEUIL_KEY, String.valueOf(seuil)));
     }
+
+    public int getLargeurTicketMm() {
+        return appSettingsRepository.findById("ticket.largeur")
+                .map(s -> Integer.parseInt(s.getValeur()))
+                .orElse(80);
+    }
+
+    @Transactional
+    public void updateLargeurTicketMm(int largeur) {
+        AppSettings setting = appSettingsRepository.findById("ticket.largeur")
+                .orElse(new AppSettings("ticket.largeur", "80"));
+        setting.setValeur(String.valueOf(largeur));
+        appSettingsRepository.save(setting);
+    }
 }

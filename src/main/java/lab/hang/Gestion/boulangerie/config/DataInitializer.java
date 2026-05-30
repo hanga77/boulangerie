@@ -123,8 +123,12 @@ public class DataInitializer implements CommandLineRunner {
     // ── Paramètres applicatifs ────────────────────────────────────────────
 
     private void initAppSettings() {
-        if (appSettingsRepository.count() > 0) return;
-        appSettingsRepository.save(new AppSettings("seuil_incident_production", "10.0"));
+        if (appSettingsRepository.findById("seuil_incident_production").isEmpty()) {
+            appSettingsRepository.save(new AppSettings("seuil_incident_production", "10.0"));
+        }
+        if (appSettingsRepository.findById("ticket.largeur").isEmpty()) {
+            appSettingsRepository.save(new AppSettings("ticket.largeur", "80"));
+        }
     }
 
     // ── Comptes bancaires ──────────────────────────────────────────────────

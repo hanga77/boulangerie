@@ -117,7 +117,17 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public String showSettings(Model model) {
         model.addAttribute("seuilIncident", appSettingsService.getSeuilIncident());
+        model.addAttribute("largeurTicketMm", appSettingsService.getLargeurTicketMm());
         return "admin/settings";
+    }
+
+    @PostMapping("/admin/settings/ticket-largeur")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPERADMIN')")
+    public String updateLargeurTicket(@RequestParam int largeur, RedirectAttributes ra) {
+        if (largeur != 58 && largeur != 80) largeur = 80;
+        appSettingsService.updateLargeurTicketMm(largeur);
+        ra.addFlashAttribute("successMessage", "Largeur ticket mise à jour : " + largeur + " mm");
+        return "redirect:/admin/settings";
     }
 
     @PostMapping("/admin/settings/seuil-incident")
