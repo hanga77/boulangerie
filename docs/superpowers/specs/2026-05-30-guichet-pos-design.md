@@ -162,26 +162,80 @@ Retour POS → prêt pour client suivant
 
 ---
 
-## 8. Fichiers à créer / modifier
+## 8. Impression thermique (ticket de caisse)
+
+### Principe technique
+Impression via `window.print()` avec CSS `@media print`. Le navigateur envoie directement à l'imprimante thermique connectée en USB ou réseau. Aucun driver spécifique requis côté serveur.
+
+### Déclenchement
+Après un encaissement réussi, la page POS affiche un bouton **"🖨 Imprimer le ticket"**. Le caissier clique s'il veut imprimer — pas d'impression automatique.
+
+### Format du ticket
+Largeur configurable dans Paramètres admin (`AppSettings.largeurTicketMm`) : `58` ou `80` (valeur par défaut : `80`).
+
+CSS appliqué dynamiquement :
+```css
+@media print {
+  @page { size: {largeurTicketMm}mm auto; margin: 3mm; }
+  body * { visibility: hidden; }
+  #ticket-caisse, #ticket-caisse * { visibility: visible; }
+  #ticket-caisse { position: absolute; top: 0; left: 0; width: 100%; font-size: 11px; font-family: monospace; }
+}
+```
+
+### Contenu du ticket (`#ticket-caisse`)
+```
+================================
+       [Nom boulangerie]
+       [Adresse si configurée]
+================================
+Guichet : [Nom guichet]
+Date    : 30/05/2026  14:32
+Caissier: caissier1
+--------------------------------
+Baguette           x3   750 XAF
+Croissant          x2   700 XAF
+--------------------------------
+TOTAL                 1 450 XAF
+Paiement : Espèces
+================================
+   Merci pour votre achat !
+   Gestiboul — Hanga J.F.
+================================
+```
+
+### Implémentation
+- Fragment Thymeleaf `templates/guichet/ticket-fragment.html` avec div `#ticket-caisse`
+- Inclus dans `pos.html` (masqué à l'écran, visible uniquement à l'impression)
+- Le CSS `@page size` est injecté dynamiquement via une variable Thymeleaf `${appSettings.largeurTicketMm}`
+- `AppSettings` : ajouter `Integer largeurTicketMm = 80`
+- Page `/admin/settings` : ajouter le champ de sélection 58mm / 80mm
+
+---
+
+## 9. Fichiers à créer / modifier
 
 | Fichier | Action |
 |---------|--------|
 | `model/MoyenPaiement.java` | Créer |
 | `model/VenteLibre.java` | Modifier — ajouter `moyenPaiement` |
+| `model/AppSettings.java` | Modifier — ajouter `largeurTicketMm` |
 | `controller/GuichetController.java` | Créer |
 | `service/VenteLibreService.java` | Modifier — ajouter param `moyenPaiement` |
 | `templates/guichet/select.html` | Créer |
-| `templates/guichet/pos.html` | Créer |
+| `templates/guichet/pos.html` | Créer (inclut ticket-fragment) |
+| `templates/guichet/ticket-fragment.html` | Créer |
+| `templates/admin/settings.html` | Modifier — ajouter largeur ticket |
 | `templates/fragments/layout.html` | Modifier — navbar CAISSIER |
 | `config/DataInitializer.java` | Modifier — ajouter caissier1, caissier2 |
 | `security/SecurityConfig.java` | Modifier — `/guichet/**` → CAISSIER + ADMIN + MANAGER |
 
 ---
 
-## 9. Hors scope
+## 10. Hors scope
 
 - Clôture de caisse journalière (pas demandé)
 - Annulation de vente par le caissier (MANAGER uniquement, via interface existante)
 - Paiement carte bancaire
-- Impression reçu caisse
 - Guichet fixe par utilisateur (caissier choisit à chaque session)
+- Driver d'imprimante côté serveur (impression via navigateur uniquement)
