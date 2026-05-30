@@ -179,6 +179,11 @@
                                 <i class="fas fa-key me-2"></i>Licence
                             </a>
                         </li>
+                        <li sec:authorize="hasRole('SUPERADMIN')">
+                            <a class="dropdown-item" href="/admin/licence/generateur">
+                                <i class="fas fa-cogs me-2 text-warning"></i>Générateur de clé
+                            </a>
+                        </li>
                     </ul>
                 </li>
             </ul>
@@ -207,8 +212,32 @@
 <!-- ===== FLASH MESSAGES FRAGMENT ===== -->
 <div th:fragment="flash-messages"></div>
 
+<!-- ===== FOOTER FRAGMENT ===== -->
+<footer th:fragment="footer" class="mt-auto py-3 bg-light border-top no-print">
+    <div class="container-fluid px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="text-muted small">
+            &copy; <span th:text="${#temporals.format(#temporals.createNow(),'yyyy')}"></span>
+            <strong>HANGA JEAN FRANCOIS</strong> &mdash; +237 676 847 776
+        </span>
+        <a href="/a-propos" class="text-muted small text-decoration-none">
+            <i class="fas fa-info-circle me-1"></i>À propos
+        </a>
+    </div>
+</footer>
+
 <!-- ===== SCRIPTS FRAGMENT ===== -->
 <div th:fragment="scripts">
+    <footer class="mt-auto py-2 bg-light border-top no-print" style="font-size:.8rem">
+        <div class="container-fluid px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="text-muted">
+                &copy; <span th:text="${#temporals.format(#temporals.createNow(),'yyyy')}"></span>
+                &nbsp;<strong>HANGA JEAN FRANCOIS</strong> &mdash; +237 676 847 776
+            </span>
+            <a href="/a-propos" class="text-muted text-decoration-none">
+                <i class="fas fa-info-circle me-1"></i>À propos
+            </a>
+        </div>
+    </footer>
     <script th:src="@{/js/scripts.js}"></script>
 </div>
 
