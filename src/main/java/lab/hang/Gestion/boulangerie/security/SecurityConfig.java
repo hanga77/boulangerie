@@ -13,6 +13,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 @Configuration
@@ -53,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers(mvcMatcherBuilder.pattern("/commandes/**")).hasAnyRole("ADMIN", "MANAGER", "BOULANGER")
                         .requestMatchers(mvcMatcherBuilder.pattern("/livraisons/**")).hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(mvcMatcherBuilder.pattern("/ventes-libres/**")).hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(mvcMatcherBuilder.pattern("/guichet/**")).hasRole("CAISSIER")
                         .requestMatchers(mvcMatcherBuilder.pattern("/matieres-premieres/**")).hasAnyRole("ADMIN", "MANAGER", "MAGASINIER")
                         .requestMatchers(mvcMatcherBuilder.pattern("/employes/**")).hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(mvcMatcherBuilder.pattern("/bulletins/**")).authenticated()
@@ -86,5 +89,14 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.fromHierarchy(
+            "ROLE_SUPERADMIN > ROLE_ADMIN\n" +
+            "ROLE_ADMIN > ROLE_MANAGER\n" +
+            "ROLE_MANAGER > ROLE_BOULANGER"
+        );
     }
 }

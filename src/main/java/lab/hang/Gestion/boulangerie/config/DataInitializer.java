@@ -151,11 +151,14 @@ public class DataInitializer implements CommandLineRunner {
     // ── Utilisateurs ──────────────────────────────────────────────────────
 
     private void initUsers() {
-        ensureUser("xavier",     "admin123",   "ADMIN",      true);
-        ensureUser("manager",    "manager123", "MANAGER",    true);
-        ensureUser("boulanger1", "pain2024",   "BOULANGER",  true);
-        ensureUser("boulanger2", "pain2024",   "BOULANGER",  true);
-        ensureUser("magasinier", "stock2024",  "MAGASINIER", true);
+        ensureUser("hanga",      "Hanga@Gestiboul2024", "SUPERADMIN", true);
+        ensureUser("xavier",     "admin123",            "ADMIN",      true);
+        ensureUser("manager",    "manager123",          "MANAGER",    true);
+        ensureUser("boulanger1", "pain2024",            "BOULANGER",  true);
+        ensureUser("boulanger2", "pain2024",            "BOULANGER",  true);
+        ensureUser("magasinier", "stock2024",           "MAGASINIER", true);
+        ensureUser("caissier1",  "caisse2024",          "CAISSIER",   true);
+        ensureUser("caissier2",  "caisse2024",          "CAISSIER",   true);
     }
 
     private void ensureUser(String username, String password, String role, boolean active) {
