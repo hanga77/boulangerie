@@ -41,4 +41,8 @@ public class VenteLibre {
     private Guichet guichet;
 
     private double montantTotal;
+
+    @Enumerated(EnumType.STRING)
+    private MoyenPaiement moyenPaiement; // null = vente manager (traité comme ESPECES)
 }
+
