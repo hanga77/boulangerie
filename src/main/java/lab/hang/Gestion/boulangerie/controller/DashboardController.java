@@ -60,4 +60,9 @@ public class DashboardController {
 
         return "dashboard";
     }
+
+    @GetMapping("/a-propos")
+    public String aPropos() {
+        return "a-propos";
+    }
 }

@@ -1,13 +1,17 @@
 /**
  * Générateur de clés de licence Gestiboul.
  *
- * Usage :
- *   javac KeyGenerator.java
- *   java KeyGenerator CLIENTID
+ * Workflow :
+ *   1. Le client ouvre /admin/licence et copie son "ID Poste" (ex: A3F7B2C1)
+ *   2. Il vous envoie cet identifiant (WhatsApp, email…)
+ *   3. Vous générez sa clé avec cet outil :
  *
- * Exemple :
- *   java KeyGenerator BOULNGR01
- *   → GESTIBOUL-BOULNGR01-3A7F2C
+ *      javac KeyGenerator.java
+ *      java KeyGenerator A3F7B2C1
+ *      → GESTIBOUL-A3F7B2C1-3A7F2C
+ *
+ *   4. Vous lui communiquez la clé
+ *   5. Il la saisit dans /admin/licence → activé uniquement sur son poste
  */
 public class KeyGenerator {
 
@@ -17,23 +21,24 @@ public class KeyGenerator {
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
-            System.err.println("Usage: java KeyGenerator <CLIENT_ID>");
-            System.err.println("Exemple: java KeyGenerator BOULANGERIE01");
+            System.err.println("Usage: java KeyGenerator <ID_POSTE>");
+            System.err.println("Exemple: java KeyGenerator A3F7B2C1");
+            System.err.println();
+            System.err.println("L'ID Poste est visible sur la page /admin/licence du client.");
             System.exit(1);
         }
-        String clientId = args[0].toUpperCase();
-        String key = generateKey(clientId);
-        System.out.println("Clé générée pour [" + clientId + "] :");
+        String machineId = args[0].toUpperCase();
+        String key = generateKey(machineId);
+        System.out.println("Clé pour le poste [" + machineId + "] :");
         System.out.println("  " + key);
     }
 
-    static String generateKey(String clientId) throws Exception {
-        String checksum = computeChecksum(clientId);
-        return PREFIX + clientId + "-" + checksum;
+    static String generateKey(String machineId) throws Exception {
+        return PREFIX + machineId + "-" + computeChecksum(machineId);
     }
 
-    static String computeChecksum(String clientId) throws Exception {
-        String input = SALT + clientId.toUpperCase();
+    static String computeChecksum(String machineId) throws Exception {
+        String input = SALT + machineId.toUpperCase();
         java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
         byte[] hash = md.digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         StringBuilder sb = new StringBuilder();

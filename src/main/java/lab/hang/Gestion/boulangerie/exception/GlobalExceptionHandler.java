@@ -3,6 +3,7 @@ package lab.hang.Gestion.boulangerie.exception;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.ui.Model;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -83,6 +84,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Void> handleNoResourceFound(NoResourceFoundException ex) {
         // Silencieux — les navigateurs sondent des chemins connus (.well-known, favicon, etc.)
         return ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public String handleAccessDenied(AccessDeniedException ex) {
+        return "redirect:/dashboard";
     }
 
     @ExceptionHandler(Exception.class)

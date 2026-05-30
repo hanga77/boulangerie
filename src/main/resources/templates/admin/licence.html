@@ -49,6 +49,29 @@
         </div>
     </div>
 
+    <!-- ID Machine -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-secondary bg-opacity-10">
+            <i class="fas fa-desktop me-2"></i>Identifiant de ce poste
+        </div>
+        <div class="card-body">
+            <p class="small text-muted mb-2">
+                Communiquez cet identifiant à votre revendeur pour obtenir votre clé d'activation.
+                La clé générée fonctionnera <strong>uniquement sur ce poste</strong>.
+            </p>
+            <div class="input-group">
+                <input type="text" id="machineIdField" class="form-control font-monospace fw-bold fs-5"
+                       th:value="${machineId}" readonly>
+                <button class="btn btn-outline-secondary" type="button" onclick="copyMachineId()" title="Copier">
+                    <i class="fas fa-copy me-1"></i>Copier
+                </button>
+            </div>
+            <div id="copyConfirm" class="text-success small mt-1" style="display:none">
+                <i class="fas fa-check me-1"></i>Copié dans le presse-papier !
+            </div>
+        </div>
+    </div>
+
     <!-- Activation (masqué si déjà FULL) -->
     <div th:if="${status.name() != 'FULL'}" class="card shadow-sm">
         <div class="card-header bg-primary text-white">
@@ -59,15 +82,15 @@
                 <i class="fas fa-check-circle me-1"></i>Licence activée avec succès. Accès complet à vie.
             </div>
             <div th:if="${activationErreur}" class="text-danger mb-3">
-                <i class="fas fa-times-circle me-1"></i>Clé invalide. Vérifiez la clé reçue.
+                <i class="fas fa-times-circle me-1"></i>Clé invalide ou destinée à un autre poste.
             </div>
             <form th:action="@{/admin/licence/activer}" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Clé d'activation</label>
                     <input type="text" name="key" class="form-control font-monospace"
-                           placeholder="GESTIBOUL-XXXXXX-YYYYYY" required autocomplete="off">
-                    <div class="form-text">Clé fournie par votre revendeur après paiement.</div>
+                           placeholder="GESTIBOUL-XXXXXXXX-YYYYYY" required autocomplete="off">
+                    <div class="form-text">Clé fournie par votre revendeur après communication de l'ID poste.</div>
                 </div>
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-key me-1"></i>Activer
@@ -88,5 +111,15 @@
 
 </div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+<script>
+function copyMachineId() {
+    const val = document.getElementById('machineIdField').value;
+    navigator.clipboard.writeText(val).then(() => {
+        const el = document.getElementById('copyConfirm');
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 2500);
+    });
+}
+</script>
 </body>
 </html>
