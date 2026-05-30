@@ -30,20 +30,54 @@
                         </select>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Mois <span class="text-danger">*</span></label>
-                        <select name="mois" class="form-select" required onchange="recalcul()">
-                            <option th:each="i : ${#numbers.sequence(1,12)}"
-                                    th:value="${i}"
-                                    th:text="${#temporals.format(#temporals.create(2000,i,1),'MMMM')}"
-                                    th:selected="${i == moisActuel}">
-                            </option>
-                        </select>
+                    <!-- Périodicité -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Périodicité <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="periodicite"
+                                       id="periMensuel" value="MENSUEL" checked onchange="togglePeriode()">
+                                <label class="form-check-label" for="periMensuel">
+                                    <i class="fas fa-calendar-alt me-1"></i>Mensuel
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="periodicite"
+                                       id="periHebdo" value="HEBDOMADAIRE" onchange="togglePeriode()">
+                                <label class="form-check-label" for="periHebdo">
+                                    <i class="fas fa-calendar-week me-1"></i>Hebdomadaire
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Année <span class="text-danger">*</span></label>
-                        <input type="number" name="annee" class="form-control"
-                               th:value="${anneeActuelle}" min="2020" max="2030" required onchange="recalcul()"/>
+
+                    <!-- Période mensuelle -->
+                    <div id="champsMensuel" class="col-12">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Mois <span class="text-danger">*</span></label>
+                                <select name="mois" class="form-select" onchange="recalcul()">
+                                    <option th:each="i : ${#numbers.sequence(1,12)}"
+                                            th:value="${i}"
+                                            th:text="${#temporals.format(#temporals.create(2000,i,1),'MMMM')}"
+                                            th:selected="${i == moisActuel}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Année <span class="text-danger">*</span></label>
+                                <input type="number" name="annee" class="form-control"
+                                       th:value="${anneeActuelle}" min="2020" max="2030" onchange="recalcul()"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Période hebdomadaire -->
+                    <div id="champsHebdo" class="col-12" style="display:none">
+                        <label class="form-label fw-semibold">Semaine <span class="text-danger">*</span></label>
+                        <input type="week" name="semaine" id="semaineInput" class="form-control"
+                               onchange="recalcul()"/>
+                        <div class="form-text">Sélectionnez la semaine à payer.</div>
                     </div>
 
                     <div class="col-12"><hr class="my-1"/><p class="text-muted small mb-0">Composantes variables</p></div>
@@ -69,7 +103,8 @@
                 <div id="resume" class="mt-4 d-none">
                     <div class="card bg-light border-0">
                         <div class="card-body">
-                            <h6 class="fw-semibold mb-3">Aperçu du bulletin</h6>
+                            <h6 class="fw-semibold mb-1">Aperçu du bulletin</h6>
+                            <p id="resume-base-label" class="text-muted small mb-2"></p>
                             <table class="table table-sm mb-0">
                                 <tr><td>Salaire de base</td><td class="text-end" id="r-base">—</td></tr>
                                 <tr><td>Primes</td><td class="text-end" id="r-primes">—</td></tr>
@@ -104,30 +139,51 @@
         recalcul();
     }
 
+    function isHebdo() {
+        return document.getElementById('periHebdo').checked;
+    }
+
+    function togglePeriode() {
+        document.getElementById('champsMensuel').style.display = isHebdo() ? 'none' : '';
+        document.getElementById('champsHebdo').style.display   = isHebdo() ? '' : 'none';
+        recalcul();
+    }
+
     function recalcul() {
         if (salaireBase <= 0) return;
-        const primes = parseFloat(document.getElementById('primes').value) || 0;
-        const transport = parseFloat(document.getElementById('indemnitesTransport').value) || 0;
-        const avance = parseFloat(document.getElementById('avanceSurSalaire').value) || 0;
+        const hebdo   = isHebdo();
+        const base    = hebdo ? salaireBase / 4 : salaireBase;
+        const primes  = parseFloat(document.getElementById('primes').value) || 0;
+        const transp  = parseFloat(document.getElementById('indemnitesTransport').value) || 0;
+        const avance  = parseFloat(document.getElementById('avanceSurSalaire').value) || 0;
 
-        const brut = salaireBase + primes + transport;
+        const brut = base + primes + transp;
         const cnps = brut * 0.042;
         const net  = brut - cnps - avance;
 
         const fmt = v => v.toLocaleString('fr-FR') + ' XAF';
-        document.getElementById('r-base').textContent     = fmt(salaireBase);
-        document.getElementById('r-primes').textContent   = fmt(primes);
-        document.getElementById('r-transport').textContent= fmt(transport);
-        document.getElementById('r-brut').textContent     = fmt(brut);
-        document.getElementById('r-cnps').textContent     = '− ' + fmt(cnps);
-        document.getElementById('r-avance').textContent   = '− ' + fmt(avance);
-        document.getElementById('r-net').textContent      = fmt(net);
+        document.getElementById('resume-base-label').textContent =
+            hebdo ? 'Base hebdomadaire = salaire mensuel (' + fmt(salaireBase) + ') ÷ 4' : '';
+        document.getElementById('r-base').textContent      = fmt(base);
+        document.getElementById('r-primes').textContent    = fmt(primes);
+        document.getElementById('r-transport').textContent = fmt(transp);
+        document.getElementById('r-brut').textContent      = fmt(brut);
+        document.getElementById('r-cnps').textContent      = '− ' + fmt(cnps);
+        document.getElementById('r-avance').textContent    = '− ' + fmt(avance);
+        document.getElementById('r-net').textContent       = fmt(net);
         document.getElementById('resume').classList.remove('d-none');
     }
 
     window.addEventListener('DOMContentLoaded', () => {
         const sel = document.getElementById('employeSelect');
         if (sel.value) updateSalaireBase(sel);
+        // Pré-remplir semaine courante
+        const now = new Date();
+        const year = now.getFullYear();
+        const start = new Date(year, 0, 1);
+        const week = Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
+        document.getElementById('semaineInput').value =
+            year + '-W' + String(week).padStart(2, '0');
     });
 </script>
 </body>

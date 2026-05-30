@@ -36,6 +36,7 @@ public class BulletinDePaieService {
 
     @Transactional
     public BulletinDePaie genererBulletin(Long employeId, LocalDate periode,
+                                          Periodicite periodicite,
                                           double primes, double indemnitesTransport,
                                           double avanceSurSalaire) {
         Employe employe = employeRepository.findById(employeId)
@@ -46,7 +47,9 @@ public class BulletinDePaieService {
                 "Un bulletin existe déjà pour " + employe.getNom() + " sur la période " + periode);
         }
 
-        double salaireBase  = employe.getSalaireBase();
+        double salaireBase  = periodicite == Periodicite.HEBDOMADAIRE
+                              ? employe.getSalaireBase() / 4.0
+                              : employe.getSalaireBase();
         double salaireBrut  = salaireBase + primes + indemnitesTransport;
         double cnpsEmploye  = salaireBrut * TAUX_CNPS_EMPLOYE;
         double cnpsPatronal = salaireBrut * TAUX_CNPS_PATRONAL;
@@ -60,6 +63,7 @@ public class BulletinDePaieService {
         BulletinDePaie bulletin = new BulletinDePaie();
         bulletin.setEmploye(employe);
         bulletin.setPeriode(periode);
+        bulletin.setPeriodicite(periodicite);
         bulletin.setSalaireBase(salaireBase);
         bulletin.setPrimes(primes);
         bulletin.setIndemnitesTransport(indemnitesTransport);
@@ -93,16 +97,25 @@ public class BulletinDePaieService {
         }
 
         Employe employe = bulletin.getEmploye();
-        String moisAnnee = bulletin.getPeriode()
-            .getMonth().getDisplayName(TextStyle.FULL, Locale.FRENCH)
-            + " " + bulletin.getPeriode().getYear();
+        String periodeLabel;
+        if (bulletin.getPeriodicite() == Periodicite.HEBDOMADAIRE) {
+            LocalDate lundi  = bulletin.getPeriode();
+            LocalDate dimanche = lundi.plusDays(6);
+            periodeLabel = "Semaine du " + lundi.getDayOfMonth() + "/" + lundi.getMonthValue()
+                + " au " + dimanche.getDayOfMonth() + "/" + dimanche.getMonthValue()
+                + "/" + dimanche.getYear();
+        } else {
+            periodeLabel = bulletin.getPeriode()
+                .getMonth().getDisplayName(TextStyle.FULL, Locale.FRENCH)
+                + " " + bulletin.getPeriode().getYear();
+        }
 
         Transaction transaction = new Transaction();
         transaction.setType("SALAIRE");
         transaction.setMontant(bulletin.getSalaireNet());
         transaction.setDate(LocalDate.now());
         transaction.setDescription("Salaire " + employe.getPrenom() + " " + employe.getNom()
-            + " — " + moisAnnee);
+            + " — " + periodeLabel);
         transaction.setCompteBancaire(compte);
 
         compte.setSolde(compte.getSolde() - bulletin.getSalaireNet());

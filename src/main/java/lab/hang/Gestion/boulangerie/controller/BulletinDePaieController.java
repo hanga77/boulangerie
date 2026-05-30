@@ -1,6 +1,7 @@
 package lab.hang.Gestion.boulangerie.controller;
 
 import lab.hang.Gestion.boulangerie.model.*;
+import lab.hang.Gestion.boulangerie.model.Periodicite;
 import lab.hang.Gestion.boulangerie.service.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -8,7 +9,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.IsoFields;
 import java.util.List;
 
 @Controller
@@ -81,16 +84,32 @@ public class BulletinDePaieController {
     @PostMapping("/generer")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public String generer(@RequestParam Long employeId,
-                          @RequestParam int mois,
-                          @RequestParam int annee,
+                          @RequestParam(defaultValue = "MENSUEL") Periodicite periodicite,
+                          @RequestParam(required = false) Integer mois,
+                          @RequestParam(required = false) Integer annee,
+                          @RequestParam(required = false) String semaine,
                           @RequestParam(defaultValue = "0") double primes,
                           @RequestParam(defaultValue = "0") double indemnitesTransport,
                           @RequestParam(defaultValue = "0") double avanceSurSalaire,
                           RedirectAttributes ra) {
-        LocalDate periode = LocalDate.of(annee, mois, 1);
         try {
+            LocalDate periode;
+            if (periodicite == Periodicite.HEBDOMADAIRE && semaine != null && !semaine.isBlank()) {
+                // semaine au format "2026-W22"
+                String[] parts = semaine.split("-W");
+                int year = Integer.parseInt(parts[0]);
+                int week = Integer.parseInt(parts[1]);
+                periode = LocalDate.now()
+                    .with(IsoFields.WEEK_BASED_YEAR, year)
+                    .with(IsoFields.WEEK_OF_WEEK_BASED_YEAR, week)
+                    .with(DayOfWeek.MONDAY);
+            } else {
+                int m = mois  != null ? mois  : LocalDate.now().getMonthValue();
+                int a = annee != null ? annee : LocalDate.now().getYear();
+                periode = LocalDate.of(a, m, 1);
+            }
             BulletinDePaie bulletin = bulletinService.genererBulletin(
-                employeId, periode, primes, indemnitesTransport, avanceSurSalaire);
+                employeId, periode, periodicite, primes, indemnitesTransport, avanceSurSalaire);
             ra.addFlashAttribute("successMessage",
                 "Bulletin généré pour " + bulletin.getEmploye().getNom() + ".");
             return "redirect:/bulletins/" + bulletin.getId();

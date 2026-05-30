@@ -12,7 +12,10 @@
             <h1 class="h4 fw-bold mb-0">
                 <i class="fas fa-file-invoice-dollar me-2 text-primary"></i>
                 Bulletin de paie —
-                <span th:text="${#temporals.format(bulletin.periode,'MMMM yyyy')}"></span>
+                <span th:if="${bulletin.periodicite.name() == 'MENSUEL'}"
+                      th:text="${#temporals.format(bulletin.periode,'MMMM yyyy')}"></span>
+                <span th:if="${bulletin.periodicite.name() == 'HEBDOMADAIRE'}"
+                      th:text="${'Semaine du ' + #temporals.format(bulletin.periode,'dd/MM') + ' au ' + #temporals.format(bulletin.periode.plusDays(6),'dd/MM/yyyy')}"></span>
             </h1>
             <p class="text-muted small mb-0" th:text="${bulletin.employe.prenom + ' ' + bulletin.employe.nom + ' — ' + bulletin.employe.poste}"></p>
         </div>
@@ -51,7 +54,10 @@
                 </div>
                 <div class="col-md-3">
                     <p class="mb-1 small text-muted">Période</p>
-                    <p class="mb-0" th:text="${#temporals.format(bulletin.periode,'MMMM yyyy')}"></p>
+                    <p class="mb-0" th:if="${bulletin.periodicite.name() == 'MENSUEL'}"
+                       th:text="${#temporals.format(bulletin.periode,'MMMM yyyy')}"></p>
+                    <p class="mb-0" th:if="${bulletin.periodicite.name() == 'HEBDOMADAIRE'}"
+                       th:text="${'Sem. ' + #temporals.format(bulletin.periode,'dd/MM') + '–' + #temporals.format(bulletin.periode.plusDays(6),'dd/MM')}"></p>
                 </div>
             </div>
 

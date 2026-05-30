@@ -20,7 +20,11 @@ public class BulletinDePaie {
     private Employe employe;
 
     @Column(nullable = false)
-    private LocalDate periode;  // toujours le 1er du mois
+    private LocalDate periode;  // 1er du mois (MENSUEL) ou lundi de la semaine (HEBDOMADAIRE)
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Periodicite periodicite = Periodicite.MENSUEL;
 
     private double salaireBase;
     private double primes;
