@@ -68,7 +68,11 @@ class VenteLibreServiceTest {
         when(productionRepository.findById(1L)).thenReturn(Optional.of(production));
         when(pointDeVenteService.getGuichetEntityById(1L)).thenReturn(guichet);
         when(produitRepository.findById(1L)).thenReturn(Optional.of(baguette));
-        when(venteLibreRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(venteLibreRepository.save(any())).thenAnswer(invocation -> {
+            VenteLibre vl = invocation.getArgument(0);
+            vl.setId(1L);
+            return vl;
+        });
         when(compteBancaireRepository.findByNom("Compte Principal")).thenReturn(Optional.of(compte));
         when(venteLibreMapper.toDTO(any())).thenReturn(null);
 
@@ -114,7 +118,11 @@ class VenteLibreServiceTest {
         when(userService.getCurrentUser()).thenReturn(user);
         when(productionRepository.findById(1L)).thenReturn(Optional.of(production));
         when(produitRepository.findById(1L)).thenReturn(Optional.of(baguette));
-        when(venteLibreRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(venteLibreRepository.save(any())).thenAnswer(invocation -> {
+            VenteLibre vl = invocation.getArgument(0);
+            vl.setId(1L);
+            return vl;
+        });
         when(compteBancaireRepository.findByNom("Compte Principal")).thenReturn(Optional.of(compte));
         when(venteLibreMapper.toDTO(any())).thenReturn(null);
 
@@ -127,6 +135,6 @@ class VenteLibreServiceTest {
 
         ArgumentCaptor<Transaction> txCaptor = ArgumentCaptor.forClass(Transaction.class);
         verify(transactionRepository).save(txCaptor.capture());
-        assertThat(txCaptor.getValue().getDescription()).startsWith("Vente libre ID:");
+        assertThat(txCaptor.getValue().getDescription()).isEqualTo("Vente libre ID: 1");
     }
 }
