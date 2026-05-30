@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Guichet')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<div class="container mt-5" style="max-width:480px">
+    <div class="text-center mb-4">
+        <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
+             style="width:64px;height:64px">
+            <i class="fas fa-cash-register fa-xl text-primary"></i>
+        </div>
+        <h1 class="h4 fw-bold mb-1">Ouvrir le guichet</h1>
+        <p class="text-muted small">Choisissez votre guichet pour commencer la vente</p>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger mb-3">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+    <div th:if="${#lists.isEmpty(guichets)}" class="alert alert-warning text-center">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Aucun guichet actif. Contactez votre administrateur.
+    </div>
+
+    <div th:unless="${#lists.isEmpty(guichets)}" class="d-grid gap-3">
+        <a th:each="g : ${guichets}"
+           th:href="@{/guichet/vente(guichetId=${g.id})}"
+           class="btn btn-outline-primary btn-lg d-flex align-items-center justify-content-between px-4 py-3">
+            <span>
+                <i class="fas fa-store me-2"></i>
+                <span th:text="${g.nom}"></span>
+            </span>
+            <span class="badge bg-primary" th:text="${g.pointDeVente.nom}"></span>
+        </a>
+    </div>
+
+    <div class="mt-4 text-center">
+        <a href="/dashboard" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Retour au tableau de bord
+        </a>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

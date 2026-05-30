@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:fragment="ticket(guichet, production, largeur)" id="ticket-caisse"
+     style="display:none; font-family:monospace; font-size:12px; width:100%">
+
+    <style th:inline="text">
+        @media print {
+            @page { size: [[${largeur}]]mm auto; margin: 3mm; }
+            #ticket-caisse { display: block !important; }
+        }
+    </style>
+
+    <div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:6px; margin-bottom:6px">
+        <div style="font-weight:bold; font-size:14px">Gestiboul</div>
+        <div th:text="${guichet.pointDeVente.nom}"></div>
+    </div>
+
+    <div style="margin-bottom:4px">
+        <div>Guichet  : <span th:text="${guichet.nom}"></span></div>
+        <div>Date     : <span th:text="${#temporals.format(#temporals.createNow(),'dd/MM/yyyy HH:mm')}"></span></div>
+        <div>Caissier : <span sec:authentication="principal.username"></span></div>
+    </div>
+
+    <div id="ticketLignes"
+         style="border-top:1px dashed #000; border-bottom:1px dashed #000; padding:4px 0; margin:4px 0">
+    </div>
+
+    <div style="display:flex; justify-content:space-between; font-weight:bold">
+        <span>TOTAL</span><span id="ticketTotal">—</span>
+    </div>
+    <div>Paiement : <span id="ticketPaiement">Espèces</span></div>
+
+    <div style="text-align:center; border-top:1px dashed #000; margin-top:6px; padding-top:6px">
+        <div>Merci pour votre achat !</div>
+        <div style="font-size:10px">Gestiboul — Hanga J.F.</div>
+    </div>
+</div>
+
+<script>
+function mettreAJourTicket() {
+    const lignes = [];
+    let total = 0;
+    for (const [id, qty] of Object.entries(window.qtys || {})) {
+        if (qty > 0) {
+            const montant = qty * (window.prix[id] || 0);
+            total += montant;
+            lignes.push((window.noms[id] || '?').substring(0, 12).padEnd(12) +
+                ' x' + qty + '  ' + montant.toLocaleString('fr-FR') + ' XAF');
+        }
+    }
+    const el = document.getElementById('ticketLignes');
+    if (el) {
+        el.textContent = '';
+        lignes.forEach(l => {
+            const div = document.createElement('div');
+            div.textContent = l;
+            el.appendChild(div);
+        });
+    }
+    const tot = document.getElementById('ticketTotal');
+    if (tot) tot.textContent = total.toLocaleString('fr-FR') + ' XAF';
+}
+</script>
+</body>
+</html>

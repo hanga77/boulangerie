@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Caisse')}"></head>
+<body style="background:#f0f2f5">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<!-- En-tête guichet -->
+<div class="bg-white border-bottom px-3 py-2 d-flex justify-content-between align-items-center no-print">
+    <div>
+        <span class="fw-bold">
+            <i class="fas fa-cash-register me-2 text-primary"></i>
+            <span th:text="${guichet.nom}"></span>
+        </span>
+        <span class="text-muted small ms-2" th:text="${guichet.pointDeVente.nom}"></span>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <span class="text-muted small" th:text="${#temporals.format(#temporals.createNow(),'dd/MM/yyyy')}"></span>
+        <a th:href="@{/guichet}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-exchange-alt me-1"></i>Changer
+        </a>
+    </div>
+</div>
+
+<!-- Flash messages -->
+<div th:if="${successMessage}" class="alert alert-success alert-dismissible mx-3 mt-3 mb-0 no-print" role="alert">
+    <i class="fas fa-check-circle me-2"></i><span th:text="${successMessage}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<div th:if="${errorMessage}" class="alert alert-danger alert-dismissible mx-3 mt-3 mb-0 no-print" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i><span th:text="${errorMessage}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<div class="container-fluid px-3 py-3">
+
+    <!-- Formulaire caché -->
+    <form id="posForm" th:action="@{/guichet/vente}" method="post" class="no-print">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <input type="hidden" name="guichetId" th:value="${guichet.id}"/>
+        <input type="hidden" name="productionId" th:value="${production.id}"/>
+        <input type="hidden" name="moyenPaiement" id="moyenPaiementInput" value="ESPECES"/>
+    </form>
+
+    <!-- Grille de tuiles -->
+    <div class="row g-3 mb-3">
+        <div th:each="entry : ${produitsRestants}" class="col-6 col-md-4 col-lg-3">
+            <div th:with="produit=${entry.key}, stock=${entry.value}"
+                 th:class="${stock <= 0} ? 'tile-produit tile-epuise' :
+                            (${stock <= 5} ? 'tile-produit tile-faible' : 'tile-produit tile-dispo')"
+                 th:data-id="${produit.id}"
+                 th:data-prix="${produit.prix}"
+                 th:data-stock="${stock}"
+                 th:data-nom="${produit.nom}">
+                <div class="tile-icon">🍞</div>
+                <div class="tile-nom" th:text="${produit.nom}"></div>
+                <div class="tile-prix" th:text="${#numbers.formatDecimal(produit.prix,1,'COMMA',0,'POINT') + ' XAF'}"></div>
+                <div th:if="${stock > 0}" class="tile-stock"
+                     th:text="${stock <= 5} ? (${stock} + ' restants ⚠') : (${stock} + ' restants')"></div>
+                <div th:if="${stock <= 0}" class="tile-stock">Épuisé</div>
+                <div th:if="${stock > 0}" class="tile-controls no-print">
+                    <button type="button" class="btn-moins"
+                            th:onclick="'ajuster(' + ${produit.id} + ', -1)'">−</button>
+                    <span class="tile-qty" th:id="'qty-' + ${produit.id}">0</span>
+                    <button type="button" class="btn-plus"
+                            th:onclick="'ajuster(' + ${produit.id} + ', 1)'">+</button>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${#maps.isEmpty(produitsRestants)}" class="col-12">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Aucun produit disponible pour cette production.
+            </div>
+        </div>
+    </div>
+
+    <!-- Barre du bas -->
+    <div class="pos-footer no-print">
+        <div class="paiement-section">
+            <div class="text-muted small mb-2" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Paiement</div>
+            <div class="d-flex gap-2">
+                <button type="button" id="btnEspeces" class="btn btn-primary btn-sm px-3"
+                        onclick="setPaiement('ESPECES')">
+                    <i class="fas fa-money-bill me-1"></i>Espèces
+                </button>
+                <button type="button" id="btnMobile" class="btn btn-outline-secondary btn-sm px-3"
+                        onclick="setPaiement('MOBILE_MONEY')">
+                    <i class="fas fa-mobile-alt me-1"></i>Mobile Money
+                </button>
+            </div>
+        </div>
+        <div class="text-end">
+            <div class="text-muted small" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Total</div>
+            <div id="totalMontant" style="font-size:26px;font-weight:900;color:#198754">0 XAF</div>
+            <div id="totalDetail" class="text-muted small"></div>
+        </div>
+        <button type="button" id="btnEncaisser" class="btn btn-success btn-lg fw-bold px-4" disabled
+                onclick="soumettre()">
+            <i class="fas fa-check me-2"></i>ENCAISSER
+        </button>
+    </div>
+
+    <!-- Bouton imprimer (visible après vente réussie) -->
+    <div th:if="${venteOk}" class="text-center mt-3 no-print">
+        <button onclick="window.print()" class="btn btn-outline-secondary">
+            <i class="fas fa-print me-2"></i>Imprimer le ticket
+        </button>
+    </div>
+
+</div>
+
+<!-- Ticket d'impression -->
+<div th:replace="~{guichet/ticket-fragment :: ticket(guichet=${guichet}, production=${production}, largeur=${largeurTicketMm})}"></div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+<style>
+.tile-produit {
+    border-radius:12px; padding:16px; text-align:center;
+    color:white; box-shadow:0 2px 8px rgba(0,0,0,.15);
+    min-height:140px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:4px;
+}
+.tile-dispo  { background:#0d6efd; cursor:pointer; }
+.tile-faible { background:#dc3545; cursor:pointer; }
+.tile-epuise { background:#e9ecef; color:#adb5bd; cursor:default; }
+.tile-icon  { font-size:28px; }
+.tile-nom   { font-weight:700; font-size:14px; }
+.tile-prix  { font-size:12px; opacity:.85; }
+.tile-stock { font-size:11px; opacity:.75; }
+.tile-controls { display:flex; align-items:center; gap:12px; margin-top:8px; }
+.btn-moins, .btn-plus {
+    background:rgba(0,0,0,.25); border:none; border-radius:6px;
+    width:28px; height:28px; color:white; font-size:18px; cursor:pointer; line-height:1;
+}
+.btn-plus { background:rgba(255,255,255,.3); }
+.tile-qty  { font-size:20px; font-weight:900; min-width:24px; }
+.pos-footer {
+    position:sticky; bottom:0; background:white; border-radius:12px;
+    padding:14px 16px; display:flex; align-items:center; gap:16px;
+    box-shadow:0 -2px 12px rgba(0,0,0,.1);
+}
+.paiement-section { flex:1; }
+@media print {
+    nav, .no-print { display:none !important; }
+    #ticket-caisse { display:block !important; }
+}
+</style>
+
+<script th:inline="javascript">
+const stocks = {};
+const prix   = {};
+const noms   = {};
+window.qtys  = {};
+window.prix  = prix;
+window.noms  = noms;
+
+document.querySelectorAll('.tile-produit[data-id]').forEach(tile => {
+    const id = tile.dataset.id;
+    stocks[id] = parseInt(tile.dataset.stock);
+    prix[id]   = parseFloat(tile.dataset.prix);
+    noms[id]   = tile.dataset.nom;
+    window.qtys[id] = 0;
+});
+
+function ajuster(id, delta) {
+    const sid = String(id);
+    const nv = (window.qtys[sid] || 0) + delta;
+    if (nv < 0 || nv > stocks[sid]) return;
+    window.qtys[sid] = nv;
+    document.getElementById('qty-' + sid).textContent = nv;
+    mettreAJourTotal();
+}
+
+function mettreAJourTotal() {
+    let total = 0;
+    const lignes = [];
+    for (const [id, qty] of Object.entries(window.qtys)) {
+        if (qty > 0) { total += qty * prix[id]; lignes.push(qty + ' × ' + noms[id]); }
+    }
+    const fmt = v => v.toLocaleString('fr-FR') + ' XAF';
+    document.getElementById('totalMontant').textContent = fmt(total);
+    document.getElementById('totalDetail').textContent  = lignes.join(' · ');
+    document.getElementById('btnEncaisser').disabled    = (total === 0);
+    mettreAJourTicket();
+    mettreAJourFormulaire();
+}
+
+function mettreAJourFormulaire() {
+    document.querySelectorAll('#posForm input[name^="produits"]').forEach(e => e.remove());
+    const form = document.getElementById('posForm');
+    for (const [id, qty] of Object.entries(window.qtys)) {
+        if (qty > 0) {
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = 'produits[' + id + ']';
+            inp.value = qty;
+            form.appendChild(inp);
+        }
+    }
+}
+
+function setPaiement(mode) {
+    document.getElementById('moyenPaiementInput').value = mode;
+    document.getElementById('btnEspeces').className = mode === 'ESPECES'
+        ? 'btn btn-primary btn-sm px-3' : 'btn btn-outline-secondary btn-sm px-3';
+    document.getElementById('btnMobile').className = mode === 'MOBILE_MONEY'
+        ? 'btn btn-primary btn-sm px-3' : 'btn btn-outline-secondary btn-sm px-3';
+    const el = document.getElementById('ticketPaiement');
+    if (el) el.textContent = mode === 'MOBILE_MONEY' ? 'Mobile Money' : 'Espèces';
+}
+
+function soumettre() {
+    mettreAJourFormulaire();
+    document.getElementById('posForm').submit();
+}
+</script>
+</body>
+</html>
