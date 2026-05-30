@@ -83,12 +83,13 @@ public class VenteLibreService {
 
         venteLibre.setProduitsVendus(produitsVendus);
         venteLibre.setMontantTotal(montantTotal);
+        venteLibre.setMoyenPaiement(request.getMoyenPaiement());
         production.setProduitsRestants(produitsRestants);
 
         VenteLibre saved = venteLibreRepository.save(venteLibre);
         productionRepository.save(production);
 
-        enregistrerRevenu(saved.getId(), montantTotal);
+        enregistrerRevenu(saved, montantTotal);
 
         return venteLibreMapper.toDTO(saved);
     }
@@ -104,16 +105,25 @@ public class VenteLibreService {
         return production;
     }
 
-    private void enregistrerRevenu(Long venteLibreId, double montantTotal) {
+    private void enregistrerRevenu(VenteLibre vente, double montantTotal) {
         CompteBancaire compte = compteBancaireRepository.findByNom("Compte Principal")
                 .orElseThrow(() -> new ResourceNotFoundException("Compte bancaire principal non trouvé"));
         compte.setSolde(compte.getSolde() + montantTotal);
+
+        String description;
+        if (vente.getGuichet() != null) {
+            String paiement = vente.getMoyenPaiement() == MoyenPaiement.MOBILE_MONEY
+                    ? "Mobile Money" : "Espèces";
+            description = "Vente guichet [" + vente.getGuichet().getNom() + "] — " + paiement;
+        } else {
+            description = "Vente libre ID: " + vente.getId();
+        }
 
         Transaction transaction = new Transaction();
         transaction.setDate(LocalDate.now());
         transaction.setType("VENTE_LIBRE");
         transaction.setMontant(montantTotal);
-        transaction.setDescription("Vente libre ID: " + venteLibreId);
+        transaction.setDescription(description);
         transaction.setCompteBancaire(compte);
 
         transactionRepository.save(transaction);
