@@ -54,11 +54,12 @@ public class LivraisonController {
     @GetMapping("/new")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public String showCreateForm(Model model) {
-        // Récupérer les productions du jour et de la veille
+        // Récupérer les productions des 2 derniers jours (au-delà, produits périmés — cf. LivraisonService)
         LocalDate today = LocalDate.now();
         List<Production> productions = new ArrayList<>();
         productions.addAll(productionService.getProductionsByDate(today));
         productions.addAll(productionService.getProductionsByDate(today.minusDays(1)));
+        productions.addAll(productionService.getProductionsByDate(today.minusDays(2)));
 
         model.addAttribute("productions", productions);
         model.addAttribute("livraisonRequest", new CreateLivraisonRequest());

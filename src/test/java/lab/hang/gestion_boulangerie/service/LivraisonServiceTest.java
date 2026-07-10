@@ -129,14 +129,25 @@ class LivraisonServiceTest {
     }
 
     @Test
-    void createLivraison_production_avant_hier_leve_IllegalArgumentException() {
-        production.setDateProduction(LocalDate.now().minusDays(2));
+    void createLivraison_production_de_plus_de_2_jours_leve_IllegalArgumentException() {
+        production.setDateProduction(LocalDate.now().minusDays(3));
         when(userService.getCurrentUser()).thenReturn(user);
         when(productionRepository.findById(1L)).thenReturn(Optional.of(production));
 
         assertThatThrownBy(() -> livraisonService.createLivraison(buildRequest(1L, 5, 200.0)))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("veille");
+                .hasMessageContaining("2 jours");
+    }
+
+    @Test
+    void createLivraison_production_future_leve_IllegalArgumentException() {
+        production.setDateProduction(LocalDate.now().plusDays(1));
+        when(userService.getCurrentUser()).thenReturn(user);
+        when(productionRepository.findById(1L)).thenReturn(Optional.of(production));
+
+        assertThatThrownBy(() -> livraisonService.createLivraison(buildRequest(1L, 5, 200.0)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("2 jours");
     }
 
     @Test
@@ -149,6 +160,23 @@ class LivraisonServiceTest {
         Livraison saved = new Livraison();
         saved.setId(1L);
         saved.setDateLivraison(LocalDate.now().minusDays(1));
+        when(livraisonRepository.save(any())).thenReturn(saved);
+        when(livraisonMapper.toDTO(saved)).thenReturn(new LivraisonDTO());
+
+        assertThatNoException().isThrownBy(() ->
+                livraisonService.createLivraison(buildRequest(1L, 5, 200.0)));
+    }
+
+    @Test
+    void createLivraison_production_vieille_de_2_jours_est_autorisee() {
+        production.setDateProduction(LocalDate.now().minusDays(2));
+        when(userService.getCurrentUser()).thenReturn(user);
+        when(productionRepository.findById(1L)).thenReturn(Optional.of(production));
+        when(produitRepository.findById(1L)).thenReturn(Optional.of(pain));
+
+        Livraison saved = new Livraison();
+        saved.setId(1L);
+        saved.setDateLivraison(LocalDate.now());
         when(livraisonRepository.save(any())).thenReturn(saved);
         when(livraisonMapper.toDTO(saved)).thenReturn(new LivraisonDTO());
 

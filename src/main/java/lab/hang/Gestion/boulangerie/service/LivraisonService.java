@@ -98,14 +98,16 @@ public class LivraisonService {
                 .orElseThrow(() -> new ResourceNotFoundException("Livraison non trouvée"));
     }
 
+    private static final int AGE_MAX_LIVRAISON_JOURS = 2;
+
     private Production getAndValidateProduction(Long productionId) {
         Production production = productionRepository.findById(productionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Production non trouvée"));
 
-        LocalDate today = LocalDate.now();
-        if (!production.getDateProduction().equals(today) &&
-                !production.getDateProduction().equals(today.minusDays(1))) {
-            throw new IllegalArgumentException("La production doit être du jour même ou de la veille");
+        long ageJours = java.time.temporal.ChronoUnit.DAYS.between(production.getDateProduction(), LocalDate.now());
+        if (ageJours < 0 || ageJours > AGE_MAX_LIVRAISON_JOURS) {
+            throw new IllegalArgumentException(
+                    "Cette production a plus de " + AGE_MAX_LIVRAISON_JOURS + " jours et ne peut plus être livrée (produits périmés)");
         }
 
         return production;
