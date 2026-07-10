@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers(mvcMatcherBuilder.pattern("/css/**")).permitAll()
                         .requestMatchers(mvcMatcherBuilder.pattern("/js/**")).permitAll()
                         .requestMatchers(mvcMatcherBuilder.pattern("/images/**")).permitAll()
+                        .requestMatchers(mvcMatcherBuilder.pattern("/webfonts/**")).permitAll()
                         .requestMatchers(mvcMatcherBuilder.pattern("/swagger-ui/**")).permitAll()
                         .requestMatchers(mvcMatcherBuilder.pattern("/swagger-ui.html")).permitAll()
                         .requestMatchers(mvcMatcherBuilder.pattern("/v3/api-docs/**")).permitAll()
