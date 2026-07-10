@@ -32,6 +32,11 @@ build/
 ### VS Code ###
 .vscode/
 
+### Logs & crash dumps JVM ###
+logs/
+hs_err_pid*.log
+replay_pid*.log
+
 ### Secrets - Ne jamais committer ces fichiers ###
 src/main/resources/application-dev.properties
 src/main/resources/application-prod.properties

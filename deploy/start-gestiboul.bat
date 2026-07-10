@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 :: ============================================================
 :: GESTIBOUL — Script de démarrage
@@ -34,7 +34,7 @@ if errorlevel 1 (
     "%MYSQL_DIR%\mysql.exe" -u %DB_USERNAME% -e "SELECT 1;" >NUL 2>&1
     if errorlevel 1 (
         set /A count+=1
-        if %count% LSS 15 goto wait_mysql
+        if !count! LSS 15 goto wait_mysql
         echo [%date% %time%] ERREUR: MySQL n'a pas démarré. >> "%LOG_FILE%"
         exit /B 1
     )
