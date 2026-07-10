@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -78,6 +79,13 @@ public class GlobalExceptionHandler {
         log.warn("Argument invalide: {}", ex.getMessage());
         redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         return "redirect:/dashboard";
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public String handleMaxUploadSizeExceeded(RedirectAttributes redirectAttributes) {
+        log.warn("Fichier trop volumineux (limite dépassée)");
+        redirectAttributes.addFlashAttribute("errorMessage", "Le fichier est trop volumineux (taille maximale : 2 Mo).");
+        return "redirect:/admin/settings";
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

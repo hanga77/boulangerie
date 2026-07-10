@@ -210,7 +210,23 @@
 </nav>
 
 <!-- ===== FLASH MESSAGES FRAGMENT ===== -->
-<div th:fragment="flash-messages"></div>
+<div th:fragment="flash-messages" class="container-fluid px-3">
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mt-3 mb-0" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${warningMessage}" class="alert alert-warning alert-dismissible fade show mt-3 mb-0" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <span th:text="${warningMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mt-3 mb-0" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
 
 <!-- ===== FOOTER FRAGMENT ===== -->
 <footer th:fragment="footer" class="mt-auto py-3 bg-light border-top no-print">
