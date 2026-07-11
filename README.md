@@ -10,13 +10,14 @@
 
 ### Commandes & Production
 - Création de commandes par point de vente avec quantités par produit
-- Lancement de la production depuis les commandes du jour : calcul automatique des matières premières nécessaires et débit du stock
+- Lancement de la production depuis les commandes du jour : calcul automatique du théorique de matières premières nécessaires (le débit réel du stock est ensuite confirmé par le magasinier via une SORTIE liée à la production, cf. section Stock)
 - Saisie des quantités réellement produites par les boulangers
 - Comparaison tripartite : quantité de la recette / donnée par le magasinier / utilisée par le boulanger
 - Détection automatique des incidents de production si les écarts dépassent un seuil configurable
 
 ### Stock des matières premières
 - Quatre types de mouvements : ENTRÉE (réception fournisseur), SORTIE (liée à une production), RETOUR, PERTE
+- Une SORTIE doit obligatoirement référencer une production ; le théorique calculé pour cette production (matières et quantités attendues) est affiché en repère pour guider la saisie du magasinier
 - À la réception : saisie de la quantité commandée et des avaries — la quantité nette est calculée automatiquement
 - Prix unitaire obligatoire à l'entrée → Transaction ACHAT générée automatiquement
 - Alertes de stock bas dans le tableau de bord
@@ -178,10 +179,13 @@ Gestion opérationnelle quotidienne (commandes, production, livraisons, ventes, 
 Manager crée les commandes par point de vente  →  /commandes
     ↓
 Boulanger lance la production du jour  →  /production/passer-a-la-production
-   (calcul des matières nécessaires + débit automatique du stock)
+   (calcul du théorique des matières nécessaires)
     ↓
 Boulanger saisit les quantités réellement produites  →  /production/valider-production
-   (réconciliation stock, détection d'incidents si écart > seuil)
+   (comparaison théorique/réel, détection d'incidents si écart > seuil)
+    ↓
+Magasinier confirme la sortie de stock réelle  →  /matieres-premieres/mouvements-stock
+   (SORTIE liée à la production, théorique affiché en repère)
     ↓
 Manager crée la livraison  →  /livraisons/new
    (facture PDF générée automatiquement)

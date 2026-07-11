@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,11 +45,9 @@ public class ProductionService {
     private final CommandeMapper commandeMapper;
     private  final CompteBancaireRepository compteBancaireRepository;
     private  final TransactionRepository transactionRepository;
-    private  final StockService stockService;
 
     public ProductionService(ProductionRepository productionRepository, MatierePremiereRepository matierePremiereRepository, CommandeRepository commandeRepository, CommandeService commandeService, ProductionMapper productionMapper, MatierePremiereService matierePremiereService, ProduitService produitService, CommandeMapper commandeMapper,
-                             CompteBancaireRepository compteBancaireRepository, TransactionRepository transactionRepository,
-                             StockService stockService) {
+                             CompteBancaireRepository compteBancaireRepository, TransactionRepository transactionRepository) {
         this.productionRepository = productionRepository;
         this.matierePremiereRepository = matierePremiereRepository;
         this.commandeRepository = commandeRepository;
@@ -59,7 +58,6 @@ public class ProductionService {
         this.commandeMapper = commandeMapper;
         this.compteBancaireRepository = compteBancaireRepository;
         this.transactionRepository = transactionRepository;
-        this.stockService = stockService;
     }
 
     @Transactional
@@ -207,6 +205,22 @@ public class ProductionService {
     }
     public List<Production> getAllProductions() {
         return productionRepository.findAll();
+    }
+
+    /**
+     * Théorique de matières premières par production, sur une période donnée — pour guider
+     * la saisie du magasinier lors d'une sortie de stock liée à une production.
+     */
+    public Map<Long, Map<String, Double>> getTheoriqueParProduction(LocalDate depuis, LocalDate jusqua) {
+        List<Production> productions = productionRepository.findByDateProductionBetween(depuis, jusqua);
+        Map<Long, Map<String, Double>> result = new LinkedHashMap<>();
+        for (Production p : productions) {
+            Map<String, Double> theorique = new LinkedHashMap<>();
+            p.getMatieresPremieresUtilisees().forEach((matiere, quantite) ->
+                    theorique.put(matiere.getNom() + " (" + matiere.getUniteMesure() + ")", quantite));
+            result.put(p.getId(), theorique);
+        }
+        return result;
     }
 
     public boolean verifierStocksSuffisants(ProductionDTO productionDTO) {

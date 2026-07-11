@@ -10,6 +10,7 @@ import lab.hang.Gestion.boulangerie.model.Production;
 import lab.hang.Gestion.boulangerie.model.StockMovement;
 import lab.hang.Gestion.boulangerie.repository.ProductionRepository;
 import lab.hang.Gestion.boulangerie.service.MatierePremiereService;
+import lab.hang.Gestion.boulangerie.service.ProductionService;
 import lab.hang.Gestion.boulangerie.service.StockService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,13 +34,16 @@ public class MatierePremiereController {
     private final MatierePremiereService matierePremiereService;
     private final StockService stockService;
     private final ProductionRepository productionRepository;
+    private final ProductionService productionService;
 
     public MatierePremiereController(MatierePremiereService matierePremiereService,
                                      StockService stockService,
-                                     ProductionRepository productionRepository) {
+                                     ProductionRepository productionRepository,
+                                     ProductionService productionService) {
         this.matierePremiereService = matierePremiereService;
         this.stockService = stockService;
         this.productionRepository = productionRepository;
+        this.productionService = productionService;
     }
 
     @GetMapping
@@ -147,6 +151,10 @@ public class MatierePremiereController {
         List<Production> productions = productionRepository.findByDateProductionBetween(today.minusDays(30), today);
         productions.sort(Comparator.comparing(Production::getDateProduction).reversed());
         model.addAttribute("productions", productions);
+
+        // Théorique par production, pour guider la saisie du magasinier lors d'une SORTIE
+        model.addAttribute("theoriqueParProduction",
+                productionService.getTheoriqueParProduction(today.minusDays(30), today));
 
         return "matiere-premerie/gestion";
     }

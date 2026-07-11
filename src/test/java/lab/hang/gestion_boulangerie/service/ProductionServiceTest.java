@@ -4,7 +4,6 @@ import lab.hang.Gestion.boulangerie.dto.CommandeDTO;
 import lab.hang.Gestion.boulangerie.dto.ProductionDTO;
 import lab.hang.Gestion.boulangerie.dto.ProduitDTO;
 import lab.hang.Gestion.boulangerie.exception.ProductionNotFoundException;
-import lab.hang.Gestion.boulangerie.exception.StockInsuffisantException;
 import lab.hang.Gestion.boulangerie.mapper.CommandeMapper;
 import lab.hang.Gestion.boulangerie.mapper.ProductionMapper;
 import lab.hang.Gestion.boulangerie.model.*;
@@ -13,6 +12,7 @@ import lab.hang.Gestion.boulangerie.service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,9 +25,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,7 +40,6 @@ class ProductionServiceTest {
     @Mock private CommandeMapper commandeMapper;
     @Mock private CompteBancaireRepository compteBancaireRepository;
     @Mock private TransactionRepository transactionRepository;
-    @Mock private StockService stockService;
 
     @InjectMocks
     private ProductionService productionService;
@@ -88,13 +84,14 @@ class ProductionServiceTest {
         ProductionDTO result = productionService.startProduction(LocalDate.now(), user);
 
         assertThat(result).isNotNull();
-        verify(stockService, never()).removeStock(anyLong(), anyDouble(), anyString());
         verify(productionRepository).save(any());
     }
 
     @Test
-    void startProduction_avec_commande_deduit_les_stocks_de_matieres() {
-        // Une commande : 10 pains, chaque pain nécessite 0.5kg de farine → 5kg total
+    void startProduction_avec_commande_calcule_le_theorique_des_matieres() {
+        // Une commande : 10 pains, chaque pain nécessite 0.5kg de farine → 5kg total.
+        // startProduction ne débite plus le stock directement : le magasinier confirme
+        // ensuite la sortie réelle via /matieres-premieres, en se basant sur ce théorique.
         CommandeDTO commande = new CommandeDTO();
         commande.setId(1L);
         commande.setProduitsCommandes(Map.of(1L, 10));
@@ -116,35 +113,9 @@ class ProductionServiceTest {
 
         productionService.startProduction(LocalDate.now(), user);
 
-        // Vérifier que le stock est déduit avec le bon motif et la bonne quantité
-        verify(stockService).removeStock(eq(10L), eq(5.0),
-                contains("PRODUCTION"));
-    }
-
-    @Test
-    void startProduction_stock_insuffisant_propage_exception_et_rollback() {
-        CommandeDTO commande = new CommandeDTO();
-        commande.setId(1L);
-        commande.setProduitsCommandes(Map.of(1L, 100));
-
-        when(commandeService.getCommandesByDateAndEtat(any())).thenReturn(List.of(commande));
-        when(produitService.getProduitById(1L)).thenReturn(painDTO);
-        when(produitService.calculateMatieresPremieresNecessaires(painDTO, 100))
-                .thenReturn(Map.of(farine, 50.0));
-        when(produitService.getAllProduits()).thenReturn(List.of());
-
-        Production savedProduction = new Production();
-        savedProduction.setId(1L);
-        when(productionMapper.toEntity(any())).thenReturn(savedProduction);
-        when(productionRepository.save(any())).thenReturn(savedProduction);
-
-        doThrow(new StockInsuffisantException("Stock insuffisant pour : Farine"))
-                .when(stockService).removeStock(eq(10L), eq(50.0), anyString());
-
-        // L'exception doit se propager (plus de catch silencieux)
-        assertThatThrownBy(() -> productionService.startProduction(LocalDate.now(), user))
-                .isInstanceOf(StockInsuffisantException.class)
-                .hasMessageContaining("Farine");
+        ArgumentCaptor<ProductionDTO> captor = ArgumentCaptor.forClass(ProductionDTO.class);
+        verify(productionMapper).toEntity(captor.capture());
+        assertThat(captor.getValue().getMatieresPremieresUtilisees()).containsEntry(10L, 5.0);
     }
 
     @Test
@@ -169,14 +140,18 @@ class ProductionServiceTest {
 
         productionService.startProduction(LocalDate.now(), user);
 
-        // Vérifier que le stock quota est aussi déduit
-        verify(stockService).removeStock(eq(10L), eq(6.0), anyString());
+        ArgumentCaptor<ProductionDTO> captor = ArgumentCaptor.forClass(ProductionDTO.class);
+        verify(productionMapper).toEntity(captor.capture());
+        assertThat(captor.getValue().getMatieresPremieresUtilisees()).containsEntry(10L, 6.0);
     }
 
     // ── updateProduction (réconciliation stock) ────────────────────────────
 
     @Test
-    void updateProduction_moins_utilise_que_prevu_retourne_stock() {
+    void updateProduction_enregistre_les_quantites_reelles_utilisees() {
+        // updateProduction ne touche pas au stock (MatierePremiere.stock) : il enregistre
+        // uniquement le réel déclaré par le boulanger sur la Production, à titre de référence
+        // pour le magasinier qui confirmera ensuite la sortie de stock réelle.
         Production production = new Production();
         production.setId(5L);
         Map<MatierePremiere, Double> theorique = new HashMap<>();
@@ -197,36 +172,11 @@ class ProductionServiceTest {
 
         productionService.updateProduction(dto);
 
-        // Différence de 20g → retour au magasin
-        verify(stockService).returnStock(eq(10L), eq(20.0), anyString());
-        verify(stockService, never()).removeStock(anyLong(), anyDouble(), anyString());
-    }
-
-    @Test
-    void updateProduction_plus_utilise_que_prevu_deduit_supplement() {
-        Production production = new Production();
-        production.setId(5L);
-        Map<MatierePremiere, Double> theorique = new HashMap<>();
-        theorique.put(farine, 100.0);
-        production.setMatieresPremieresUtilisees(theorique);
-
-        when(productionRepository.findById(5L)).thenReturn(Optional.of(production));
-        when(matierePremiereService.getMatierePremiereById(10L)).thenReturn(farine);
-
-        Produit pain = new Produit();
-        pain.setId(1L);
-        when(produitService.getProduitEntityById(1L)).thenReturn(pain);
-
-        ProductionDTO dto = new ProductionDTO();
-        dto.setId(5L);
-        dto.setQuantitesReellesUtilisees(Map.of(10L, 115.0)); // 115 réel vs 100 théorique
-        dto.setProduitsProduits(Map.of(1L, 50));
-
-        productionService.updateProduction(dto);
-
-        // Différence de 15g → sortie supplémentaire
-        verify(stockService).removeStock(eq(10L), eq(15.0), anyString());
-        verify(stockService, never()).returnStock(anyLong(), anyDouble(), anyString());
+        assertThat(production.getQuantitesReellesUtilisees()).containsEntry(farine, 80.0);
+        assertThat(production.getProduitsProduits()).containsEntry(pain, 50);
+        assertThat(production.getProduitsRestants()).containsEntry(pain, 50);
+        verify(productionRepository).save(production);
+        assertThat(farine.getStock()).isEqualTo(500.0); // stock inchangé — pas de débit automatique
     }
 
     @Test

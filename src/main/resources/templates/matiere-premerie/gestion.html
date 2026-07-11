@@ -100,6 +100,15 @@
                         </div>
                     </div>
 
+                    <!-- Théorique de la production sélectionnée (référence pour le magasinier) -->
+                    <div class="col-12" id="theoriqueBox" style="display:none;">
+                        <div class="alert alert-info mb-0 py-2 small">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <strong>Théorique calculé pour cette production :</strong>
+                            <span id="theoriqueContent"></span>
+                        </div>
+                    </div>
+
                     <!-- Motif (RETOUR / PERTE) -->
                     <div class="col-md-5" id="motifField" style="display:none;">
                         <label for="motif" class="form-label">Motif</label>
@@ -186,7 +195,28 @@
 
 <div th:replace="~{fragments/layout :: scripts}"></div>
 
-<script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const theoriqueParProduction = /*[[${theoriqueParProduction}]]*/ {};
+    /*]]>*/
+
+    function updateTheoriqueBox() {
+        const box = document.getElementById("theoriqueBox");
+        const content = document.getElementById("theoriqueContent");
+        const prodId = document.getElementById("productionId").value;
+        const theorique = theoriqueParProduction[prodId];
+
+        if (!theorique || Object.keys(theorique).length === 0) {
+            box.style.display = "none";
+            return;
+        }
+
+        content.textContent = Object.entries(theorique)
+            .map(([nom, qte]) => nom + " : " + qte)
+            .join(" — ");
+        box.style.display = "block";
+    }
+
     function toggleFields() {
         const type = document.getElementById("type").value;
 
@@ -236,6 +266,7 @@
             prodField.style.display = "none";
             prodSelect.removeAttribute("required");
             prodSelect.value = "";
+            document.getElementById("theoriqueBox").style.display = "none";
         }
 
         if (type === "RETOUR" || type === "PERTE") {
@@ -257,6 +288,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("productionId").addEventListener("change", updateTheoriqueBox);
         toggleFields();
     });
 </script>
