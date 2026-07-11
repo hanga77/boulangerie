@@ -217,4 +217,22 @@ public class MatierePremiereController {
 
         return "redirect:/matieres-premieres/mouvements-stock";
     }
+
+    @GetMapping("/print")
+    public String printMouvements(
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate date,
+            Model model) {
+        LocalDate jour = date != null ? date : LocalDate.now();
+        List<StockMovement> mouvements = stockService.getStockMovementsByDate(jour);
+
+        long totalEntrees = mouvements.stream().filter(m -> "ENTREE".equals(m.getType())).count();
+        long totalSorties = mouvements.stream().filter(m -> "SORTIE".equals(m.getType())).count();
+
+        model.addAttribute("date", jour);
+        model.addAttribute("mouvements", mouvements);
+        model.addAttribute("totalEntrees", totalEntrees);
+        model.addAttribute("totalSorties", totalSorties);
+
+        return "matiere-premerie/print";
+    }
 }
