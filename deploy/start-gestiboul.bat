@@ -22,6 +22,44 @@ if not exist "%UPLOAD_DIR%"   mkdir "%UPLOAD_DIR%"
 
 echo [%date% %time%] Démarrage Gestiboul... >> "%LOG_FILE%"
 
+:: ── 0. Localiser MySQL si le chemin configuré est introuvable ──
+if not exist "%MYSQL_DIR%\mysqld.exe" (
+    echo [%date% %time%] MySQL introuvable dans %MYSQL_DIR%, recherche des emplacements courants... >> "%LOG_FILE%"
+    set FOUND_MYSQL=
+    for %%P in (
+        "C:\xampp\mysql\bin"
+        "C:\xampps\mysql\bin"
+        "C:\Program Files\MySQL\MySQL Server 8.0\bin"
+        "C:\Program Files\MySQL\MySQL Server 8.4\bin"
+        "C:\wamp64\bin\mysql\mysql8.0.31\bin"
+    ) do (
+        if exist "%%~P\mysqld.exe" (
+            set MYSQL_DIR=%%~P
+            set FOUND_MYSQL=1
+        )
+    )
+    if not defined FOUND_MYSQL (
+        echo [%date% %time%] ERREUR: MySQL introuvable sur ce PC. >> "%LOG_FILE%"
+        echo.
+        echo  ============================================================
+        echo   MySQL n'est pas installe sur ce PC.
+        echo.
+        echo   1. Telecharger MySQL Community Server :
+        echo      https://dev.mysql.com/downloads/mysql/
+        echo   2. Installer avec le mot de passe root VIDE
+        echo      (ou modifier DB_PASSWORD dans ce script)
+        echo   3. Relancer start-gestiboul.bat
+        echo.
+        echo   Si MySQL est deja installe ailleurs, modifiez
+        echo   MYSQL_DIR dans ce script avec le bon chemin.
+        echo  ============================================================
+        echo.
+        pause
+        exit /B 1
+    )
+    echo [%date% %time%] MySQL trouve dans %MYSQL_DIR% >> "%LOG_FILE%"
+)
+
 :: ── 1. Démarrer MySQL si pas encore en cours ──────────────────
 tasklist /FI "IMAGENAME eq mysqld.exe" 2>NUL | find /I "mysqld.exe" >NUL
 if errorlevel 1 (
