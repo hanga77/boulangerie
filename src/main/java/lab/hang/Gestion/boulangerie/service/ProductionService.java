@@ -60,8 +60,17 @@ public class ProductionService {
         this.transactionRepository = transactionRepository;
     }
 
-    @Transactional
     public ProductionDTO startProduction(LocalDate dateProduction, User user) {
+        return startProduction(dateProduction, user, null, null);
+    }
+
+    /**
+     * @param farinageMatiereId  matière première utilisée pour le fleurage/pétrissage (optionnel)
+     * @param farinageQuantite   quantité de farinage à ajouter au théorique, en plus des recettes produit (optionnel)
+     */
+    @Transactional
+    public ProductionDTO startProduction(LocalDate dateProduction, User user,
+                                         Long farinageMatiereId, Double farinageQuantite) {
         List<CommandeDTO> commandesDuJour = commandeService.getCommandesByDateAndEtat(dateProduction);
         Map<Long, Integer> produitsProduits = new HashMap<>();
         Map<Long, Double> matieresUtilisees = new HashMap<>();
@@ -96,6 +105,12 @@ public class ProductionService {
                 matieresPourQuota.forEach((matiere, quantite) ->
                         matieresUtilisees.merge(matiere.getId(), quantite, Double::sum));
             }
+        }
+
+        // Farinage : consommation forfaitaire de la session (pétrissage/fleurage), pas liée
+        // à un produit précis — s'ajoute au théorique déjà calculé pour les recettes.
+        if (farinageMatiereId != null && farinageQuantite != null && farinageQuantite > 0) {
+            matieresUtilisees.merge(farinageMatiereId, farinageQuantite, Double::sum);
         }
 
         // Create and populate ProductionDTO

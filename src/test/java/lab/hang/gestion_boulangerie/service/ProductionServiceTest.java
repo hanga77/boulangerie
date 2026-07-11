@@ -145,6 +145,54 @@ class ProductionServiceTest {
         assertThat(captor.getValue().getMatieresPremieresUtilisees()).containsEntry(10L, 6.0);
     }
 
+    @Test
+    void startProduction_avec_farinage_ajoute_au_theorique_de_la_matiere() {
+        // Une commande : 10 pains → 5kg de farine théorique. Farinage manuel : 2kg de farine
+        // supplémentaires pour le pétrissage → total attendu 7kg, pas lié à un produit.
+        CommandeDTO commande = new CommandeDTO();
+        commande.setId(1L);
+        commande.setProduitsCommandes(Map.of(1L, 10));
+
+        when(commandeService.getCommandesByDateAndEtat(any())).thenReturn(List.of(commande));
+        when(produitService.getProduitById(1L)).thenReturn(painDTO);
+        when(produitService.calculateMatieresPremieresNecessaires(painDTO, 10))
+                .thenReturn(Map.of(farine, 5.0));
+        when(produitService.getAllProduits()).thenReturn(List.of());
+
+        Production savedProduction = new Production();
+        savedProduction.setId(42L);
+        when(productionMapper.toEntity(any())).thenReturn(savedProduction);
+        when(productionRepository.save(any())).thenReturn(savedProduction);
+        when(productionMapper.toDTO(savedProduction)).thenReturn(new ProductionDTO());
+
+        Commande commandeEntity = new Commande();
+        when(commandeMapper.toEntity(commande)).thenReturn(commandeEntity);
+
+        productionService.startProduction(LocalDate.now(), user, 10L, 2.0);
+
+        ArgumentCaptor<ProductionDTO> captor = ArgumentCaptor.forClass(ProductionDTO.class);
+        verify(productionMapper).toEntity(captor.capture());
+        assertThat(captor.getValue().getMatieresPremieresUtilisees()).containsEntry(10L, 7.0);
+    }
+
+    @Test
+    void startProduction_sans_farinage_ne_modifie_pas_le_theorique() {
+        when(commandeService.getCommandesByDateAndEtat(any())).thenReturn(List.of());
+        when(produitService.getAllProduits()).thenReturn(List.of());
+
+        Production savedProduction = new Production();
+        savedProduction.setId(1L);
+        when(productionMapper.toEntity(any())).thenReturn(savedProduction);
+        when(productionRepository.save(any())).thenReturn(savedProduction);
+        when(productionMapper.toDTO(any())).thenReturn(new ProductionDTO());
+
+        productionService.startProduction(LocalDate.now(), user, null, null);
+
+        ArgumentCaptor<ProductionDTO> captor = ArgumentCaptor.forClass(ProductionDTO.class);
+        verify(productionMapper).toEntity(captor.capture());
+        assertThat(captor.getValue().getMatieresPremieresUtilisees()).isEmpty();
+    }
+
     // ── updateProduction (réconciliation stock) ────────────────────────────
 
     @Test

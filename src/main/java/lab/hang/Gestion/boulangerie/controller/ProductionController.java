@@ -62,17 +62,21 @@ public class ProductionController {
 
         model.addAttribute("dateActuelle", LocalDate.now());
         model.addAttribute("commandes", commandeDTOS);
+        model.addAttribute("matieresPremieres", matierePremiereService.getAllMatierePremieres());
         return "production/passer-a-la-production";
     }
 
     @PreAuthorize("hasRole('BOULANGER')")
     @PostMapping("/passer-a-la-production")
-    public String passerALaProduction(@RequestParam LocalDate date, Model model) {
+    public String passerALaProduction(@RequestParam LocalDate date,
+                                      @RequestParam(required = false) Long farinageMatiereId,
+                                      @RequestParam(required = false) Double farinageQuantite,
+                                      Model model) {
         // 1. Récupérer l'utilisateur actuellement connecté
         User user = userService.getCurrentUser();
 
         // 2. Démarrer la production
-        ProductionDTO productionDTO = productionService.startProduction(date, user);
+        ProductionDTO productionDTO = productionService.startProduction(date, user, farinageMatiereId, farinageQuantite);
 
 
         // 3. Vérifier les stocks avant de confirmer la production
