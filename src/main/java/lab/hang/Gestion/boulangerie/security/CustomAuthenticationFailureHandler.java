@@ -7,6 +7,8 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.FlashMap;
+import org.springframework.web.servlet.support.SessionFlashMapManager;
 
 import java.io.IOException;
 
@@ -27,7 +29,11 @@ public class CustomAuthenticationFailureHandler extends SimpleUrlAuthenticationF
             errorMessage = "Votre compte n'est pas encore activé. Veuillez contacter l'administrateur.";
         }
 
-        request.getSession().setAttribute("errorMessage", errorMessage);
+        FlashMap flashMap = new FlashMap();
+        flashMap.put("errorMessage", errorMessage);
+        flashMap.setTargetRequestPath("/login");
+        new SessionFlashMapManager().saveOutputFlashMap(flashMap, request, response);
+
         super.onAuthenticationFailure(request, response, exception);
     }
 }

@@ -24,6 +24,24 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    /* ── Toasts flash (succès/avertissement/erreur) ──────────────────────── */
+    function dismissToast(toast) {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 200);
+    }
+
+    document.querySelectorAll('.auto-toast').forEach(function (toast) {
+        toast.classList.add('show');
+        const delay = toast.classList.contains('text-bg-danger') ? 6000 : 4000;
+        const timer = setTimeout(() => dismissToast(toast), delay);
+        toast.querySelectorAll('[data-toast-dismiss]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                clearTimeout(timer);
+                dismissToast(toast);
+            });
+        });
+    });
+
     /* ── Dropdowns Bootstrap (navbar user menu etc.) ────────────────────── */
     document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function (btn) {
         btn.addEventListener('click', function (e) {

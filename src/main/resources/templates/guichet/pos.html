@@ -22,15 +22,7 @@
     </div>
 </div>
 
-<!-- Flash messages -->
-<div th:if="${successMessage}" class="alert alert-success alert-dismissible mx-3 mt-3 mb-0 no-print" role="alert">
-    <i class="fas fa-check-circle me-2"></i><span th:text="${successMessage}"></span>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-<div th:if="${errorMessage}" class="alert alert-danger alert-dismissible mx-3 mt-3 mb-0 no-print" role="alert">
-    <i class="fas fa-exclamation-circle me-2"></i><span th:text="${errorMessage}"></span>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
 
 <div class="container-fluid px-3 py-3">
 

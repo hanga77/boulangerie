@@ -43,7 +43,7 @@ class BulletinDePaieServiceTest {
         when(bulletinRepository.findByEmployeAndPeriode(e, periode)).thenReturn(Optional.empty());
         when(bulletinRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        BulletinDePaie b = bulletinService.genererBulletin(1L, periode, 10_000.0, 5_000.0, 0.0);
+        BulletinDePaie b = bulletinService.genererBulletin(1L, periode, Periodicite.MENSUEL, 10_000.0, 5_000.0, 0.0);
 
         assertThat(b.getSalaireBrut()).isEqualTo(95_000.0);
         assertThat(b.getCnpsEmploye()).isCloseTo(3_990.0, within(0.01));   // 95000 * 4.2%
@@ -61,7 +61,7 @@ class BulletinDePaieServiceTest {
         when(bulletinRepository.findByEmployeAndPeriode(e, periode))
             .thenReturn(Optional.of(new BulletinDePaie()));
 
-        assertThatThrownBy(() -> bulletinService.genererBulletin(1L, periode, 0, 0, 0))
+        assertThatThrownBy(() -> bulletinService.genererBulletin(1L, periode, Periodicite.MENSUEL, 0, 0, 0))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("bulletin existe déjà");
     }

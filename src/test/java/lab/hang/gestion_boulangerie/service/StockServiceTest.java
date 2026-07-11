@@ -65,7 +65,7 @@ class StockServiceTest {
         when(stockMovementRepository.save(any())).thenReturn(new StockMovement());
         when(transactionRepository.save(any())).thenReturn(new Transaction());
 
-        stockService.addStock(1L, 10.0, 50.0); // 10 × 50 = 500
+        stockService.addStock(1L, 10.0, 50.0, 10.0, 0.0); // 10 × 50 = 500
 
         assertThat(compte.getSolde()).isEqualTo(500.0); // 1000 - 500
         verify(compteBancaireRepository).save(compte);
@@ -79,7 +79,7 @@ class StockServiceTest {
         when(stockMovementRepository.save(any())).thenReturn(new StockMovement());
         when(transactionRepository.save(any())).thenReturn(new Transaction());
 
-        stockService.addStock(1L, 20.0, 10.0);
+        stockService.addStock(1L, 20.0, 10.0, 20.0, 0.0);
 
         assertThat(matierePremiere.getStock()).isEqualTo(120.0); // 100 + 20
     }
@@ -97,7 +97,7 @@ class StockServiceTest {
             return t;
         });
 
-        stockService.addStock(1L, 10.0, 50.0); // coût 500 > solde 100
+        stockService.addStock(1L, 10.0, 50.0, 10.0, 0.0); // coût 500 > solde 100
 
         assertThat(compte.getSolde()).isEqualTo(-400.0);
     }
@@ -110,7 +110,7 @@ class StockServiceTest {
         when(stockMovementRepository.save(any())).thenReturn(new StockMovement());
         when(transactionRepository.save(any())).thenReturn(new Transaction());
 
-        stockService.addStock(1L, 15.0, 10.0);
+        stockService.addStock(1L, 15.0, 10.0, 15.0, 0.0);
 
         verify(stockMovementRepository).save(argThat(m ->
                 "ENTREE".equals(m.getType()) && m.getQuantite() == 15.0));
@@ -118,14 +118,14 @@ class StockServiceTest {
 
     @Test
     void addStock_matierePremiere_null_leve_IllegalArgumentException() {
-        assertThatThrownBy(() -> stockService.addStock(null, 10.0, 50.0))
+        assertThatThrownBy(() -> stockService.addStock(null, 10.0, 50.0, 10.0, 0.0))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("null");
     }
 
     @Test
     void addStock_quantite_negative_leve_IllegalArgumentException() {
-        assertThatThrownBy(() -> stockService.addStock(1L, -5.0, 50.0))
+        assertThatThrownBy(() -> stockService.addStock(1L, -5.0, 50.0, -5.0, 0.0))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("positif");
     }
@@ -136,7 +136,7 @@ class StockServiceTest {
         when(compteBancaireRepository.findByNom("Compte Principal")).thenReturn(Optional.empty());
         when(userService.getCurrentUser()).thenReturn(user);
 
-        assertThatThrownBy(() -> stockService.addStock(1L, 10.0, 50.0))
+        assertThatThrownBy(() -> stockService.addStock(1L, 10.0, 50.0, 10.0, 0.0))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Compte");
     }

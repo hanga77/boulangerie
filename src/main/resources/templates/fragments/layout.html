@@ -209,22 +209,29 @@
     </div>
 </nav>
 
-<!-- ===== FLASH MESSAGES FRAGMENT ===== -->
-<div th:fragment="flash-messages" class="container-fluid px-3">
-    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mt-3 mb-0" role="alert">
-        <i class="fas fa-check-circle me-2"></i>
-        <span th:text="${successMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<!-- ===== FLASH MESSAGES FRAGMENT (toasts) ===== -->
+<div th:fragment="flash-messages"
+     th:with="successTxt=${successMessage != null ? successMessage : success},
+              warningTxt=${warningMessage != null ? warningMessage : warning},
+              errorTxt=${errorMessage != null ? errorMessage : error}"
+     class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1080">
+    <div th:if="${successTxt}" class="toast align-items-center text-bg-success border-0 auto-toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body"><i class="fas fa-check-circle me-2"></i><span th:text="${successTxt}"></span></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-toast-dismiss aria-label="Close"></button>
+        </div>
     </div>
-    <div th:if="${warningMessage}" class="alert alert-warning alert-dismissible fade show mt-3 mb-0" role="alert">
-        <i class="fas fa-exclamation-triangle me-2"></i>
-        <span th:text="${warningMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div th:if="${warningTxt}" class="toast align-items-center text-bg-warning border-0 auto-toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body"><i class="fas fa-exclamation-triangle me-2"></i><span th:text="${warningTxt}"></span></div>
+            <button type="button" class="btn-close me-2 m-auto" data-toast-dismiss aria-label="Close"></button>
+        </div>
     </div>
-    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mt-3 mb-0" role="alert">
-        <i class="fas fa-exclamation-circle me-2"></i>
-        <span th:text="${errorMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div th:if="${errorTxt}" class="toast align-items-center text-bg-danger border-0 auto-toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body"><i class="fas fa-exclamation-circle me-2"></i><span th:text="${errorTxt}"></span></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-toast-dismiss aria-label="Close"></button>
+        </div>
     </div>
 </div>
 
