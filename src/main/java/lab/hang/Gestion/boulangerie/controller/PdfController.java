@@ -9,6 +9,8 @@ import lab.hang.Gestion.boulangerie.model.BulletinDePaie;
 import lab.hang.Gestion.boulangerie.model.ChargeFixe;
 import lab.hang.Gestion.boulangerie.model.MatierePremiere;
 import lab.hang.Gestion.boulangerie.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,9 +25,14 @@ import com.lowagie.text.pdf.BaseFont;
 
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -34,6 +41,8 @@ import java.util.Map;
 
 @Controller
 public class PdfController {
+
+    private static final Logger log = LoggerFactory.getLogger(PdfController.class);
 
     private final TemplateEngine templateEngine;
     private final CommandeService commandeService;
@@ -61,6 +70,30 @@ public class PdfController {
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
+    @Value("${app.documents.dir:documents}")
+    private String documentsDir;
+
+    // ClassPathResource.getFile() échoue quand l'app tourne depuis un JAR exécutable
+    // (la ressource est nichée dans BOOT-INF/classes, pas sur le système de fichiers) —
+    // iText a besoin d'un chemin réel, donc on extrait la police une seule fois vers un fichier temporaire.
+    private volatile String fontFilePath;
+
+    private String resolveFontFile() throws Exception {
+        if (fontFilePath == null) {
+            synchronized (this) {
+                if (fontFilePath == null) {
+                    File tempFont = File.createTempFile("gestiboul-arial-", ".ttf");
+                    tempFont.deleteOnExit();
+                    try (InputStream in = new ClassPathResource("static/fonts/arial.ttf").getInputStream()) {
+                        Files.copy(in, tempFont.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    }
+                    fontFilePath = tempFont.getAbsolutePath();
+                }
+            }
+        }
+        return fontFilePath;
+    }
+
     public PdfController(TemplateEngine templateEngine, CommandeService commandeService, ProductionService productionService, UserService userService, ProduitService produitService, ProductionMapper productionMapper, LivraisonService livraisonService, MatierePremiereService matierePremiereService, FinanceService financeService, ChargeFixeService chargeFixeService, FacturationService facturationService, KPIService kpiService, BulletinDePaieService bulletinDePaieService, EmployeService employeService) {
         this.templateEngine = templateEngine;
         this.commandeService = commandeService;
@@ -80,8 +113,49 @@ public class PdfController {
 
     private void addBrandToContext(Context context) {
         context.setVariable("appName", appName);
-        java.io.File logo = new java.io.File(uploadDir, "logo.png").getAbsoluteFile();
+        File logo = new File(uploadDir, "logo.png").getAbsoluteFile();
         context.setVariable("customLogoUrl", logo.exists() ? logo.toURI().toString() : null);
+    }
+
+    /**
+     * Rend un template en PDF, l'archive dans uploads/documents/{type}/{annee}/{mois}/,
+     * puis le streame au client. L'échec de l'archivage n'empêche pas le téléchargement.
+     */
+    private void renderAndDeliverPdf(String templateName, Context context, HttpServletResponse response,
+                                     String documentType, String filename) throws Exception {
+        String html = templateEngine.process(templateName, context);
+
+        ByteArrayOutputStream pdfBytes = new ByteArrayOutputStream();
+        ITextRenderer renderer = new ITextRenderer();
+        renderer.getFontResolver().addFont(
+                resolveFontFile(),
+                BaseFont.IDENTITY_H,
+                BaseFont.EMBEDDED
+        );
+        renderer.setDocumentFromString(html);
+        renderer.layout();
+        renderer.createPDF(pdfBytes);
+        byte[] content = pdfBytes.toByteArray();
+
+        archiverPdf(documentType, filename, content);
+
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        try (OutputStream out = response.getOutputStream()) {
+            out.write(content);
+        }
+    }
+
+    private void archiverPdf(String documentType, String filename, byte[] content) {
+        try {
+            LocalDate today = LocalDate.now();
+            File dir = new File(documentsDir, documentType + "/"
+                    + today.getYear() + "/" + String.format("%02d", today.getMonthValue()));
+            dir.mkdirs();
+            Files.write(new File(dir, filename).toPath(), content);
+        } catch (Exception e) {
+            log.warn("Impossible d'archiver le PDF {} ({}) : {}", filename, documentType, e.getMessage());
+        }
     }
 
     @GetMapping("/commande/imprimer")
@@ -101,36 +175,12 @@ public class PdfController {
         context.setVariable("user", userService.getUserById(commande.getUserId()));
         context.setVariable("appName", appName);
 
-        // Générer le HTML à partir du template
-        String html = templateEngine.process("commandes/pdf-template", context);
-
-        // Configurer la réponse HTTP
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=commande-details.pdf");
-
-        // Convertir le HTML en PDF
-        try (OutputStream outputStream = response.getOutputStream()) {
-            ITextRenderer renderer = new ITextRenderer();
-
-            // Charger la police en utilisant ClassPathResource
-            ClassPathResource fontResource = new ClassPathResource("static/fonts/arial.ttf");
-            renderer.getFontResolver().addFont(
-                    fontResource.getFile().getAbsolutePath(),
-                    BaseFont.IDENTITY_H,
-                    BaseFont.EMBEDDED
-            );
-
-            renderer.setDocumentFromString(html);
-            renderer.layout();
-            renderer.createPDF(outputStream);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Erreur lors de la génération du PDF", e);
-        }
+        renderAndDeliverPdf("commandes/pdf-template", context, response,
+                "commandes", "commande-" + id + ".pdf");
     }
 
     @GetMapping("production/print")
-    public void printProductions(@RequestParam Long id, HttpServletResponse response) {
+    public void printProductions(@RequestParam Long id, HttpServletResponse response) throws Exception {
 
         //recuperation de la production
         ProductionDTO productionDTO = productionService.getProductionById(id);
@@ -151,31 +201,8 @@ public class PdfController {
         context.setVariable("user", userService.getUserById(productionDTO.getUserId()));
         context.setVariable("appName", appName);
 
-        String html = templateEngine.process("production/print", context);
-
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition",
-                "attachment; filename=production-" + id + ".pdf");
-
-        // Convertir le HTML en PDF
-        try (OutputStream outputStream = response.getOutputStream()) {
-            ITextRenderer renderer = new ITextRenderer();
-
-            // Charger la police en utilisant ClassPathResource
-            ClassPathResource fontResource = new ClassPathResource("static/fonts/arial.ttf");
-            renderer.getFontResolver().addFont(
-                    fontResource.getFile().getAbsolutePath(),
-                    BaseFont.IDENTITY_H,
-                    BaseFont.EMBEDDED
-            );
-
-            renderer.setDocumentFromString(html);
-            renderer.layout();
-            renderer.createPDF(outputStream);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Erreur lors de la génération du PDF", e);
-        }
+        renderAndDeliverPdf("production/print", context, response,
+                "productions", "production-" + id + ".pdf");
     }
 
     @GetMapping("/livraisons/{id}/imprimer")
@@ -203,28 +230,8 @@ public class PdfController {
         context.setVariable("produitsDetails", produitsDetails);
         addBrandToContext(context);
 
-        // Générer le HTML à partir du template
-        String html = templateEngine.process("livraisons/facture-template", context);
-
-        // Configurer la réponse HTTP
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=facture-livraison-" + id + ".pdf");
-
-        // Convertir en PDF
-        try (OutputStream outputStream = response.getOutputStream()) {
-            ITextRenderer renderer = new ITextRenderer();
-
-            ClassPathResource fontResource = new ClassPathResource("static/fonts/arial.ttf");
-            renderer.getFontResolver().addFont(
-                    fontResource.getFile().getAbsolutePath(),
-                    BaseFont.IDENTITY_H,
-                    BaseFont.EMBEDDED
-            );
-
-            renderer.setDocumentFromString(html);
-            renderer.layout();
-            renderer.createPDF(outputStream);
-        }
+        renderAndDeliverPdf("livraisons/facture-template", context, response,
+                "factures", "facture-livraison-" + id + ".pdf");
     }
 
     @GetMapping("/bulletins/{id}/pdf")
@@ -236,26 +243,11 @@ public class PdfController {
         context.setVariable("bulletin", bulletin);
         addBrandToContext(context);
 
-        String html = templateEngine.process("employes/bulletin-template", context);
+        String filename = "bulletin-" + bulletin.getId()
+                + "-" + bulletin.getPeriode().getYear()
+                + "-" + bulletin.getPeriode().getMonthValue() + ".pdf";
 
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition",
-            "attachment; filename=bulletin-" + bulletin.getId()
-            + "-" + bulletin.getPeriode().getYear()
-            + "-" + bulletin.getPeriode().getMonthValue() + ".pdf");
-
-        try (OutputStream outputStream = response.getOutputStream()) {
-            ITextRenderer renderer = new ITextRenderer();
-            ClassPathResource fontResource = new ClassPathResource("static/fonts/arial.ttf");
-            renderer.getFontResolver().addFont(
-                fontResource.getFile().getAbsolutePath(),
-                BaseFont.IDENTITY_H,
-                BaseFont.EMBEDDED
-            );
-            renderer.setDocumentFromString(html);
-            renderer.layout();
-            renderer.createPDF(outputStream);
-        }
+        renderAndDeliverPdf("employes/bulletin-template", context, response, "bulletins", filename);
     }
 
     @GetMapping("/comptabilite/charges-fixes/{id}/recu")
@@ -273,25 +265,9 @@ public class PdfController {
         context.setVariable("charge", charge);
         addBrandToContext(context);
 
-        String html = templateEngine.process("comptabilite/recu-charge-template", context);
+        String filename = "recu-charge-" + charge.getId() + "-" + charge.getDatePaiement() + ".pdf";
 
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition",
-            "attachment; filename=recu-charge-" + charge.getId()
-            + "-" + charge.getDatePaiement() + ".pdf");
-
-        try (OutputStream outputStream = response.getOutputStream()) {
-            ITextRenderer renderer = new ITextRenderer();
-            ClassPathResource fontResource = new ClassPathResource("static/fonts/arial.ttf");
-            renderer.getFontResolver().addFont(
-                fontResource.getFile().getAbsolutePath(),
-                BaseFont.IDENTITY_H,
-                BaseFont.EMBEDDED
-            );
-            renderer.setDocumentFromString(html);
-            renderer.layout();
-            renderer.createPDF(outputStream);
-        }
+        renderAndDeliverPdf("comptabilite/recu-charge-template", context, response, "recus", filename);
     }
 
     @GetMapping("/rapport-financier")

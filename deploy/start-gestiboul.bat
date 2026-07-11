@@ -13,12 +13,14 @@ set DB_USERNAME=root
 set DB_PASSWORD=
 set DB_URL=jdbc:mysql://localhost:3306/boulangerie_bd?createDatabaseIfNotExist=true
 set UPLOAD_DIR=%APP_DIR%\uploads
+set DOCUMENTS_DIR=%APP_DIR%\documents
 set MYSQL_DIR=C:\xampps\mysql\bin
 
 :: Log
 set LOG_FILE=%APP_DIR%\logs\gestiboul.log
 if not exist "%APP_DIR%\logs" mkdir "%APP_DIR%\logs"
 if not exist "%UPLOAD_DIR%"   mkdir "%UPLOAD_DIR%"
+if not exist "%DOCUMENTS_DIR%" mkdir "%DOCUMENTS_DIR%"
 
 echo [%date% %time%] Démarrage Gestiboul... >> "%LOG_FILE%"
 
@@ -100,6 +102,7 @@ start "" /B java %JAVA_OPTS% ^
     --DB_USERNAME=%DB_USERNAME% ^
     --DB_PASSWORD=%DB_PASSWORD% ^
     --UPLOAD_DIR=%UPLOAD_DIR% ^
+    --DOCUMENTS_DIR=%DOCUMENTS_DIR% ^
     >> "%LOG_FILE%" 2>&1
 
 :: ── 4. Attendre que l'app soit prête puis ouvrir le navigateur ─

@@ -17,9 +17,10 @@ echo.
 
 :: Créer le dossier de destination
 if not exist "%DEST%" mkdir "%DEST%"
-if not exist "%DEST%\logs"    mkdir "%DEST%\logs"
-if not exist "%DEST%\uploads" mkdir "%DEST%\uploads"
-if not exist "%DEST%\tools"   mkdir "%DEST%\tools"
+if not exist "%DEST%\logs"      mkdir "%DEST%\logs"
+if not exist "%DEST%\uploads"   mkdir "%DEST%\uploads"
+if not exist "%DEST%\documents" mkdir "%DEST%\documents"
+if not exist "%DEST%\tools"     mkdir "%DEST%\tools"
 
 :: Copier le JAR
 echo [1/4] Copie du JAR...
@@ -53,6 +54,7 @@ echo set DB_USERNAME=root
 echo set DB_PASSWORD=
 echo set DB_URL=jdbc:mysql://localhost:3306/boulangerie_bd?createDatabaseIfNotExist=true
 echo set UPLOAD_DIR=%DEST%\uploads
+echo set DOCUMENTS_DIR=%DEST%\documents
 echo set MYSQL_DIR=C:\xampps\mysql\bin
 echo set LOG_FILE=%DEST%\logs\gestiboul.log
 echo.
@@ -66,7 +68,7 @@ echo     timeout /T 8 /NOBREAK ^>NUL
 echo ^)
 echo.
 echo :: Lancer le JAR
-echo start "" /B java %%JAVA_OPTS%% -jar "%%JAR%%" --spring.profiles.active=prod --DB_URL=%%DB_URL%% --DB_USERNAME=%%DB_USERNAME%% --DB_PASSWORD=%%DB_PASSWORD%% --UPLOAD_DIR=%%UPLOAD_DIR%% ^>^> "%%LOG_FILE%%" 2^>^&1
+echo start "" /B java %%JAVA_OPTS%% -jar "%%JAR%%" --spring.profiles.active=prod --DB_URL=%%DB_URL%% --DB_USERNAME=%%DB_USERNAME%% --DB_PASSWORD=%%DB_PASSWORD%% --UPLOAD_DIR=%%UPLOAD_DIR%% --DOCUMENTS_DIR=%%DOCUMENTS_DIR%% ^>^> "%%LOG_FILE%%" 2^>^&1
 echo.
 echo :: Attendre puis ouvrir le navigateur
 echo :wait
