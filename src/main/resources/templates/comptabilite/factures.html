@@ -25,11 +25,6 @@
             <form th:action="@{/comptabilite/factures}" th:object="${newFacture}" method="post">
                 <div class="row g-3">
                     <div class="col-md-2">
-                        <label for="numero" class="form-label">N° Facture</label>
-                        <input type="text" class="form-control" id="numero" th:field="*{numero}" required>
-                        <div class="text-danger" th:if="${#fields.hasErrors('numero')}" th:errors="*{numero}"></div>
-                    </div>
-                    <div class="col-md-2">
                         <label for="type" class="form-label">Type</label>
                         <select class="form-select" id="type" th:field="*{type}" required>
                             <option value="">-- Choisir --</option>

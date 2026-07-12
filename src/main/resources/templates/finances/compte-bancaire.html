@@ -12,7 +12,7 @@
             <h1 class="h4 fw-bold mb-0"><i class="fas fa-university me-2 text-success"></i>Comptes Bancaires</h1>
             <p class="text-muted small mb-0">Soldes et mouvements des comptes</p>
         </div>
-        <a th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
+        <a sec:authorize="hasRole('ADMIN')"
            href="/compte-bancaire/creer" class="btn btn-primary btn-sm">
             <i class="fas fa-plus me-1"></i>Nouveau compte
         </a>
