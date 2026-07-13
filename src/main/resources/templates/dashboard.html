@@ -29,21 +29,21 @@
                 <div class="stat-label">Commandes aujourd'hui</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-3" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
             <div class="stat-card bg-success h-100">
                 <div class="stat-icon"><i class="fas fa-coins"></i></div>
                 <div class="stat-value" th:text="${#numbers.formatDecimal(revenusVentes ?: 0, 0, 'COMMA', 0, 'POINT')}">0</div>
                 <div class="stat-label">Revenus (XAF)</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-3" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
             <div class="stat-card bg-warning h-100">
                 <div class="stat-icon"><i class="fas fa-receipt"></i></div>
                 <div class="stat-value" th:text="${#numbers.formatDecimal(coutsProduction ?: 0, 0, 'COMMA', 0, 'POINT')}">0</div>
                 <div class="stat-label">Coûts production (XAF)</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-3" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
             <div class="stat-card bg-info h-100">
                 <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
                 <div class="stat-value" th:text="${#numbers.formatDecimal(profitTotal ?: 0, 0, 'COMMA', 0, 'POINT')}">0</div>
@@ -53,23 +53,23 @@
     </div>
 
     <!-- Actions rapides -->
-    <div class="card mb-4">
+    <div class="card mb-4" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER','MAGASINIER')">
         <div class="card-body">
             <p class="section-title mb-3"><i class="fas fa-bolt me-2"></i>Actions rapides</p>
             <div class="d-flex flex-wrap gap-2">
-                <a href="/commandes/new"                   class="btn btn-primary btn-sm">
+                <a href="/commandes/new" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')" class="btn btn-primary btn-sm">
                     <i class="fas fa-plus me-1"></i>Nouvelle commande
                 </a>
                 <a href="/production/passer-a-la-production" sec:authorize="hasRole('BOULANGER')" class="btn btn-success btn-sm">
                     <i class="fas fa-industry me-1"></i>Démarrer production
                 </a>
-                <a href="/livraisons/new"                  class="btn btn-info btn-sm">
+                <a href="/livraisons/new" sec:authorize="hasAnyRole('ADMIN','MANAGER')" class="btn btn-info btn-sm">
                     <i class="fas fa-truck me-1"></i>Créer livraison
                 </a>
-                <a href="/matieres-premieres/add-stock"    class="btn btn-warning btn-sm">
+                <a href="/matieres-premieres/add-stock" sec:authorize="hasAnyRole('ADMIN','MANAGER','MAGASINIER')" class="btn btn-warning btn-sm">
                     <i class="fas fa-plus-circle me-1"></i>Entrée stock
                 </a>
-                <a href="/rapport-financier"               class="btn btn-secondary btn-sm">
+                <a href="/rapport-financier" sec:authorize="hasAnyRole('ADMIN','MANAGER')" class="btn btn-secondary btn-sm">
                     <i class="fas fa-file-alt me-1"></i>Rapport mensuel
                 </a>
             </div>
@@ -80,7 +80,7 @@
     <div class="row g-3">
 
         <!-- Commandes récentes -->
-        <div class="col-12 col-lg-6">
+        <div class="col-12 col-lg-6" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')">
             <div class="card h-100">
                 <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-list-alt me-2"></i>Commandes récentes</span>
@@ -111,7 +111,7 @@
         </div>
 
         <!-- Stocks matières premières -->
-        <div class="col-12 col-lg-6">
+        <div class="col-12 col-lg-6" sec:authorize="hasAnyRole('ADMIN','MANAGER','MAGASINIER')">
             <div class="card h-100">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-leaf me-2"></i>Stocks matières premières</span>
@@ -147,7 +147,7 @@
         </div>
 
         <!-- Livraisons -->
-        <div class="col-12 col-md-6 col-lg-4">
+        <div class="col-12 col-md-6 col-lg-4" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
             <div class="card h-100">
                 <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-truck me-2"></i>Livraisons</span>
@@ -174,7 +174,7 @@
         </div>
 
         <!-- Production -->
-        <div class="col-12 col-md-6 col-lg-4">
+        <div class="col-12 col-md-6 col-lg-4" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')">
             <div class="card h-100">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-industry me-2"></i>Production</span>
@@ -196,19 +196,19 @@
                     <i class="fas fa-link me-2"></i>Accès rapide
                 </div>
                 <div class="list-group list-group-flush">
-                    <a href="/matieres-premieres/mouvements-stock" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
+                    <a href="/matieres-premieres/mouvements-stock" sec:authorize="hasAnyRole('ADMIN','MANAGER','MAGASINIER')" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
                         <i class="fas fa-warehouse text-primary"></i>Mouvements de stock
                     </a>
-                    <a href="/comptabilite/dashboard" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
+                    <a href="/comptabilite/dashboard" sec:authorize="hasAnyRole('ADMIN','MANAGER')" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
                         <i class="fas fa-calculator text-success"></i>Tableau comptable
                     </a>
-                    <a href="/comptabilite/factures" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
+                    <a href="/comptabilite/factures" sec:authorize="hasAnyRole('ADMIN','MANAGER')" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
                         <i class="fas fa-file-invoice text-warning"></i>Factures
                     </a>
                     <a href="/points-de-vente" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
                         <i class="fas fa-map-marker-alt text-danger"></i>Points de vente
                     </a>
-                    <a href="/rapport-financier" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
+                    <a href="/rapport-financier" sec:authorize="hasAnyRole('ADMIN','MANAGER')" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
                         <i class="fas fa-file-alt text-info"></i>Rapport mensuel
                     </a>
                     <a href="/admin/users" sec:authorize="hasRole('ADMIN')" class="list-group-item list-group-item-action d-flex align-items-center gap-2">

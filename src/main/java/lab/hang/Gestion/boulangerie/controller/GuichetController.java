@@ -10,11 +10,13 @@ import lab.hang.Gestion.boulangerie.service.AppSettingsService;
 import lab.hang.Gestion.boulangerie.service.VenteLibreService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 
 @Controller
@@ -45,8 +47,9 @@ public class GuichetController {
     }
 
     @GetMapping("/vente")
+    @Transactional(readOnly = true)
     public String pos(@RequestParam Long guichetId, Model model, RedirectAttributes ra) {
-        Guichet guichet = guichetRepository.findById(guichetId).orElse(null);
+        Guichet guichet = guichetRepository.findByIdWithPointDeVente(guichetId).orElse(null);
         if (guichet == null) return "redirect:/guichet";
 
         LocalDate today = LocalDate.now();
@@ -63,7 +66,7 @@ public class GuichetController {
 
         model.addAttribute("guichet", guichet);
         model.addAttribute("production", production);
-        model.addAttribute("produitsRestants", production.getProduitsRestants());
+        model.addAttribute("produitsRestants", new HashMap<>(production.getProduitsRestants()));
         model.addAttribute("largeurTicketMm", appSettingsService.getLargeurTicketMm());
         model.addAttribute("moyensPaiement", MoyenPaiement.values());
         return "guichet/pos";
