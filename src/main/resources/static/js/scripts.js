@@ -73,13 +73,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    /* ── Confirmation sur les boutons de suppression ────────────────────── */
+    /* ── Confirmation avant soumission (suppression, paiement, etc.) ─────── */
     document.querySelectorAll('form[onsubmit]').forEach(function (form) {
         const onsubmit = form.getAttribute('onsubmit');
-        if (onsubmit && onsubmit.includes('confirm')) {
+        const match = onsubmit && onsubmit.match(/confirm\((['"])(.*?)\1\)/);
+        if (match) {
+            const message = match[2];
             form.removeAttribute('onsubmit');
             form.addEventListener('submit', function (e) {
-                if (!confirm('Confirmer la suppression ?')) {
+                if (!confirm(message)) {
                     e.preventDefault();
                 }
             });

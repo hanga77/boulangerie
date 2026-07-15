@@ -23,6 +23,8 @@
         <span class="badge bg-danger">ADMIN — accès complet</span>
         <span class="badge bg-warning text-dark">MANAGER — rapports, dettes, finances</span>
         <span class="badge bg-success">BOULANGER — production</span>
+        <span class="badge bg-info text-dark">MAGASINIER — stock matières premières</span>
+        <span class="badge bg-secondary">CAISSIER — guichet uniquement</span>
     </div>
 
     <div class="card">
@@ -48,9 +50,11 @@
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                             <select name="role" class="form-select form-select-sm" style="width:auto"
                                     onchange="this.form.submit()">
-                                <option value="BOULANGER" th:selected="${user.role == 'BOULANGER'}">Boulanger</option>
-                                <option value="MANAGER"   th:selected="${user.role == 'MANAGER'}">Manager</option>
-                                <option value="ADMIN"     th:selected="${user.role == 'ADMIN'}">Admin</option>
+                                <option value="BOULANGER"   th:selected="${user.role == 'BOULANGER'}">Boulanger</option>
+                                <option value="MAGASINIER"  th:selected="${user.role == 'MAGASINIER'}">Magasinier</option>
+                                <option value="CAISSIER"    th:selected="${user.role == 'CAISSIER'}">Caissier</option>
+                                <option value="MANAGER"     th:selected="${user.role == 'MANAGER'}">Manager</option>
+                                <option value="ADMIN"       th:selected="${user.role == 'ADMIN'}">Admin</option>
                             </select>
                         </form>
                     </td>
