@@ -20,6 +20,21 @@
         <span class="badge bg-secondary fs-6" th:text="${#temporals.format(#temporals.createToday(), 'dd MMMM yyyy')}"></span>
     </div>
 
+    <!-- Notifications (paiements, alertes) -->
+    <div class="card mb-4" sec:authorize="hasAnyRole('ADMIN','MANAGER')" th:if="${not #lists.isEmpty(notifications)}">
+        <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+            <span class="fw-semibold small"><i class="fas fa-bell me-2 text-primary"></i>Notifications récentes</span>
+        </div>
+        <div class="list-group list-group-flush">
+            <div th:each="n : ${notifications}" class="list-group-item py-2 d-flex justify-content-between align-items-center">
+                <span th:text="${n.message}"
+                      th:classappend="${n.type == 'PAIEMENT_ENTREE'} ? 'text-success' : (${n.type == 'PAIEMENT_SORTIE'} ? 'text-danger' : '')"
+                      class="small"></span>
+                <span class="text-muted small ms-2" th:text="${#temporals.format(n.dateCreation, 'dd/MM HH:mm')}"></span>
+            </div>
+        </div>
+    </div>
+
     <!-- KPI cards -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">

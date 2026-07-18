@@ -1,6 +1,7 @@
 package lab.hang.Gestion.boulangerie.controller;
 
 import lab.hang.Gestion.boulangerie.model.Production;
+import lab.hang.Gestion.boulangerie.repository.NotificationRepository;
 import lab.hang.Gestion.boulangerie.service.CommandeService;
 import lab.hang.Gestion.boulangerie.service.FinanceService;
 import lab.hang.Gestion.boulangerie.service.LivraisonService;
@@ -21,16 +22,19 @@ public class DashboardController {
     private final MatierePremiereService matierePremiereService;
     private final ProductionService productionService;
     private final LivraisonService livraisonService;
+    private final NotificationRepository notificationRepository;
 
     public DashboardController(CommandeService commandeService, FinanceService financeService,
                                MatierePremiereService matierePremiereService,
                                ProductionService productionService,
-                               LivraisonService livraisonService) {
+                               LivraisonService livraisonService,
+                               NotificationRepository notificationRepository) {
         this.commandeService = commandeService;
         this.financeService = financeService;
         this.matierePremiereService = matierePremiereService;
         this.productionService = productionService;
         this.livraisonService = livraisonService;
+        this.notificationRepository = notificationRepository;
     }
 
     @GetMapping("/dashboard")
@@ -57,6 +61,7 @@ public class DashboardController {
         model.addAttribute("stocks", matierePremiereService.getAllMatierePremieres());
         model.addAttribute("produits", productionDTOS);
         model.addAttribute("livraisons", livraisonService.getLivraisonsByDateRange(today.minusDays(7), today));
+        model.addAttribute("notifications", notificationRepository.findTop8ByOrderByDateCreationDesc());
 
         return "dashboard";
     }

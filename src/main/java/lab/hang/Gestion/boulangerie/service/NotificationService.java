@@ -46,4 +46,19 @@ public class NotificationService {
         notification.setVue(false);
         notificationRepository.save(notification);
     }
+
+    private static final java.util.Set<String> TYPES_ENTREE = java.util.Set.of(
+            "VENTE", "VENTE_LIBRE", "ENTREE", "TRANSFERT_CREDIT");
+
+    public void notifierTransaction(String type, double montant, String description, String compteNom) {
+        boolean entree = TYPES_ENTREE.contains(type);
+        String message = String.format("%s%.0f XAF — %s (%s)",
+                entree ? "+" : "-", montant, description, compteNom);
+        Notification notification = new Notification();
+        notification.setType(entree ? "PAIEMENT_ENTREE" : "PAIEMENT_SORTIE");
+        notification.setMessage(message);
+        notification.setDateCreation(LocalDateTime.now());
+        notification.setVue(false);
+        notificationRepository.save(notification);
+    }
 }
