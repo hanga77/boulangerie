@@ -33,6 +33,10 @@ public class User {
 
     private String email;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "point_de_vente_id")
+    private PointDeVente pointDeVente;
+
     @PrePersist
     protected void onCreate() {
         creationDate = LocalDateTime.now();

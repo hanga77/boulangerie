@@ -31,6 +31,7 @@ public class LivraisonService {
     private final TransactionRepository transactionRepository;
     private final CompteBancaireRepository compteBancaireRepository;
     private final FacturationService facturationService;
+    private final PointDeVenteRepository pointDeVenteRepository;
 
     public LivraisonService(LivraisonRepository livraisonRepository,
                             ProductionRepository productionRepository,
@@ -40,7 +41,8 @@ public class LivraisonService {
                             LivraisonMapper livraisonMapper,
                             TransactionRepository transactionRepository,
                             CompteBancaireRepository compteBancaireRepository,
-                            FacturationService facturationService) {
+                            FacturationService facturationService,
+                            PointDeVenteRepository pointDeVenteRepository) {
         this.livraisonRepository = livraisonRepository;
         this.productionRepository = productionRepository;
         this.produitRepository = produitRepository;
@@ -50,6 +52,7 @@ public class LivraisonService {
         this.transactionRepository = transactionRepository;
         this.compteBancaireRepository = compteBancaireRepository;
         this.facturationService = facturationService;
+        this.pointDeVenteRepository = pointDeVenteRepository;
     }
 
     public LivraisonDTO createLivraison(CreateLivraisonRequest request) {
@@ -61,6 +64,11 @@ public class LivraisonService {
         livraison.setNomClient(request.getNomClient());
         livraison.setProduction(production);
         livraison.setUser(currentUser);
+        if (request.getPointDeVenteId() != null) {
+            PointDeVente pointDeVente = pointDeVenteRepository.findById(request.getPointDeVenteId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Point de vente non trouvé"));
+            livraison.setPointDeVente(pointDeVente);
+        }
 
         Map<Produit, ProduitLivre> produitsLivres = new HashMap<>();
         Map<Produit, Integer> produitsRestants = production.getProduitsRestants();

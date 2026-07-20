@@ -2,9 +2,12 @@ package lab.hang.Gestion.boulangerie.service;
 
 
 import lab.hang.Gestion.boulangerie.dto.RegisterRequest;
+import lab.hang.Gestion.boulangerie.exception.ResourceNotFoundException;
 import lab.hang.Gestion.boulangerie.exception.UserNotAuthenticatedException;
 import lab.hang.Gestion.boulangerie.exception.UserNotFoundException;
+import lab.hang.Gestion.boulangerie.model.PointDeVente;
 import lab.hang.Gestion.boulangerie.model.User;
+import lab.hang.Gestion.boulangerie.repository.PointDeVenteRepository;
 import lab.hang.Gestion.boulangerie.repository.UserRepository;
 
 import java.util.Set;
@@ -24,16 +27,20 @@ public class UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
-    private static final Set<String> VALID_ROLES = Set.of("ADMIN", "MANAGER", "BOULANGER");
+    private static final Set<String> VALID_ROLES = Set.of(
+            "ADMIN", "MANAGER", "BOULANGER", "MAGASINIER", "CAISSIER", "POINT_DE_VENTE");
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PointDeVenteRepository pointDeVenteRepository;
 
 
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       PointDeVenteRepository pointDeVenteRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.pointDeVenteRepository = pointDeVenteRepository;
     }
 
     @Transactional
@@ -45,7 +52,8 @@ public class UserService {
             user.setRole("ADMIN");
             user.setActive(true);
         } else {
-            user.setRole("BOULANGER");
+            String role = request.getRole();
+            user.setRole(role != null && VALID_ROLES.contains(role) ? role : "BOULANGER");
             user.setActive(false);
         }
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -70,6 +78,19 @@ public class UserService {
         }
         User user = getUserById(userId);
         user.setRole(newRole);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User updatePointDeVente(Long userId, Long pointDeVenteId) {
+        User user = getUserById(userId);
+        if (pointDeVenteId == null) {
+            user.setPointDeVente(null);
+        } else {
+            PointDeVente pointDeVente = pointDeVenteRepository.findById(pointDeVenteId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Point de vente non trouvé"));
+            user.setPointDeVente(pointDeVente);
+        }
         return userRepository.save(user);
     }
 

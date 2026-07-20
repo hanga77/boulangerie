@@ -7,6 +7,7 @@ import java.util.Map;
 
 public class CreateLivraisonRequest {
     private String nomClient;
+    private Long pointDeVenteId;
     private Long productionId;
     private Map<Long, ProduitLivreRequest> produits;
 
@@ -19,6 +20,14 @@ public class CreateLivraisonRequest {
 
     public void setNomClient(String nomClient) {
         this.nomClient = nomClient;
+    }
+
+    public Long getPointDeVenteId() {
+        return pointDeVenteId;
+    }
+
+    public void setPointDeVenteId(Long pointDeVenteId) {
+        this.pointDeVenteId = pointDeVenteId;
     }
 
     public Long getProductionId() {

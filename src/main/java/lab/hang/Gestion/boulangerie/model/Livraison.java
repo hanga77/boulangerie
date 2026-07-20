@@ -25,6 +25,10 @@ public class Livraison {
     private String nomClient;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "point_de_vente_id")
+    private PointDeVente pointDeVente;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "production_id", nullable = false)
     private Production production;
 

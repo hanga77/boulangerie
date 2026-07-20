@@ -57,6 +57,7 @@ public class SecurityConfig {
                         .requestMatchers(mvcMatcherBuilder.pattern("/livraisons/**")).hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(mvcMatcherBuilder.pattern("/ventes-libres/**")).hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(mvcMatcherBuilder.pattern("/guichet/**")).hasRole("CAISSIER")
+                        .requestMatchers(mvcMatcherBuilder.pattern("/mon-espace/**")).hasRole("POINT_DE_VENTE")
                         .requestMatchers(mvcMatcherBuilder.pattern("/matieres-premieres/**")).hasAnyRole("ADMIN", "MANAGER", "MAGASINIER")
                         .requestMatchers(mvcMatcherBuilder.pattern("/employes/**")).hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(mvcMatcherBuilder.pattern("/bulletins/**")).authenticated()

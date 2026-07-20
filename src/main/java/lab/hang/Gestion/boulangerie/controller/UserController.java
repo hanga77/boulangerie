@@ -1,6 +1,7 @@
 package lab.hang.Gestion.boulangerie.controller;
 
 import lab.hang.Gestion.boulangerie.dto.RegisterRequest;
+import lab.hang.Gestion.boulangerie.repository.PointDeVenteRepository;
 import lab.hang.Gestion.boulangerie.service.AppSettingsService;
 import lab.hang.Gestion.boulangerie.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,10 +22,13 @@ public class UserController {
 
     private final UserService userService;
     private final AppSettingsService appSettingsService;
+    private final PointDeVenteRepository pointDeVenteRepository;
 
-    public UserController(UserService userService, AppSettingsService appSettingsService) {
+    public UserController(UserService userService, AppSettingsService appSettingsService,
+                          PointDeVenteRepository pointDeVenteRepository) {
         this.userService = userService;
         this.appSettingsService = appSettingsService;
+        this.pointDeVenteRepository = pointDeVenteRepository;
     }
 
     @GetMapping("/register")
@@ -61,6 +65,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public String listUsers(Model model) {
         model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("pointsDeVente", pointDeVenteRepository.findByActifTrue());
         return "admin/users";
     }
 
@@ -82,6 +87,14 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public String updateUserRole(@PathVariable Long id, @RequestParam String role) {
         userService.updateUserRole(id, role);
+        return "redirect:/admin/users";
+    }
+
+    @PostMapping("/admin/users/{id}/point-de-vente")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String updateUserPointDeVente(@PathVariable Long id,
+                                         @RequestParam(required = false) Long pointDeVenteId) {
+        userService.updatePointDeVente(id, pointDeVenteId);
         return "redirect:/admin/users";
     }
 

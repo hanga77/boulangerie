@@ -29,6 +29,19 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
+                                <label for="pointDeVenteId" class="form-label">Point de Vente</label>
+                                <select class="form-control" id="pointDeVenteId" th:field="*{pointDeVenteId}">
+                                    <option value="">-- Aucun (client hors réseau) --</option>
+                                    <option th:each="pdv : ${pointsDeVente}"
+                                            th:value="${pdv.id}"
+                                            th:text="${pdv.nom}"
+                                            th:data-nom="${pdv.nom}"></option>
+                                </select>
+                                <div class="form-text">Permet de suivre le solde livré/versé de ce point de vente.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
                                 <label for="nomClient" class="form-label">Nom du Client</label>
                                 <input type="text" class="form-control" id="nomClient" th:field="*{nomClient}"
                                        required placeholder="Entrez le nom du client"/>
@@ -198,6 +211,16 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        const pdvSelect = document.getElementById('pointDeVenteId');
+        const nomClientInput = document.getElementById('nomClient');
+        if (pdvSelect && nomClientInput) {
+            pdvSelect.addEventListener('change', function () {
+                const opt = this.options[this.selectedIndex];
+                const nom = opt.getAttribute('data-nom');
+                if (nom && !nomClientInput.value) nomClientInput.value = nom;
+            });
+        }
+
         const productionSelect = document.getElementById('productionId');
         if (productionSelect) {
             productionSelect.addEventListener('change', function() {

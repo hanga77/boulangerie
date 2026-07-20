@@ -41,6 +41,11 @@
                         <i class="fas fa-home me-1"></i>Accueil
                     </a>
                 </li>
+                <li class="nav-item" sec:authorize="hasRole('POINT_DE_VENTE')">
+                    <a class="nav-link rounded px-2" href="/mon-espace">
+                        <i class="fas fa-store me-1"></i>Mon espace
+                    </a>
+                </li>
                 <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')">
                     <a class="nav-link rounded px-2" href="/commandes">
                         <i class="fas fa-shopping-cart me-1"></i>Commandes

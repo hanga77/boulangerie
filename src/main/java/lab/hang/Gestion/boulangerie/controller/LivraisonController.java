@@ -5,6 +5,7 @@ import lab.hang.Gestion.boulangerie.dto.LivraisonDTO;
 import lab.hang.Gestion.boulangerie.dto.ProductionDTO;
 import lab.hang.Gestion.boulangerie.dto.ProduitDTO;
 import lab.hang.Gestion.boulangerie.model.Production;
+import lab.hang.Gestion.boulangerie.repository.PointDeVenteRepository;
 import lab.hang.Gestion.boulangerie.service.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
@@ -27,14 +28,17 @@ public class LivraisonController {
     private final LivraisonService livraisonService;
     private final ProductionService productionService;
     private final ProduitService produitService;
+    private final PointDeVenteRepository pointDeVenteRepository;
 
 
     public LivraisonController(LivraisonService livraisonService,
-                               ProductionService productionService, ProduitService produitService) {
+                               ProductionService productionService, ProduitService produitService,
+                               PointDeVenteRepository pointDeVenteRepository) {
         this.livraisonService = livraisonService;
         this.productionService = productionService;
 
         this.produitService = produitService;
+        this.pointDeVenteRepository = pointDeVenteRepository;
     }
 
     @GetMapping
@@ -62,6 +66,7 @@ public class LivraisonController {
         productions.addAll(productionService.getProductionsByDate(today.minusDays(2)));
 
         model.addAttribute("productions", productions);
+        model.addAttribute("pointsDeVente", pointDeVenteRepository.findByActifTrue());
         model.addAttribute("livraisonRequest", new CreateLivraisonRequest());
         return "livraisons/create";
     }
