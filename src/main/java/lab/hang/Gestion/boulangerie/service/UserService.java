@@ -30,6 +30,12 @@ public class UserService {
     private static final Set<String> VALID_ROLES = Set.of(
             "ADMIN", "MANAGER", "BOULANGER", "MAGASINIER", "CAISSIER", "POINT_DE_VENTE");
 
+    // /register est accessible anonymement (voir UserController) : n'accepter ici que des rôles
+    // sans privilège d'administration, pour empêcher un attaquant de s'auto-attribuer ADMIN/MANAGER
+    // via un POST forgé, en attendant qu'un admin active le compte sans y prêter attention.
+    private static final Set<String> SELF_REGISTERABLE_ROLES = Set.of(
+            "BOULANGER", "MAGASINIER", "CAISSIER", "POINT_DE_VENTE");
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PointDeVenteRepository pointDeVenteRepository;
@@ -53,7 +59,7 @@ public class UserService {
             user.setActive(true);
         } else {
             String role = request.getRole();
-            user.setRole(role != null && VALID_ROLES.contains(role) ? role : "BOULANGER");
+            user.setRole(role != null && SELF_REGISTERABLE_ROLES.contains(role) ? role : "BOULANGER");
             user.setActive(false);
         }
         user.setPassword(passwordEncoder.encode(request.getPassword()));

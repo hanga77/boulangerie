@@ -63,6 +63,57 @@ class UserServiceTest {
     }
 
     @Test
+    void registerUser_role_admin_demande_est_retrograde_en_boulanger() {
+        // /register est accessible anonymement : un attaquant ne doit pas pouvoir
+        // s'auto-attribuer ADMIN via un POST forgé (role n'est pas dans le formulaire
+        // mais rien n'empêche un client HTTP direct de l'envoyer).
+        when(userRepository.count()).thenReturn(5L);
+        when(passwordEncoder.encode(anyString())).thenReturn("hashed");
+        when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("attaquant");
+        request.setPassword("password123");
+        request.setRole("ADMIN");
+
+        userService.registerUser(request);
+
+        verify(userRepository).save(argThat(u -> "BOULANGER".equals(u.getRole())));
+    }
+
+    @Test
+    void registerUser_role_manager_demande_est_retrograde_en_boulanger() {
+        when(userRepository.count()).thenReturn(5L);
+        when(passwordEncoder.encode(anyString())).thenReturn("hashed");
+        when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("jean");
+        request.setPassword("password123");
+        request.setRole("MANAGER");
+
+        userService.registerUser(request);
+
+        verify(userRepository).save(argThat(u -> "BOULANGER".equals(u.getRole())));
+    }
+
+    @Test
+    void registerUser_role_sans_privilege_est_accepte() {
+        when(userRepository.count()).thenReturn(5L);
+        when(passwordEncoder.encode(anyString())).thenReturn("hashed");
+        when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("caissier1");
+        request.setPassword("password123");
+        request.setRole("CAISSIER");
+
+        userService.registerUser(request);
+
+        verify(userRepository).save(argThat(u -> "CAISSIER".equals(u.getRole())));
+    }
+
+    @Test
     void registerUser_encode_le_mot_de_passe() {
         when(userRepository.count()).thenReturn(0L);
         when(passwordEncoder.encode("mdpClair")).thenReturn("mdpHashé");
