@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -15,10 +16,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Rate limit login (fenêtre glissante).
- */
 @Component
+@Profile("refonte-security")
 public class LoginRateLimitFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(LoginRateLimitFilter.class);
@@ -31,33 +30,26 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-
         if ("/login".equals(request.getServletPath()) && "POST".equals(request.getMethod())) {
             String ip = clientIp(request);
             AttemptRecord record = attempts.computeIfAbsent(ip, k -> new AttemptRecord());
             long now = Instant.now().getEpochSecond();
-
             if (now - record.windowStart > WINDOW_SECONDS) {
                 record.count.set(0);
                 record.windowStart = now;
             }
-
             if (record.count.incrementAndGet() > MAX_ATTEMPTS) {
-                log.warn("Trop de tentatives de connexion depuis IP {} ({} essais)", ip, record.count.get());
-                response.sendError(HttpServletResponse.SC_TOO_MANY_REQUESTS,
-                        "Trop de tentatives. Réessayez dans 5 minutes.");
+                log.warn("Trop de tentatives depuis IP {}", ip);
+                response.sendError(429, "Trop de tentatives. Réessayez dans 5 minutes.");
                 return;
             }
         }
-
         filterChain.doFilter(request, response);
     }
 
     private String clientIp(HttpServletRequest request) {
         String xff = request.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isBlank()) {
-            return xff.split(",")[0].trim();
-        }
+        if (xff != null && !xff.isBlank()) return xff.split(",")[0].trim();
         return request.getRemoteAddr();
     }
 

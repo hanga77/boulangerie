@@ -2,6 +2,7 @@ package lab.hang.Gestion.boulangerie.infrastructure.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -19,14 +20,13 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 /**
- * Configuration sécurité durcie pour la refonte.
- * - Swagger fermé en prod
- * - Headers de sécurité
- * - Hiérarchie de rôles complète
+ * Activé uniquement avec le profil Spring {@code refonte-security}
+ * pour ne pas entrer en collision avec SecurityConfig existant.
  */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
+@Profile("refonte-security")
 public class SecurityConfigV2 {
 
     private final LoginRateLimitFilter loginRateLimitFilter;
@@ -38,8 +38,8 @@ public class SecurityConfigV2 {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http,
-                                           HandlerMappingIntrospector introspector) throws Exception {
+    public SecurityFilterChain filterChainV2(HttpSecurity http,
+                                             HandlerMappingIntrospector introspector) throws Exception {
         MvcRequestMatcher.Builder mvc = new MvcRequestMatcher.Builder(introspector);
         boolean isProd = environment.acceptsProfiles(Profiles.of("prod"));
 
@@ -49,66 +49,40 @@ public class SecurityConfigV2 {
                     auth.requestMatchers(mvc.pattern("/login")).permitAll();
                     auth.requestMatchers(mvc.pattern("/css/**"), mvc.pattern("/js/**"),
                             mvc.pattern("/images/**"), mvc.pattern("/webfonts/**")).permitAll();
-
                     if (!isProd) {
                         auth.requestMatchers(mvc.pattern("/swagger-ui/**"),
-                                mvc.pattern("/swagger-ui.html"),
                                 mvc.pattern("/v3/api-docs/**")).permitAll();
                     }
-
                     auth.requestMatchers(mvc.pattern("/guichet/**")).hasRole("CAISSIER");
-                    auth.requestMatchers(mvc.pattern("/matieres-premieres/**"))
-                            .hasAnyRole("ADMIN", "MANAGER", "MAGASINIER");
+                    auth.requestMatchers(mvc.pattern("/matieres-premieres/**"),
+                                    mvc.pattern("/api/cycle/**"))
+                            .hasAnyRole("ADMIN", "MANAGER", "MAGASINIER", "BOULANGER");
                     auth.requestMatchers(mvc.pattern("/production/**"))
                             .hasAnyRole("ADMIN", "MANAGER", "BOULANGER");
-                    auth.requestMatchers(mvc.pattern("/commandes/**"))
-                            .hasAnyRole("ADMIN", "MANAGER", "BOULANGER");
-                    auth.requestMatchers(mvc.pattern("/livraisons/**"),
-                                    mvc.pattern("/ventes-libres/**"),
-                                    mvc.pattern("/finances/**"),
-                                    mvc.pattern("/comptabilite/**"),
-                                    mvc.pattern("/employes/**"),
-                                    mvc.pattern("/fournisseurs/**"),
-                                    mvc.pattern("/rapports/**"))
-                            .hasAnyRole("ADMIN", "MANAGER");
-                    auth.requestMatchers(mvc.pattern("/admin/**")).hasAnyRole("SUPERADMIN", "ADMIN");
                     auth.anyRequest().authenticated();
                 })
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/dashboard", true)
-                        .permitAll()
-                )
+                .formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/dashboard", true).permitAll())
                 .logout(logout -> logout
                         .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                         .logoutSuccessUrl("/login")
                         .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID")
-                        .permitAll()
-                )
+                        .permitAll())
                 .headers(headers -> headers
-                        .contentSecurityPolicy(csp -> csp
-                                .policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"))
-                        .referrerPolicy(ref -> ref
-                                .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
-                        .frameOptions(frame -> frame.sameOrigin())
-                )
-                .sessionManagement(session -> session
-                        .maximumSessions(3)
-                        .maxSessionsPreventsLogin(false)
-                );
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"))
+                        .referrerPolicy(ref -> ref.policy(
+                                ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)));
 
         return http.build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoderV2() {
         return new BCryptPasswordEncoder(12);
     }
 
     @Bean
-    public RoleHierarchy roleHierarchy() {
+    public RoleHierarchy roleHierarchyV2() {
         return RoleHierarchyImpl.fromHierarchy("""
                 ROLE_SUPERADMIN > ROLE_ADMIN
                 ROLE_ADMIN > ROLE_MANAGER
