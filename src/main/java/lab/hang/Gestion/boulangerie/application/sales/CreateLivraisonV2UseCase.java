@@ -6,6 +6,8 @@ import lab.hang.Gestion.boulangerie.domain.production.ProductionLigneProduit;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionStatus;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionV2;
 import lab.hang.Gestion.boulangerie.domain.sales.LivraisonV2;
+import lab.hang.Gestion.boulangerie.dto.FactureDTO;
+import lab.hang.Gestion.boulangerie.service.FacturationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,18 +24,20 @@ public class CreateLivraisonV2UseCase {
     private final SalesPersistencePort salesPort;
     private final CatalogSalesPort catalogPort;
     private final FinancePort financePort;
+    private final FacturationService facturationService;
 
     public CreateLivraisonV2UseCase(ProductionPersistencePort productionPort,
                                     SalesPersistencePort salesPort,
                                     CatalogSalesPort catalogPort,
-                                    FinancePort financePort) {
+                                    FinancePort financePort,
+                                    FacturationService facturationService) {
         this.productionPort = productionPort;
         this.salesPort = salesPort;
         this.catalogPort = catalogPort;
         this.financePort = financePort;
+        this.facturationService = facturationService;
     }
 
-    /** produitId → (quantite, prixVente) */
     public record LigneCmd(int quantite, double prixVente) {}
 
     public record Command(
@@ -88,6 +92,15 @@ public class CreateLivraisonV2UseCase {
         productionPort.save(production);
         LivraisonV2 saved = salesPort.saveLivraison(livraison);
 
+        // Facture automatique (comme module V1)
+        FactureDTO factureDTO = new FactureDTO();
+        factureDTO.setType("VENTE");
+        factureDTO.setMontantHT(saved.getMontantTotal());
+        factureDTO.setMontantTVA(0.0);
+        factureDTO.setDateEmission(saved.getDateLivraison());
+        factureDTO.setDateEcheance(saved.getDateLivraison().plusDays(30));
+        facturationService.creerFacture(factureDTO);
+
         if (cmd.enregistrerRevenu() && saved.getMontantTotal() > 0) {
             var compte = financePort.comptePrincipal();
             financePort.enregistrerTransaction(
@@ -96,8 +109,6 @@ public class CreateLivraisonV2UseCase {
                     "Livraison V2 #" + saved.getId() + " — " + saved.getNomClient(),
                     compte.id()
             );
-            // crédit compte : on utilise enregistrerTransaction + inverse debit via solde+
-            // FinancePort n'a que debiterCompte — on ajoute crédit via adapter (voir JpaFinanceAdapter)
             salesPort.crediterCompte(compte.id(), saved.getMontantTotal());
             saved.setRevenuEnregistre(true);
             saved = salesPort.saveLivraison(saved);

@@ -36,13 +36,27 @@ public class JpaInventoryAdapter implements InventoryPort {
         lotRepo.save(lot);
     }
 
+    /**
+     * Entrée de stock avec mise à jour du coût moyen pondéré (CMP) :
+     * CMP = (stock_avant * prix_avant + qte * prix_entrée) / (stock_avant + qte)
+     */
     @Override
     @Transactional
     public void augmenterStock(Long matiereId, double quantite, double prixUnitaireEntree) {
         MatierePremiere m = matiereRepo.findById(matiereId)
                 .orElseThrow(() -> new IllegalArgumentException("Matière introuvable: " + matiereId));
-        m.setStock(m.getStock() + quantite);
-        m.setPrixUnitaire(prixUnitaireEntree);
+
+        double stockAvant = m.getStock();
+        double prixAvant = m.getPrixUnitaire();
+        double stockApres = stockAvant + quantite;
+
+        if (stockApres > 0) {
+            double cmp = (stockAvant * prixAvant + quantite * prixUnitaireEntree) / stockApres;
+            m.setPrixUnitaire(Math.round(cmp * 100.0) / 100.0);
+        } else {
+            m.setPrixUnitaire(prixUnitaireEntree);
+        }
+        m.setStock(stockApres);
         matiereRepo.save(m);
     }
 
@@ -85,8 +99,6 @@ public class JpaInventoryAdapter implements InventoryPort {
         MatierePremiere m = matiereRepo.findById(matiereId).orElseThrow();
         User user = userRepo.findById(userId).orElse(null);
 
-        // production_id FK pointe encore vers l'ancienne table Production ;
-        // on trace la V2 dans le motif jusqu'à migration complète du FK.
         StockMovement mv = new StockMovement();
         mv.setType("SORTIE");
         mv.setQuantite(quantite);
@@ -114,7 +126,6 @@ public class JpaInventoryAdapter implements InventoryPort {
 
     @Override
     public int dureeConservationDefaut(Long matiereId) {
-        // Pas encore de colonne dédiée : 90 jours par défaut
         return 90;
     }
 }

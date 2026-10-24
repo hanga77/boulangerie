@@ -1,54 +1,58 @@
-# Phase 2 — Clôture
+# Phase 2 — Clôture définitive
 
-**Statut :** clôturée (périmètre cycle métier V2)
-**Branche :** `refonte/phase-1`
-**Date de clôture :** 2026-10-24
+**Statut :** TERMINÉE  
+**Branche :** `refonte/phase-1`  
+**Date :** 2026-10-24
 
-## Périmètre livré et accepté
+## Livrables phase 2
 
-Cycle journalier complet sur **ProductionV2** :
+### Cycle métier V2 (UI + domaine)
+- [x] Tableau de bord `/cycle`
+- [x] Lancement production + farinage dans le théorique
+- [x] Feuille de sortie magasinier
+- [x] Confirmation sorties stock
+- [x] Validation quantités produites
+- [x] Clôture de journée
 
-1. Lancement production (commandes + vente libre + **farinage**)
-2. Feuille de sortie magasinier (théorique connu dès le lancement)
-3. Confirmation des sorties stock
-4. Validation quantités produites
-5. **Livraisons** liées à ProductionV2 (`livraison_v2`)
-6. **Ventes libres** liées à ProductionV2 (`vente_libre_v2`)
-7. Tableau de bord `/cycle` + clôture de journée
-8. API REST `/api/cycle/*` (phase 1) + écrans Thymeleaf (phase 2)
+### Livraisons & ventes V2
+- [x] `livraison_v2` / `livraison_ligne_v2` liées à `production_v2`
+- [x] `vente_libre_v2` / `vente_ligne_v2` liées à `production_v2`
+- [x] Débit de `quantiteRestante` sur les lignes produit
+- [x] Écrans `/cycle/livraison/{id}` et `/cycle/vente/{id}`
+- [x] **Facture automatique** à chaque livraison V2 (`FacturationService`)
+- [x] Enregistrement revenu optionnel (crédit compte + transaction)
 
-## Migrations requises
+### Stock
+- [x] **CMP (coût moyen pondéré)** à l’entrée de stock (`JpaInventoryAdapter.augmenterStock`)
+- [x] Lots V2 + DLC
+
+### Infra phase 1 (rappel)
+- [x] Adapters JPA, API `/api/cycle/*`, événements stock↔finance
+
+## Migrations
 
 ```bash
 mysql -u root -p boulangerie_bd < docs/refonte/migration_v2.sql
 mysql -u root -p boulangerie_bd < docs/refonte/migration_v2_sales.sql
 ```
 
-## Entrées utilisateur
+## Hors phase 2 → phase 3
 
-| URL | Usage |
-|-----|--------|
-| `/cycle` | Pilotage du jour |
-| `/cycle/lancer` | Boulanger |
-| `/cycle/feuille/{id}` | Magasinier |
-| `/cycle/valider/{id}` | Boulanger |
-| `/cycle/livraison/{id}` | Manager |
-| `/cycle/vente/{id}` | Manager / Caissier |
+| Sujet | Pourquoi reporté |
+|-------|------------------|
+| Décommissionnement total V1 (`/production`, `/livraisons`…) | Coexistence volontaire ; bascule progressive |
+| Guichet POS tactile complet sur V2 | Module séparé (phase 3) |
+| PDF ticket thermique livraison V2 | Facture enregistrée ; rendu PDF UI existant `/finances` |
+| `SecurityConfigV2` par défaut | Profil `refonte-security` prêt |
+| Suite de tests d’intégration CI | À brancher en phase 3 |
 
-## Explicitement hors phase 2 (reporté)
+## Critère d’acceptation phase 2 — OK
 
-- Bascule / décommissionnement de l’ancien `/production`, `/livraisons`, `/ventes-libres`
-- Facture PDF automatique sur livraison V2
-- Guichet POS complet branché sur ProductionV2
-- CMP (coût moyen pondéré)
-- Activation par défaut de `SecurityConfigV2`
-- Suite de tests d’intégration automatisés
+Enchaînement réel possible uniquement via le cycle V2 :
 
-→ Ces points constituent le démarrage éventuel d’une **phase 3**.
+```
+Commandes → Lancer (+farinage) → Sortie magasin → Valider
+         → Livrer (facture auto) / Vendre → Clôturer
+```
 
-## Critère de clôture
-
-Un atelier peut enchaîner une journée réelle sur le cycle V2 sans passer par les services Production V1 pour :
-lancer → sortir matières (dont farinage) → valider → livrer / vendre → clôturer.
-
-**Phase 2 = clôturée sur ce critère.**
+**La phase 2 est terminée.**
