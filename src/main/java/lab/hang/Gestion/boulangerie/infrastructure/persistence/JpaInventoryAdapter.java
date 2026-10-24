@@ -36,10 +36,6 @@ public class JpaInventoryAdapter implements InventoryPort {
         lotRepo.save(lot);
     }
 
-    /**
-     * Entrée de stock avec mise à jour du coût moyen pondéré (CMP) :
-     * CMP = (stock_avant * prix_avant + qte * prix_entrée) / (stock_avant + qte)
-     */
     @Override
     @Transactional
     public void augmenterStock(Long matiereId, double quantite, double prixUnitaireEntree) {
@@ -105,7 +101,8 @@ public class JpaInventoryAdapter implements InventoryPort {
         mv.setDate(LocalDate.now());
         mv.setMatierePremiere(m);
         mv.setUser(user);
-        mv.setMotif("SORTIE_PROD_V2:" + productionId);
+        mv.setMotif("SORTIE_PROD_V2");
+        mv.setProductionV2Id(productionId); // phase 4 — traçabilité V2
         movementRepo.save(mv);
     }
 
