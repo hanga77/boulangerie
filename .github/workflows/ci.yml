@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main, "refonte/**" ]
+  pull_request:
+    branches: [ master, main, "refonte/**" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: maven
+
+      - name: Build & unit tests
+        run: ./mvnw -B -q test
+
+      - name: Package (skip tests already run)
+        run: ./mvnw -B -q package -DskipTests
