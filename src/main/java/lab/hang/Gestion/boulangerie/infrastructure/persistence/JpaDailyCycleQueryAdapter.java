@@ -46,7 +46,6 @@ public class JpaDailyCycleQueryAdapter implements DailyCycleQueryPort {
 
     @Override
     public int countLivraisonsPourProduction(Long productionId) {
-        // Les livraisons pointent encore vers l'ancienne Production — compteur à 0 en V2 pure
         return 0;
     }
 
@@ -54,7 +53,7 @@ public class JpaDailyCycleQueryAdapter implements DailyCycleQueryPort {
     public int countVentesGuichet(LocalDate date) {
         try {
             return (int) venteLibreRepo.findAll().stream()
-                    .filter(v -> v.getDate() != null && v.getDate().equals(date))
+                    .filter(v -> v.getDateVente() != null && v.getDateVente().equals(date))
                     .count();
         } catch (Exception e) {
             return 0;
