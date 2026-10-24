@@ -2,7 +2,6 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-<!-- ===== HEAD FRAGMENT ===== -->
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,11 +13,9 @@
 
 <body class="d-flex flex-column min-vh-100">
 
-<!-- ===== NAVBAR FRAGMENT ===== -->
 <nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
     <div class="container-fluid px-3">
 
-        <!-- Brand -->
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/dashboard">
             <img th:if="${customLogoUrl != null}" th:src="${customLogoUrl}"
                  alt="Logo" style="height:32px; width:auto; object-fit:contain;">
@@ -26,14 +23,12 @@
             <span class="d-none d-sm-inline">Gestiboul</span>
         </a>
 
-        <!-- Hamburger -->
         <button class="navbar-toggler border-0" type="button"
                 data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Menu">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <!-- Nav links -->
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto gap-0 gap-lg-1 py-2 py-lg-0">
                 <li class="nav-item">
@@ -51,33 +46,50 @@
                         <i class="fas fa-shopping-cart me-1"></i>Commandes
                     </a>
                 </li>
-                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER','MAGASINIER')">
-                    <a class="nav-link rounded px-2" href="/cycle">
+
+                <!-- Flux principal V2 -->
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER','MAGASINIER','CAISSIER')">
+                    <a class="nav-link rounded px-2 fw-semibold" href="/cycle">
                         <i class="fas fa-sync-alt me-1"></i>Cycle du jour
                     </a>
                 </li>
-                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')">
-                    <a class="nav-link rounded px-2" href="/production">
-                        <i class="fas fa-industry me-1"></i>Production
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER','CAISSIER')">
+                    <a class="nav-link rounded px-2" href="/cycle/caisse">
+                        <i class="fas fa-cash-register me-1"></i>Caisse
                     </a>
                 </li>
-                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
-                    <a class="nav-link rounded px-2" href="/livraisons">
-                        <i class="fas fa-truck me-1"></i>Livraisons
+
+                <!-- Modules historiques (V1) regroupés -->
+                <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')">
+                    <a class="nav-link rounded px-2 dropdown-toggle" href="#"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-archive me-1"></i>Historique
                     </a>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li>
+                            <a class="dropdown-item" href="/production">
+                                <i class="fas fa-industry me-2"></i>Productions (ancien)
+                            </a>
+                        </li>
+                        <li sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                            <a class="dropdown-item" href="/livraisons">
+                                <i class="fas fa-truck me-2"></i>Livraisons (ancien)
+                            </a>
+                        </li>
+                        <li sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                            <a class="dropdown-item" href="/ventes-libres">
+                                <i class="fas fa-store me-2"></i>Ventes libres (ancien)
+                            </a>
+                        </li>
+                    </ul>
                 </li>
-                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
-                    <a class="nav-link rounded px-2" href="/ventes-libres">
-                        <i class="fas fa-store me-1"></i>Ventes
-                    </a>
-                </li>
+
                 <li class="nav-item">
                     <a class="nav-link rounded px-2" href="/bulletins/mes-bulletins">
                         <i class="fas fa-file-invoice-dollar me-1"></i>Mes bulletins
                     </a>
                 </li>
 
-                <!-- Gestion dropdown -->
                 <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMIN','MANAGER','MAGASINIER')">
                     <a class="nav-link rounded px-2 dropdown-toggle" href="#"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -117,7 +129,6 @@
                     </ul>
                 </li>
 
-                <!-- Rapports dropdown -->
                 <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')">
                     <a class="nav-link rounded px-2 dropdown-toggle" href="#"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -161,7 +172,6 @@
                         <i class="fas fa-calculator me-1"></i>Comptabilité
                     </a>
                 </li>
-                <!-- Admin dropdown -->
                 <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link rounded px-2 dropdown-toggle" href="#"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -198,7 +208,6 @@
                 </li>
             </ul>
 
-            <!-- User + logout -->
             <ul class="navbar-nav align-items-lg-center gap-1 pb-2 pb-lg-0">
                 <li class="nav-item">
                     <span class="nav-link text-white-50 small">
@@ -219,7 +228,19 @@
     </div>
 </nav>
 
-<!-- ===== FLASH MESSAGES FRAGMENT (toasts) ===== -->
+<!-- Bandeau modules V1 (legacy) -->
+<div th:fragment="legacy-banner(message, ctaUrl, ctaLabel)"
+     class="alert alert-warning border-0 rounded-0 mb-0 no-print" role="status">
+    <div class="container-fluid px-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="small mb-0">
+            <i class="fas fa-info-circle me-1"></i>
+            <span th:text="${message}">Module historique.</span>
+            Le flux recommandé est le <strong>Cycle du jour</strong>.
+        </div>
+        <a th:href="${ctaUrl}" class="btn btn-sm btn-primary" th:text="${ctaLabel}">Aller au cycle</a>
+    </div>
+</div>
+
 <div th:fragment="flash-messages"
      th:with="successTxt=${successMessage != null ? successMessage : success},
               warningTxt=${warningMessage != null ? warningMessage : warning},
@@ -245,7 +266,6 @@
     </div>
 </div>
 
-<!-- ===== FOOTER FRAGMENT ===== -->
 <footer th:fragment="footer" class="mt-auto py-3 bg-light border-top no-print">
     <div class="container-fluid px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <span class="text-muted small">
@@ -258,7 +278,6 @@
     </div>
 </footer>
 
-<!-- ===== SCRIPTS FRAGMENT ===== -->
 <div th:fragment="scripts">
     <footer class="mt-auto py-2 bg-light border-top no-print" style="font-size:.8rem">
         <div class="container-fluid px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">

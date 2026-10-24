@@ -6,24 +6,16 @@
 ## Backlog
 
 ### P0 — Démarrage ✅
-- [x] Roadmap + caisse POS V2
-
 ### P1 — Sécurité prod ✅
-- [x] SecurityConfig durci, rate-limit 429, ProdLicenseGuard
-
 ### P2 — Documents ✅
-- [x] Colonnes `facture_id` / `facture_numero` sur `livraison_v2`
-- [x] `FacturationService.creerFactureAndReturn` → numéro renvoyé et stocké
-- [x] PDF facture : `GET /cycle/livraison/{id}/pdf`
-- [x] Affichage n° facture + bouton PDF sur l'écran livraison V2
 
-Migration :
-```bash
-mysql -u root -p boulangerie_bd < docs/refonte/migration_v2_facture_livraison.sql
-```
-
-### P3 — Bascule UX
-- [ ] Menus centrés cycle ; bandeaux legacy
+### P3 — Bascule UX ✅
+- [x] Menu principal : **Cycle du jour** + **Caisse** mis en avant
+- [x] Anciens modules regroupés sous **Historique** (Production / Livraisons / Ventes libres)
+- [x] Fragment `legacy-banner` réutilisable
+- [x] Bandeaux sur listes production & livraisons V1 + CTA vers `/cycle`
+- [x] Boutons « via Cycle V2 » sur les écrans legacy
 
 ### P4 — Qualité
-- [ ] Tests d’intégration + CI
+- [ ] Tests d’intégration cycle
+- [ ] CI GitHub Actions
