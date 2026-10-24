@@ -1,91 +1,109 @@
 # Cycle journalier Gestiboul
 
-Flux opérationnel recommandé pour une journée de production.
+## Principe clé : la feuille de sortie magasinier
+
+**Dès le lancement de la production**, le système connaît déjà tout ce que le
+magasinier doit fournir au boulanger :
+
+1. Matières calculées depuis les **recettes** des produits commandés
+2. Matières des **quotas vente libre**
+3. **Farinage du lot** (fleurage / farine de travail) saisi au lancement
+
+→ Cette liste = `GetMaterialsToSupplyUseCase`  
+→ La sortie magasin confirme ces quantités (avec ajustement possible) via
+  `ConfirmAllTheoreticalExitsUseCase` ou ligne par ligne.
 
 ```
-┌─────────────┐    ┌──────────────┐    ┌──────────────┐    ┌─────────────┐
-│  1.COMMANDES │───►│ 2.PRODUCTION │───►│ 3.VALIDATION │───►│ 4.SORTIE    │
-│   Manager    │    │  Boulanger   │    │  Boulanger   │    │  Magasinier │
-└─────────────┘    └──────────────┘    └──────────────┘    └─────────────┘
-                                                                  │
-                   ┌──────────────┐    ┌──────────────┐           │
-                   │ 7.CLÔTURE    │◄───│ 6.VENTES     │◄──────────┘
-                   │   Manager    │    │  Caissier    │    ┌─────────────┐
-                   └──────────────┘    └──────────────┘◄───│ 5.LIVRAISONS│
-                                                           │   Manager   │
-                                                           └─────────────┘
+Commandes + recettes + farinage
+        │
+        ▼
+ StartDailyProduction  ──────►  théorique matières FIGÉ
+        │                              │
+        │                              ▼
+        │                    Feuille de sortie MAGASINIER
+        │                    (y compris farinage du lot)
+        │                              │
+        ▼                              ▼
+ Boulanger produit              Confirm sortie stock
+        │                              │
+        ▼                              │
+ Validation quantités ◄────────────────┘
+        │
+        ▼
+ Livraisons → Ventes guichet → Clôture
 ```
 
-## Étapes détaillées
+## Étapes
 
 ### 1. Commandes (MANAGER)
-- Saisie des commandes par point de vente pour la date du jour (ou J+1).
-- Chaque ligne = produit + quantité.
-- **Use case / écran** : module commandes existant.
+Saisie par point de vente (produit × quantité).
 
 ### 2. Lancement production (BOULANGER)
-- Agrège toutes les commandes du jour + quotas vente libre.
-- Calcule le **théorique matières** à partir des recettes.
-- Crée `ProductionV2` en statut `EN_COURS`.
-- **Use case** : `StartDailyProductionUseCase`
+`StartDailyProductionUseCase`
 
-### 3. Validation quantités (BOULANGER)
-- Saisie des quantités réellement sorties du four.
-- Optionnel : quantités matières déclarées côté fournil.
-- Comparaison théorique / réel → détection d'écarts (seuil configurable, défaut 10 %).
-- Statut → `VALIDEE`.
-- **Use case** : `ValidateProductionQuantitiesUseCase`
+- Agrège commandes du jour + quotas vente libre
+- Calcule le théorique matières (recettes)
+- **Ajoute le farinage du lot** (`farinageMatiereId` + `farinageQuantite`)
+- Crée `ProductionV2` en `EN_COURS`
 
-### 4. Sortie stock (MAGASINIER)
-- Pour chaque matière de la production, confirmer la quantité réellement sortie du magasin.
-- Obligatoirement liée à la `productionId`.
-- Le théorique est affiché en repère.
-- **Use case** : `ConfirmStockExitForProductionUseCase`
-- La checklist « sorties complètes » = toutes les lignes matière ont un `quantiteMagasinier`.
+À partir de là, le magasinier peut ouvrir la feuille de sortie.
+
+### 3. Sortie stock (MAGASINIER) — *peut se faire en parallèle / juste après le lancement*
+
+`GetMaterialsToSupplyUseCase` → liste :
+
+| Matière | Théorique | Déjà sorti | Reste à sortir | Stock | Farinage ? |
+|---------|-----------|------------|----------------|-------|------------|
+| Farine blé | 45 kg | 0 | 45 kg | 120 kg | oui (lot) |
+| Levure | 800 g | 0 | 800 g | 2 kg | non |
+| … | | | | | |
+
+Le magasinier confirme :
+
+- **tout le théorique d’un coup** : `ConfirmAllTheoreticalExitsUseCase`
+- **ou ligne par ligne** : `ConfirmStockExitForProductionUseCase`
+
+Le farinage fait partie du théorique : **il doit être sorti comme les autres matières**.
+
+### 4. Validation quantités produites (BOULANGER)
+`ValidateProductionQuantitiesUseCase` — quantités réelles sorties du four, détection d’écarts.
 
 ### 5. Livraisons (MANAGER)
-- Création des livraisons vers les points de vente à partir des quantités restantes.
-- Facture PDF automatique (module existant).
-- Décrémente `quantiteRestante` des lignes produit.
+Vers les points de vente, à partir des quantités restantes.
 
 ### 6. Ventes guichet (CAISSIER)
-- Vente libre sur le stock restant de la production du jour (ou veille).
-- Espèces / Mobile Money.
-- Ticket thermique.
+Reste de production du jour / veille.
 
 ### 7. Clôture (MANAGER)
-- Vérifie production validée + sorties stock complètes (sauf `forcer=true`).
-- Passe la production en `CLOTUREE`.
-- **Use case** : `CloseDailyCycleUseCase`
+`CloseDailyCycleUseCase` — exige en principe validation + sorties stock complètes.
 
-## Tableau de bord
-
-`GetDailyCycleStatusUseCase` expose un `DailyCycleSnapshot` :
-
-| Champ | Signification |
-|-------|----------------|
-| `etapeCourante` | Prochaine étape à faire |
-| `checklist` | Map étape → fait / pas fait |
-| `nbLignesMatiereConfirmees / nbLignesMatiere` | Avancement magasinier |
-| `quantiteProduitsRestants` | Encore vendable / livrable |
-
-À brancher sur le dashboard (`/dashboard`) pour un pilotage en temps réel.
-
-## Règles métier importantes
-
-1. **Une seule production par jour** (contrainte dans `StartDailyProductionUseCase`).
-2. **Sortie stock sans production** = interdite pour les SORTIE liées (traçabilité).
-3. **Clôture bloquée** si validation ou sorties incomplètes, sauf forçage manager.
-4. Les ventes guichet peuvent démarrer dès que la production est validée (pas besoin d'attendre toutes les livraisons).
-
-## Enchaînement API / services (cible)
+## Ordre réel recommandé en atelier
 
 ```
-StartDailyProductionUseCase
-    → ValidateProductionQuantitiesUseCase
-        → ConfirmStockExitForProductionUseCase (× N matières)
-            → (livraisons / ventes — modules existants)
-                → CloseDailyCycleUseCase
+Matin tôt
+  Manager  : commandes (souvent la veille)
+  Boulanger: lance la production (+ saisit le farinage du lot)
+  Magasinier: voit tout de suite la feuille de sortie (recettes + farinage)
+             et fournit le fournil
+  Boulanger: fabrique, puis valide les quantités produites
+Journée
+  Manager  : livraisons
+  Caissier : ventes
+Soir
+  Manager  : clôture
 ```
 
-Suivi permanent : `GetDailyCycleStatusUseCase.execute(LocalDate.now())`.
+Le magasinier **n’attend pas** la fin de la cuisson pour savoir quoi sortir :
+le théorique (commandes + farinage) est connu dès l’étape 2.
+
+## Use cases liés
+
+| Use case | Acteur |
+|----------|--------|
+| `StartDailyProductionUseCase` | Boulanger |
+| `GetMaterialsToSupplyUseCase` | Magasinier (lecture feuille) |
+| `ConfirmAllTheoreticalExitsUseCase` | Magasinier (sortie globale) |
+| `ConfirmStockExitForProductionUseCase` | Magasinier (ligne à ligne) |
+| `ValidateProductionQuantitiesUseCase` | Boulanger |
+| `GetDailyCycleStatusUseCase` | Tous (dashboard) |
+| `CloseDailyCycleUseCase` | Manager |

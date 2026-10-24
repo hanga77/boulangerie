@@ -22,6 +22,9 @@ public interface InventoryPort {
 
     String nomMatiere(Long matiereId);
 
+    /** Unité de mesure (kg, g, L…) pour affichage feuille de sortie. */
+    String uniteMesure(Long matiereId);
+
     double stockActuel(Long matiereId);
 
     int dureeConservationDefaut(Long matiereId);
