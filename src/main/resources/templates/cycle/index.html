@@ -27,7 +27,6 @@
         </form>
     </div>
 
-    <!-- Checklist -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-4 col-lg" th:each="entry : ${snap.checklist()}">
             <div class="card shadow-sm h-100"
@@ -42,50 +41,42 @@
         </div>
     </div>
 
-    <!-- Compteurs -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="text-muted small">Commandes</div>
-                    <div class="fs-4 fw-bold">
-                        <span th:text="${snap.nbCommandesTraitees()}">0</span>
-                        / <span th:text="${snap.nbCommandes()}">0</span>
-                    </div>
+            <div class="card shadow-sm"><div class="card-body">
+                <div class="text-muted small">Commandes</div>
+                <div class="fs-4 fw-bold">
+                    <span th:text="${snap.nbCommandesTraitees()}">0</span> /
+                    <span th:text="${snap.nbCommandes()}">0</span>
                 </div>
-            </div>
+            </div></div>
         </div>
         <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="text-muted small">Sorties magasin</div>
-                    <div class="fs-4 fw-bold">
-                        <span th:text="${snap.nbLignesMatiereConfirmees()}">0</span>
-                        / <span th:text="${snap.nbLignesMatiere()}">0</span>
-                    </div>
+            <div class="card shadow-sm"><div class="card-body">
+                <div class="text-muted small">Sorties magasin</div>
+                <div class="fs-4 fw-bold">
+                    <span th:text="${snap.nbLignesMatiereConfirmees()}">0</span> /
+                    <span th:text="${snap.nbLignesMatiere()}">0</span>
                 </div>
-            </div>
+            </div></div>
         </div>
         <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="text-muted small">Produits restants</div>
-                    <div class="fs-4 fw-bold" th:text="${snap.quantiteProduitsRestants()}">0</div>
-                </div>
-            </div>
+            <div class="card shadow-sm"><div class="card-body">
+                <div class="text-muted small">Produits restants</div>
+                <div class="fs-4 fw-bold" th:text="${snap.quantiteProduitsRestants()}">0</div>
+            </div></div>
         </div>
         <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="text-muted small">Production</div>
-                    <div class="fs-5 fw-bold"
-                         th:text="${snap.productionStatus() != null ? snap.productionStatus().name() : '—'}">—</div>
+            <div class="card shadow-sm"><div class="card-body">
+                <div class="text-muted small">Livraisons / Ventes</div>
+                <div class="fs-5 fw-bold">
+                    <span th:text="${snap.nbLivraisons()}">0</span> liv. ·
+                    <span th:text="${snap.nbVentesGuichet()}">0</span> ventes
                 </div>
-            </div>
+            </div></div>
         </div>
     </div>
 
-    <!-- Actions -->
     <div class="card shadow-sm">
         <div class="card-header bg-white py-3">
             <h6 class="mb-0 fw-semibold"><i class="fas fa-bolt me-2 text-warning"></i>Actions</h6>
@@ -110,6 +101,20 @@
                th:href="@{/cycle/valider/{id}(id=${snap.productionId()})}"
                class="btn btn-warning">
                 <i class="fas fa-check me-1"></i>Valider les quantités
+            </a>
+
+            <a th:if="${snap.productionValidee()}"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER')"
+               th:href="@{/cycle/livraison/{id}(id=${snap.productionId()})}"
+               class="btn btn-info text-white">
+                <i class="fas fa-truck me-1"></i>Livraisons
+            </a>
+
+            <a th:if="${snap.productionValidee()}"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER','CAISSIER')"
+               th:href="@{/cycle/vente/{id}(id=${snap.productionId()})}"
+               class="btn btn-success">
+                <i class="fas fa-cash-register me-1"></i>Vente libre
             </a>
 
             <form th:if="${snap.productionLancee() and !snap.cloturee()}"
