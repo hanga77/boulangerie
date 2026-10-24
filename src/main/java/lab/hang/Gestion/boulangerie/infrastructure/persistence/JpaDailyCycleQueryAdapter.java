@@ -16,15 +16,21 @@ public class JpaDailyCycleQueryAdapter implements DailyCycleQueryPort {
 
     private final CommandeRepository commandeRepo;
     private final ProductionV2Repository productionRepo;
+    private final LivraisonV2Repository livraisonV2Repo;
+    private final VenteLibreV2Repository venteV2Repo;
     private final LivraisonRepository livraisonRepo;
     private final VenteLibreRepository venteLibreRepo;
 
     public JpaDailyCycleQueryAdapter(CommandeRepository commandeRepo,
                                      ProductionV2Repository productionRepo,
+                                     LivraisonV2Repository livraisonV2Repo,
+                                     VenteLibreV2Repository venteV2Repo,
                                      LivraisonRepository livraisonRepo,
                                      VenteLibreRepository venteLibreRepo) {
         this.commandeRepo = commandeRepo;
         this.productionRepo = productionRepo;
+        this.livraisonV2Repo = livraisonV2Repo;
+        this.venteV2Repo = venteV2Repo;
         this.livraisonRepo = livraisonRepo;
         this.venteLibreRepo = venteLibreRepo;
     }
@@ -46,11 +52,13 @@ public class JpaDailyCycleQueryAdapter implements DailyCycleQueryPort {
 
     @Override
     public int countLivraisonsPourProduction(Long productionId) {
-        return 0;
+        return livraisonV2Repo.countByProductionV2Id(productionId);
     }
 
     @Override
     public int countVentesGuichet(LocalDate date) {
+        int v2 = venteV2Repo.countByDateVente(date);
+        if (v2 > 0) return v2;
         try {
             return (int) venteLibreRepo.findAll().stream()
                     .filter(v -> v.getDateVente() != null && v.getDateVente().equals(date))
