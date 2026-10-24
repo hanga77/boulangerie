@@ -112,9 +112,16 @@
 
             <a th:if="${snap.productionValidee()}"
                sec:authorize="hasAnyRole('ADMIN','MANAGER','CAISSIER')"
-               th:href="@{/cycle/vente/{id}(id=${snap.productionId()})}"
+               th:href="@{/cycle/caisse/{id}(id=${snap.productionId()})}"
                class="btn btn-success">
-                <i class="fas fa-cash-register me-1"></i>Vente libre
+                <i class="fas fa-cash-register me-1"></i>Caisse
+            </a>
+
+            <a th:if="${snap.productionValidee()}"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER','CAISSIER')"
+               th:href="@{/cycle/vente/{id}(id=${snap.productionId()})}"
+               class="btn btn-outline-success">
+                <i class="fas fa-store me-1"></i>Vente libre
             </a>
 
             <form th:if="${snap.productionLancee() and !snap.cloturee()}"
