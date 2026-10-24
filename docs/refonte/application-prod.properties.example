@@ -7,6 +7,10 @@ spring.datasource.password=${DB_PASSWORD}
 # Licence — OBLIGATOIRE en prod (openssl rand -hex 32)
 app.license.salt=${LICENSE_SALT}
 
+# Phase 3 — activer la config sécu V2 (désactive l'ancienne si vous fusionnez les configs)
+# app.refonte.security-v2=true
+# spring.profiles.active=prod,refonte-security
+
 app.upload-dir=${UPLOAD_DIR:/var/gestiboul/uploads}
 
 server.servlet.session.timeout=30m
