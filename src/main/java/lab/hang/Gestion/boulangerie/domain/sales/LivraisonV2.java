@@ -43,6 +43,13 @@ public class LivraisonV2 {
     @Column(nullable = false)
     private boolean revenuEnregistre = false;
 
+    /** Lien vers la facture émise (phase 3 P2). */
+    @Column(name = "facture_id")
+    private Long factureId;
+
+    @Column(name = "facture_numero", length = 64)
+    private String factureNumero;
+
     @OneToMany(mappedBy = "livraison", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LivraisonLigneV2> lignes = new ArrayList<>();
 

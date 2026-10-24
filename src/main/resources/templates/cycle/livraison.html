@@ -73,9 +73,21 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-white fw-semibold">Livraisons déjà faites</div>
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between" th:each="l : ${livraisons}">
-                        <span>#<span th:text="${l.id}"></span> — <span th:text="${l.nomClient}"></span></span>
-                        <span class="fw-semibold" th:text="${#numbers.formatDecimal(l.montantTotal,0,'COMMA',0,'POINT') + ' XAF'}"></span>
+                    <li class="list-group-item" th:each="l : ${livraisons}">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <div class="fw-semibold">#<span th:text="${l.id}"></span> — <span th:text="${l.nomClient}"></span></div>
+                                <div class="small text-muted" th:if="${l.factureNumero != null}">
+                                    Facture <span class="badge text-bg-light border" th:text="${l.factureNumero}"></span>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-semibold" th:text="${#numbers.formatDecimal(l.montantTotal,0,'COMMA',0,'POINT') + ' XAF'}"></div>
+                                <a th:href="@{/cycle/livraison/{id}/pdf(id=${l.id})}" class="btn btn-sm btn-outline-secondary mt-1">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </a>
+                            </div>
+                        </div>
                     </li>
                     <li class="list-group-item text-muted" th:if="${#lists.isEmpty(livraisons)}">Aucune</li>
                 </ul>

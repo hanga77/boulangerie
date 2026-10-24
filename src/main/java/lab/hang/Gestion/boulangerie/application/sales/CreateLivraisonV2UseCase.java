@@ -92,21 +92,25 @@ public class CreateLivraisonV2UseCase {
         productionPort.save(production);
         LivraisonV2 saved = salesPort.saveLivraison(livraison);
 
-        // Facture automatique (comme module V1)
+        // Facture auto + lien id/numéro sur la livraison
         FactureDTO factureDTO = new FactureDTO();
         factureDTO.setType("VENTE");
         factureDTO.setMontantHT(saved.getMontantTotal());
         factureDTO.setMontantTVA(0.0);
         factureDTO.setDateEmission(saved.getDateLivraison());
         factureDTO.setDateEcheance(saved.getDateLivraison().plusDays(30));
-        facturationService.creerFacture(factureDTO);
+        FactureDTO created = facturationService.creerFactureAndReturn(factureDTO);
+        saved.setFactureId(created.getId());
+        saved.setFactureNumero(created.getNumero());
+        saved = salesPort.saveLivraison(saved);
 
         if (cmd.enregistrerRevenu() && saved.getMontantTotal() > 0) {
             var compte = financePort.comptePrincipal();
             financePort.enregistrerTransaction(
                     "VENTE",
                     saved.getMontantTotal(),
-                    "Livraison V2 #" + saved.getId() + " — " + saved.getNomClient(),
+                    "Livraison V2 #" + saved.getId() + " — facture " + saved.getFactureNumero()
+                            + " — " + saved.getNomClient(),
                     compte.id()
             );
             salesPort.crediterCompte(compte.id(), saved.getMontantTotal());
