@@ -1,11 +1,13 @@
 -- =============================================================================
--- Gestiboul — Migration V2 COMPLÈTE (tout-en-un)
+-- Gestiboul — Migration V2 COMPLÈTE (schéma + colonnes + FK)
 -- Branche : refonte/phase-1
--- Prérequis : backup de boulangerie_bd
 -- Usage :
+--   mysqldump -u root -p boulangerie_bd > backup_avant_v2.sql
 --   mysql -u root -p boulangerie_bd < docs/refonte/migration_v2_all.sql
--- Idempotent : ré-exécutable sans casser si tables/colonnes existent déjà.
+-- Idempotent.
 -- =============================================================================
+
+SET @db := DATABASE();
 
 -- -----------------------------------------------------------------------------
 -- 1. Production V2 + lignes + lots
@@ -52,7 +54,7 @@ CREATE TABLE IF NOT EXISTS lot_v2 (
     CONSTRAINT fk_lot_mat FOREIGN KEY (matiere_premiere_id) REFERENCES matiere_premiere(id)
 );
 
--- Indexes production (ignorer si existent)
+-- Indexes (peut échouer si déjà présents — ignorer Duplicate key)
 CREATE INDEX idx_prod_v2_date   ON production_v2 (date_production);
 CREATE INDEX idx_prod_v2_statut ON production_v2 (statut);
 CREATE INDEX idx_plp_production ON production_ligne_produit (production_id);
@@ -63,7 +65,7 @@ CREATE INDEX idx_lot_matiere    ON lot_v2 (matiere_premiere_id);
 CREATE INDEX idx_lot_dlc        ON lot_v2 (date_peremption);
 
 -- -----------------------------------------------------------------------------
--- 2. Livraisons V2 (+ facture) et ventes V2
+-- 2. Livraisons / ventes V2
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS livraison_v2 (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -114,55 +116,104 @@ CREATE INDEX idx_vente_v2_prod ON vente_libre_v2 (production_v2_id);
 CREATE INDEX idx_vente_v2_date ON vente_libre_v2 (date_vente);
 
 -- -----------------------------------------------------------------------------
--- 3. Colonnes manquantes si tables déjà créées sans facture / stock V2
---    (compatible MySQL 5.7 / 8 — pas de ADD COLUMN IF NOT EXISTS)
+-- 3. Colonnes ALTER (si tables déjà créées sans elles)
 -- -----------------------------------------------------------------------------
-
--- livraison_v2.facture_id
-SET @db := DATABASE();
 SET @exists := (
   SELECT COUNT(*) FROM information_schema.COLUMNS
   WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'livraison_v2' AND COLUMN_NAME = 'facture_id'
 );
-SET @sql := IF(@exists = 0,
-  'ALTER TABLE livraison_v2 ADD COLUMN facture_id BIGINT NULL',
-  'SELECT ''facture_id already exists'' AS info');
+SET @sql := IF(@exists = 0, 'ALTER TABLE livraison_v2 ADD COLUMN facture_id BIGINT NULL', 'SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- livraison_v2.facture_numero
 SET @exists := (
   SELECT COUNT(*) FROM information_schema.COLUMNS
   WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'livraison_v2' AND COLUMN_NAME = 'facture_numero'
 );
-SET @sql := IF(@exists = 0,
-  'ALTER TABLE livraison_v2 ADD COLUMN facture_numero VARCHAR(64) NULL',
-  'SELECT ''facture_numero already exists'' AS info');
+SET @sql := IF(@exists = 0, 'ALTER TABLE livraison_v2 ADD COLUMN facture_numero VARCHAR(64) NULL', 'SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- stock_movement.production_v2_id
 SET @exists := (
   SELECT COUNT(*) FROM information_schema.COLUMNS
   WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'stock_movement' AND COLUMN_NAME = 'production_v2_id'
 );
-SET @sql := IF(@exists = 0,
-  'ALTER TABLE stock_movement ADD COLUMN production_v2_id BIGINT NULL',
-  'SELECT ''production_v2_id already exists'' AS info');
+SET @sql := IF(@exists = 0, 'ALTER TABLE stock_movement ADD COLUMN production_v2_id BIGINT NULL', 'SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- Index stock_movement.production_v2_id
 SET @exists := (
   SELECT COUNT(*) FROM information_schema.STATISTICS
   WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'stock_movement' AND INDEX_NAME = 'idx_stock_movement_prod_v2'
 );
 SET @sql := IF(@exists = 0,
-  'CREATE INDEX idx_stock_movement_prod_v2 ON stock_movement (production_v2_id)',
-  'SELECT ''idx_stock_movement_prod_v2 already exists'' AS info');
+  'CREATE INDEX idx_stock_movement_prod_v2 ON stock_movement (production_v2_id)', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- -----------------------------------------------------------------------------
+-- 4. Clés étrangères complémentaires (idempotent)
+-- -----------------------------------------------------------------------------
+
+-- livraison_v2.user_id
+SET @exists := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'livraison_v2' AND CONSTRAINT_NAME = 'fk_liv_v2_user');
+SET @sql := IF(@exists = 0,
+  'ALTER TABLE livraison_v2 ADD CONSTRAINT fk_liv_v2_user FOREIGN KEY (user_id) REFERENCES user(id)', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- livraison_v2.point_de_vente_id
+SET @exists := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'livraison_v2' AND CONSTRAINT_NAME = 'fk_liv_v2_pdv');
+SET @sql := IF(@exists = 0,
+  'ALTER TABLE livraison_v2 ADD CONSTRAINT fk_liv_v2_pdv FOREIGN KEY (point_de_vente_id) REFERENCES point_de_vente(id) ON DELETE SET NULL', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- livraison_v2.facture_id
+SET @exists := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'livraison_v2' AND CONSTRAINT_NAME = 'fk_liv_v2_facture');
+SET @sql := IF(@exists = 0,
+  'ALTER TABLE livraison_v2 ADD CONSTRAINT fk_liv_v2_facture FOREIGN KEY (facture_id) REFERENCES facture(id) ON DELETE SET NULL', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- livraison_ligne_v2.produit_id
+SET @exists := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'livraison_ligne_v2' AND CONSTRAINT_NAME = 'fk_ll_v2_produit');
+SET @sql := IF(@exists = 0,
+  'ALTER TABLE livraison_ligne_v2 ADD CONSTRAINT fk_ll_v2_produit FOREIGN KEY (produit_id) REFERENCES produit(id)', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- vente_libre_v2.user_id
+SET @exists := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'vente_libre_v2' AND CONSTRAINT_NAME = 'fk_vente_v2_user');
+SET @sql := IF(@exists = 0,
+  'ALTER TABLE vente_libre_v2 ADD CONSTRAINT fk_vente_v2_user FOREIGN KEY (user_id) REFERENCES user(id)', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- vente_libre_v2.guichet_id
+SET @exists := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'vente_libre_v2' AND CONSTRAINT_NAME = 'fk_vente_v2_guichet');
+SET @sql := IF(@exists = 0,
+  'ALTER TABLE vente_libre_v2 ADD CONSTRAINT fk_vente_v2_guichet FOREIGN KEY (guichet_id) REFERENCES guichet(id) ON DELETE SET NULL', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- vente_ligne_v2.produit_id
+SET @exists := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'vente_ligne_v2' AND CONSTRAINT_NAME = 'fk_vl_v2_produit');
+SET @sql := IF(@exists = 0,
+  'ALTER TABLE vente_ligne_v2 ADD CONSTRAINT fk_vl_v2_produit FOREIGN KEY (produit_id) REFERENCES produit(id)', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- lot_v2.fournisseur_id
+SET @exists := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'lot_v2' AND CONSTRAINT_NAME = 'fk_lot_v2_fournisseur');
+SET @sql := IF(@exists = 0,
+  'ALTER TABLE lot_v2 ADD CONSTRAINT fk_lot_v2_fournisseur FOREIGN KEY (fournisseur_id) REFERENCES fournisseur(id) ON DELETE SET NULL', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- stock_movement.production_v2_id
+SET @exists := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'stock_movement' AND CONSTRAINT_NAME = 'fk_sm_prod_v2');
+SET @sql := IF(@exists = 0,
+  'ALTER TABLE stock_movement ADD CONSTRAINT fk_sm_prod_v2 FOREIGN KEY (production_v2_id) REFERENCES production_v2(id) ON DELETE SET NULL', 'SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- =============================================================================
--- Fin migration V2
--- Vérification rapide :
---   SHOW TABLES LIKE '%_v2';
---   SHOW COLUMNS FROM stock_movement LIKE 'production_v2_id';
---   SHOW COLUMNS FROM livraison_v2 LIKE 'facture%';
+-- Fin — SHOW TABLES LIKE '%_v2';
 -- =============================================================================
