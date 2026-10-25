@@ -147,6 +147,10 @@
                class="btn btn-outline-info">
                 <i class="fas fa-history me-1"></i>Historique livraisons V2
             </a>
+            <a href="/cycle/ventes-v2" sec:authorize="hasAnyRole('ADMIN','MANAGER','CAISSIER')"
+               class="btn btn-outline-success">
+                <i class="fas fa-receipt me-1"></i>Historique ventes V2
+            </a>
         </div>
     </div>
 
