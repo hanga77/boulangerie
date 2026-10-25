@@ -1,4 +1,5 @@
 -- Livraisons & ventes liées à ProductionV2
+-- (facture_id / facture_numero inclus dès la création)
 
 CREATE TABLE IF NOT EXISTS livraison_v2 (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -9,6 +10,8 @@ CREATE TABLE IF NOT EXISTS livraison_v2 (
     user_id             BIGINT       NOT NULL,
     montant_total       DOUBLE       NOT NULL DEFAULT 0,
     revenu_enregistre   BOOLEAN      NOT NULL DEFAULT FALSE,
+    facture_id          BIGINT       NULL,
+    facture_numero      VARCHAR(64)  NULL,
     CONSTRAINT fk_liv_v2_prod FOREIGN KEY (production_v2_id) REFERENCES production_v2(id)
 );
 
