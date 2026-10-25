@@ -138,6 +138,15 @@
             <a href="/commandes" class="btn btn-outline-secondary">
                 <i class="fas fa-shopping-cart me-1"></i>Commandes
             </a>
+
+            <a href="/cycle/sorties" sec:authorize="hasAnyRole('ADMIN','MANAGER','MAGASINIER')"
+               class="btn btn-outline-primary">
+                <i class="fas fa-dolly me-1"></i>Sorties stock V2
+            </a>
+            <a href="/cycle/livraisons-v2" sec:authorize="hasAnyRole('ADMIN','MANAGER')"
+               class="btn btn-outline-info">
+                <i class="fas fa-history me-1"></i>Historique livraisons V2
+            </a>
         </div>
     </div>
 
