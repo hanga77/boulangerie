@@ -9,12 +9,15 @@
 - Historique ventes V2 — `/cycle/ventes-v2`
 
 ### P1 — Suivi & reporting ✅
-- [x] Synthèse journalière — `/cycle/synthese`
-  (commandes, production, sorties, livraisons, ventes, CA V2)
-- [ ] Export CSV (reporté si besoin)
+- Synthèse journalière — `/cycle/synthese`
 
-### P2 — Tests flux
-- [ ] Test domaine flux (valider → débiter → montants)
+### P2 — Tests flux ✅
+- [x] `CycleFluxDomaineTest` : valider → magasin → livraison/vente → débit restants → clôture
+
+```bash
+./mvnw -B test -Dtest=CycleFluxDomaineTest,ProductionV2Test,LivraisonV2Test,VenteLibreV2Test
+```
 
 ### P3 — Release
-- [ ] Notes de version + checklist merge → `master`
+- [ ] Notes de version `docs/refonte/RELEASE_NOTES.md`
+- [ ] Checklist merge `refonte/phase-1` → `master`
