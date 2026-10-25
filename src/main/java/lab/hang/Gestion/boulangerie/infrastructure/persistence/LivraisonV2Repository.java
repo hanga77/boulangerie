@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,4 +15,9 @@ public interface LivraisonV2Repository extends JpaRepository<LivraisonV2, Long> 
 
     @Query("SELECT DISTINCT l FROM LivraisonV2 l LEFT JOIN FETCH l.lignes WHERE l.id = :id")
     Optional<LivraisonV2> findByIdWithLignes(@Param("id") Long id);
+
+    List<LivraisonV2> findByDateLivraisonBetweenOrderByDateLivraisonDescIdDesc(
+            LocalDate debut, LocalDate fin);
+
+    List<LivraisonV2> findAllByOrderByDateLivraisonDescIdDesc();
 }

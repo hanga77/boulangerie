@@ -3,7 +3,6 @@ package lab.hang.Gestion.boulangerie.repository;
 import lab.hang.Gestion.boulangerie.model.MatierePremiere;
 import lab.hang.Gestion.boulangerie.model.StockMovement;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +10,6 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 public interface StockMovementRepository extends JpaRepository<StockMovement, Long> {
     List<StockMovement> findByDateOrderByDateDesc(LocalDate date);
@@ -38,4 +36,14 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
 
     @Query("SELECT m FROM StockMovement m JOIN FETCH m.matierePremiere WHERE m.production.id = :productionId AND m.type = 'SORTIE'")
     List<StockMovement> findSortiesByProductionId(@Param("productionId") Long productionId);
+
+    /** Phase 4 — sorties liées à ProductionV2 (éventuellement filtrées par date). */
+    @Query("SELECT m FROM StockMovement m LEFT JOIN FETCH m.matierePremiere LEFT JOIN FETCH m.user " +
+           "WHERE m.type = 'SORTIE' AND m.productionV2Id IS NOT NULL " +
+           "AND (:productionV2Id IS NULL OR m.productionV2Id = :productionV2Id) " +
+           "AND (:date IS NULL OR m.date = :date) " +
+           "ORDER BY m.date DESC, m.id DESC")
+    List<StockMovement> findSortiesV2(
+            @Param("productionV2Id") Long productionV2Id,
+            @Param("date") LocalDate date);
 }
