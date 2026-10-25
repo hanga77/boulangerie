@@ -1,6 +1,6 @@
 # Phase 4 — Mise en production & exploitation
 
-**Statut :** en cours  
+**Statut :** TERMINÉE (P0–P3)  
 **Branche :** `refonte/phase-1`
 
 ## Backlog
@@ -14,18 +14,26 @@
 - `/cycle/livraisons-v2` — historique livraisons V2
 
 ### P2 — Exploitation ✅
-- [x] Checklist déploiement : [DEPLOIEMENT.md](./DEPLOIEMENT.md)
-- [x] Profil Spring `application-prod.properties` (secrets via env)
-- [x] Exemple env : [application-prod.properties.example](./application-prod.properties.example)
+- [DEPLOIEMENT.md](./DEPLOIEMENT.md)
+- `application-prod.properties`
 
-Activation :
+### P3 — Qualité élargie ✅
+- [x] `@DataJpaTest` ProductionV2 (H2) :
+  `src/test/java/.../ProductionV2RepositoryDataJpaTest.java`
+  - cascade lignes produit / matière
+  - `findByDateProductionWithLignes`
+  - validation + débit restant
+  - confirmation magasinier
+
 ```bash
-export SPRING_PROFILES_ACTIVE=prod
-export LICENSE_SALT="$(openssl rand -hex 32)"
-export DB_USERNAME=...
-export DB_PASSWORD=...
-./mvnw spring-boot:run
+./mvnw -B test
 ```
 
-### P3 — Qualité élargie
-- [ ] Tests `@DataJpaTest` ProductionV2 (H2)
+## Synthèse phases
+
+| Phase | Thème | Statut |
+|-------|--------|--------|
+| 1 | Fondations cycle V2 | OK |
+| 2 | Livraisons / ventes / facture / CMP | OK |
+| 3 | Caisse, sécu, docs, UX, CI | OK |
+| 4 | Prod, traçabilité, déploiement, DataJpaTest | OK |
