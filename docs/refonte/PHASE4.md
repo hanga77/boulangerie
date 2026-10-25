@@ -10,12 +10,22 @@
 - `stock_movement.production_v2_id`
 
 ### P1 — Traçabilité & données ✅
-- [x] Rapport sorties stock V2 filtrable (date + production) — `/cycle/sorties`
-- [x] Historique livraisons V2 (période, montants, PDF) — `/cycle/livraisons-v2`
+- `/cycle/sorties` — sorties stock filtrables
+- `/cycle/livraisons-v2` — historique livraisons V2
 
-### P2 — Exploitation
-- [ ] Checklist déploiement (`docs/refonte/DEPLOIEMENT.md`)
-- [ ] Profil `prod` documenté
+### P2 — Exploitation ✅
+- [x] Checklist déploiement : [DEPLOIEMENT.md](./DEPLOIEMENT.md)
+- [x] Profil Spring `application-prod.properties` (secrets via env)
+- [x] Exemple env : [application-prod.properties.example](./application-prod.properties.example)
+
+Activation :
+```bash
+export SPRING_PROFILES_ACTIVE=prod
+export LICENSE_SALT="$(openssl rand -hex 32)"
+export DB_USERNAME=...
+export DB_PASSWORD=...
+./mvnw spring-boot:run
+```
 
 ### P3 — Qualité élargie
-- [ ] Tests `@DataJpaTest` ProductionV2
+- [ ] Tests `@DataJpaTest` ProductionV2 (H2)
