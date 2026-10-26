@@ -1,6 +1,6 @@
 # Phase 5 — Consolidation métier & préparation release
 
-**Statut :** en cours  
+**Statut :** TERMINÉE (P0–P3)  
 **Branche :** `refonte/phase-1`
 
 ## Backlog
@@ -12,12 +12,14 @@
 - Synthèse journalière — `/cycle/synthese`
 
 ### P2 — Tests flux ✅
-- [x] `CycleFluxDomaineTest` : valider → magasin → livraison/vente → débit restants → clôture
+- `CycleFluxDomaineTest`
 
-```bash
-./mvnw -B test -Dtest=CycleFluxDomaineTest,ProductionV2Test,LivraisonV2Test,VenteLibreV2Test
-```
+### P3 — Release ✅
+- [x] [RELEASE_NOTES.md](./RELEASE_NOTES.md)
+- [x] [CHECKLIST_MERGE.md](./CHECKLIST_MERGE.md) — merge `refonte/phase-1` → `master`
 
-### P3 — Release
-- [ ] Notes de version `docs/refonte/RELEASE_NOTES.md`
-- [ ] Checklist merge `refonte/phase-1` → `master`
+## Prochaine étape humaine
+
+1. Smoke test (checklist merge section B)
+2. Merge vers `master`
+3. Déploiement prod
