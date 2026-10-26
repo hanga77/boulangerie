@@ -2,14 +2,23 @@ name: CI
 
 on:
   push:
-    branches: [ master, main, "refonte/**" ]
+    branches: [master, main, "refonte/**"]
   pull_request:
-    branches: [ master, main, "refonte/**" ]
+    branches: [master, main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   build-and-test:
+    name: Build & test (JDK 17)
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -22,8 +31,36 @@ jobs:
           distribution: "temurin"
           cache: maven
 
-      - name: Build & unit tests
-        run: ./mvnw -B -q test
+      - name: Ensure Maven wrapper executable
+        run: chmod +x ./mvnw
 
-      - name: Package (skip tests already run)
+      - name: Show Java / Maven versions
+        run: |
+          java -version
+          ./mvnw -v
+
+      - name: Compile
+        run: ./mvnw -B -q -DskipTests compile
+
+      - name: Unit & DataJpa tests
+        run: ./mvnw -B test
+
+      - name: Package
         run: ./mvnw -B -q package -DskipTests
+
+      - name: Upload Surefire reports (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
+          retention-days: 7
+
+      - name: Upload JAR (on success)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: target/*.jar
+          if-no-files-found: ignore
+          retention-days: 3
