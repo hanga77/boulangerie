@@ -53,14 +53,13 @@ public class ProductionMargeService {
 
         List<LigneCout> details = new ArrayList<>();
         double coutMatieres = 0;
-        for (ProductionLigneMatiere lm : p.getLignesMatiere()) {
+        for (ProductionLigneMatiere lm : p.getLignesMatieres()) {
             double qte = quantiteConsommee(lm);
-            double prix = matiereRepo.findById(lm.getMatierePremiereId())
-                    .map(MatierePremiere::getPrixUnitaire).orElse(0.0);
+            MatierePremiere mat = matiereRepo.findById(lm.getMatierePremiereId()).orElse(null);
+            double prix = mat != null ? mat.getPrixUnitaire() : 0.0;
+            String nom = mat != null ? mat.getNom() : "#" + lm.getMatierePremiereId();
             double cout = qte * prix;
             coutMatieres += cout;
-            String nom = matiereRepo.findById(lm.getMatierePremiereId())
-                    .map(MatierePremiere::getNom).orElse("#" + lm.getMatierePremiereId());
             details.add(new LigneCout(lm.getMatierePremiereId(), nom, qte, prix, cout));
         }
 

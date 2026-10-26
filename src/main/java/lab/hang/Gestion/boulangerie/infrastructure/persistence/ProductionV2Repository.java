@@ -6,11 +6,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductionV2Repository extends JpaRepository<ProductionV2, Long> {
 
     boolean existsByDateProduction(LocalDate dateProduction);
+
+    List<ProductionV2> findByDateProduction(LocalDate dateProduction);
 
     @Query("SELECT DISTINCT p FROM ProductionV2 p " +
            "LEFT JOIN FETCH p.lignesProduits " +

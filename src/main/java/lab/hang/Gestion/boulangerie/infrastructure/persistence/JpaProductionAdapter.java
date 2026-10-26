@@ -6,6 +6,7 @@ import lab.hang.Gestion.boulangerie.domain.production.ProductionV2;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Component
 public class JpaProductionAdapter implements ProductionPort, ProductionPersistencePort {
@@ -31,5 +32,10 @@ public class JpaProductionAdapter implements ProductionPort, ProductionPersisten
     @Override
     public boolean existsForDate(LocalDate date) {
         return repo.existsByDateProduction(date);
+    }
+
+    @Override
+    public List<ProductionV2> findByDate(LocalDate date) {
+        return repo.findByDateProduction(date);
     }
 }
