@@ -3,6 +3,7 @@ package lab.hang.Gestion.boulangerie.application.inventory;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionLigneMatiere;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionStatus;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionV2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,14 +20,17 @@ public class GetMaterialsToSupplyUseCase {
 
     private final ProductionPort productionPort;
     private final InventoryPort inventoryPort;
-    /** IDs de matières considérées comme farinage (configurable). */
     private final Set<Long> farinageMatiereIds;
 
+    @Autowired
     public GetMaterialsToSupplyUseCase(ProductionPort productionPort,
                                        InventoryPort inventoryPort) {
-        this(productionPort, inventoryPort, Set.of());
+        this.productionPort = productionPort;
+        this.inventoryPort = inventoryPort;
+        this.farinageMatiereIds = Set.of();
     }
 
+    /** Constructeur de test / config avancée. */
     public GetMaterialsToSupplyUseCase(ProductionPort productionPort,
                                        InventoryPort inventoryPort,
                                        Set<Long> farinageMatiereIds) {
@@ -82,7 +86,6 @@ public class GetMaterialsToSupplyUseCase {
             }
         }
 
-        // Farinage en premier dans la liste pour que le magasinier ne l'oublie pas
         lignes.sort((a, b) -> Boolean.compare(b.farinage(), a.farinage()));
 
         return new Result(

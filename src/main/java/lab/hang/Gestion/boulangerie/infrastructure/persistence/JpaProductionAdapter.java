@@ -4,6 +4,7 @@ import lab.hang.Gestion.boulangerie.application.inventory.ProductionPort;
 import lab.hang.Gestion.boulangerie.application.production.ProductionPersistencePort;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionV2;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,10 +19,14 @@ public class JpaProductionAdapter implements ProductionPort, ProductionPersisten
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductionV2 getById(Long id) {
-        return repo.findByIdWithLignes(id)
+        ProductionV2 p = repo.findByIdWithLignes(id)
                 .or(() -> repo.findById(id))
                 .orElseThrow(() -> new IllegalArgumentException("Production V2 introuvable: " + id));
+        // Initialise le 2e bag en lazy (même transaction) — pas de double JOIN FETCH
+        p.getLignesMatieres().size();
+        return p;
     }
 
     @Override
@@ -35,7 +40,13 @@ public class JpaProductionAdapter implements ProductionPort, ProductionPersisten
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProductionV2> findByDate(LocalDate date) {
-        return repo.findByDateProduction(date);
+        List<ProductionV2> list = repo.findByDateProduction(date);
+        list.forEach(p -> {
+            p.getLignesProduits().size();
+            p.getLignesMatieres().size();
+        });
+        return list;
     }
 }

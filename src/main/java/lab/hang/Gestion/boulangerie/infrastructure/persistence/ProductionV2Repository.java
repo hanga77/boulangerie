@@ -15,15 +15,17 @@ public interface ProductionV2Repository extends JpaRepository<ProductionV2, Long
 
     List<ProductionV2> findByDateProduction(LocalDate dateProduction);
 
+    /**
+     * Un seul bag en JOIN FETCH (évite MultipleBagFetchException).
+     * Les matières se chargent en lazy dans la même transaction.
+     */
     @Query("SELECT DISTINCT p FROM ProductionV2 p " +
            "LEFT JOIN FETCH p.lignesProduits " +
-           "LEFT JOIN FETCH p.lignesMatieres " +
            "WHERE p.dateProduction = :date")
     Optional<ProductionV2> findByDateProductionWithLignes(@Param("date") LocalDate date);
 
     @Query("SELECT DISTINCT p FROM ProductionV2 p " +
            "LEFT JOIN FETCH p.lignesProduits " +
-           "LEFT JOIN FETCH p.lignesMatieres " +
            "WHERE p.id = :id")
     Optional<ProductionV2> findByIdWithLignes(@Param("id") Long id);
 }

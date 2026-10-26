@@ -6,14 +6,15 @@ import lab.hang.Gestion.boulangerie.domain.production.ProductionStatus;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionV2;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Phase 4 P3 — persistance ProductionV2 + lignes sur H2.
+ * Un seul bag en JOIN FETCH ; le 2e se charge en lazy dans la transaction de test.
  */
 @DataJpaTest
 @ActiveProfiles("test")
@@ -43,22 +45,23 @@ class ProductionV2RepositoryDataJpaTest {
     private ProductionV2Repository repository;
 
     @Test
+    @Transactional
     void persist_cascade_lignes_et_relecture() {
         ProductionV2 p = new ProductionV2(LocalDate.of(2026, 10, 26), 42L);
         p.ajouterLigneProduit(10L, 100);
         p.ajouterLigneProduit(11L, 50);
         p.ajouterOuCumulerMatiere(1L, 25.0);
-        p.ajouterOuCumulerMatiere(1L, 5.0); // farinage cumulé
+        p.ajouterOuCumulerMatiere(1L, 5.0);
 
         ProductionV2 saved = repository.saveAndFlush(p);
         assertNotNull(saved.getId());
 
+        em.flush();
         em.clear();
 
-        Optional<ProductionV2> loaded = repository.findByIdWithLignes(saved.getId());
-        assertTrue(loaded.isPresent());
+        ProductionV2 found = repository.findByIdWithLignes(saved.getId()).orElseThrow();
+        found.getLignesMatieres().size(); // lazy 2e bag
 
-        ProductionV2 found = loaded.get();
         assertEquals(ProductionStatus.EN_COURS, found.getStatut());
         assertEquals(42L, found.getUserId());
         assertEquals(2, found.getLignesProduits().size());
@@ -71,11 +74,13 @@ class ProductionV2RepositoryDataJpaTest {
     }
 
     @Test
+    @Transactional
     void find_by_date_production() {
         LocalDate day = LocalDate.of(2026, 10, 26);
         ProductionV2 p = new ProductionV2(day, 1L);
         p.ajouterLigneProduit(1L, 10);
         repository.saveAndFlush(p);
+        em.flush();
         em.clear();
 
         assertTrue(repository.existsByDateProduction(day));
@@ -85,6 +90,7 @@ class ProductionV2RepositoryDataJpaTest {
     }
 
     @Test
+    @Transactional
     void valider_puis_debiter_restant_persiste() {
         ProductionV2 p = new ProductionV2(LocalDate.now(), 1L);
         p.ajouterLigneProduit(99L, 40);
@@ -94,6 +100,7 @@ class ProductionV2RepositoryDataJpaTest {
         ligne.debiterRestant(15);
 
         ProductionV2 saved = repository.saveAndFlush(p);
+        em.flush();
         em.clear();
 
         ProductionV2 found = repository.findByIdWithLignes(saved.getId()).orElseThrow();
@@ -102,6 +109,7 @@ class ProductionV2RepositoryDataJpaTest {
     }
 
     @Test
+    @Transactional
     void confirmer_magasinier_sur_ligne_matiere() {
         ProductionV2 p = new ProductionV2(LocalDate.now(), 1L);
         p.ajouterOuCumulerMatiere(7L, 12.5);
@@ -109,9 +117,11 @@ class ProductionV2RepositoryDataJpaTest {
         lm.confirmerMagasinier(12.0);
 
         repository.saveAndFlush(p);
+        em.flush();
         em.clear();
 
         ProductionV2 found = repository.findByIdWithLignes(p.getId()).orElseThrow();
+        found.getLignesMatieres().size();
         assertEquals(12.0, found.ligneMatiere(7L).orElseThrow().getQuantiteMagasinier(), 0.001);
     }
 }
