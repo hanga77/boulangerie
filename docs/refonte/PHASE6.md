@@ -1,27 +1,31 @@
-# Phase 6 — Unifier trésorerie & reporting
+# Phase 6 — Trésorerie & reporting unifiés
 
-**Statut :** TERMINÉE (P0–P4)  
 **Branche :** `refonte/phase-1`
 
-## Backlog
+## Corrections « norme opérationnelle »
 
-### P0 — Types & calculs ✅
-### P1 — Reporting unifié ✅ — `/cycle/tresorerie`
-### P2 — KPI dashboard ✅
-### P3 — Saisie dépenses ✅ — `/cycle/depenses`
-### P4 — Saisie recettes ✅ — `/cycle/recettes`
-- Types manuels : `VENTE`, `VENTE_LIBRE`, `PAIEMENT_FACTURE`
-- Les types V2 auto (`VENTE_LIVRAISON_V2`, `VENTE_CAISSE_V2`) restent réservés au cycle
+| Sujet | Avant | Après |
+|-------|-------|-------|
+| Charges fixes | Type `CHARGE` hors totaux dépenses | Inclus dans `EXPENSE_TYPES` |
+| Dettes fournisseurs | Remboursement sans journal | Type `DETTE_REMBOURSEMENT` + débit compte |
+| Marge production | Impossible | `/cycle/marge` — CA − coût matières |
 
-## URLs finance unifiée
+## Formule marge production V2
+
+```
+marge = (CA livraisons V2 + CA caisse V2) − Σ (qté matière × prix unitaire stock)
+```
+
+- Qté matière : boulanger > magasinier > théorique
+- Charges fixes **non ventilées** par lot (structure)
+- Dettes en cours = engagement, pas une dépense tant que non payées
+
+## URLs
 
 | URL | Rôle |
 |-----|------|
 | `/cycle/tresorerie` | CA consolidé |
 | `/cycle/depenses` | Saisie dépenses |
 | `/cycle/recettes` | Saisie recettes manuelles |
-| `/dashboard` | KPI |
-
-## Consigne métier
-
-Ne pas saisir une recette manuelle **en plus** d'une livraison/caisse V2 déjà enregistrée.
+| `/cycle/marge` | Marge / gain-perte par production du jour |
+| `/cycle/marge/{id}` | Détail d'une production |
