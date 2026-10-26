@@ -1,5 +1,7 @@
 package lab.hang.Gestion.boulangerie.controller;
 
+import lab.hang.Gestion.boulangerie.application.finance.UnifiedReportingService;
+import lab.hang.Gestion.boulangerie.application.finance.UnifiedReportingService.CaBreakdown;
 import lab.hang.Gestion.boulangerie.model.Production;
 import lab.hang.Gestion.boulangerie.repository.NotificationRepository;
 import lab.hang.Gestion.boulangerie.service.CommandeService;
@@ -19,18 +21,22 @@ public class DashboardController {
 
     private final CommandeService commandeService;
     private final FinanceService financeService;
+    private final UnifiedReportingService unifiedReportingService;
     private final MatierePremiereService matierePremiereService;
     private final ProductionService productionService;
     private final LivraisonService livraisonService;
     private final NotificationRepository notificationRepository;
 
-    public DashboardController(CommandeService commandeService, FinanceService financeService,
+    public DashboardController(CommandeService commandeService,
+                               FinanceService financeService,
+                               UnifiedReportingService unifiedReportingService,
                                MatierePremiereService matierePremiereService,
                                ProductionService productionService,
                                LivraisonService livraisonService,
                                NotificationRepository notificationRepository) {
         this.commandeService = commandeService;
         this.financeService = financeService;
+        this.unifiedReportingService = unifiedReportingService;
         this.matierePremiereService = matierePremiereService;
         this.productionService = productionService;
         this.livraisonService = livraisonService;
@@ -40,20 +46,29 @@ public class DashboardController {
     @GetMapping("/dashboard")
     public String showDashboard(Model model) {
         LocalDate today = LocalDate.now();
+        LocalDate debutMois = today.withDayOfMonth(1);
 
         int nombreCommandesAujourdhui = commandeService.getNombreCommandesPourDate(today);
         double coutTotalAujourdhui = commandeService.getCoutTotalPourDate(today);
         int nombrePointsDeVenteActifs = commandeService.getNombrePointsDeVenteActifsPourDate(today);
 
+        // KPI consolidés V1 + V2 (phase 6)
+        CaBreakdown jour = unifiedReportingService.report(today, today);
+        CaBreakdown mois = unifiedReportingService.report(debutMois, today);
+
         double coutsProduction = financeService.calculerCoutsProduction();
-        double revenusVentes = financeService.calculerRevenusVentes();
-        double profitTotal = financeService.calculerProfitTotal();
+        // Revenus / profit affichés = période mois en cours (unifié)
+        double revenusVentes = mois.totalCa();
+        double profitTotal = mois.resultat();
 
         List<Production> productionDTOS = productionService.getProductionsByDate(today);
 
         model.addAttribute("coutsProduction", coutsProduction);
         model.addAttribute("revenusVentes", revenusVentes);
         model.addAttribute("profitTotal", profitTotal);
+        model.addAttribute("caJour", jour.totalCa());
+        model.addAttribute("caLivraisonV2Jour", jour.livraisonV2());
+        model.addAttribute("caCaisseV2Jour", jour.caisseV2());
         model.addAttribute("nombreCommandesAujourdhui", nombreCommandesAujourdhui);
         model.addAttribute("coutTotalAujourdhui", coutTotalAujourdhui);
         model.addAttribute("nombrePointsDeVenteActifs", nombrePointsDeVenteActifs);
