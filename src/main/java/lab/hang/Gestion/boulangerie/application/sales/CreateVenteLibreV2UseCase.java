@@ -1,6 +1,7 @@
 package lab.hang.Gestion.boulangerie.application.sales;
 
 import lab.hang.Gestion.boulangerie.application.finance.FinancePort;
+import lab.hang.Gestion.boulangerie.application.finance.TransactionTypes;
 import lab.hang.Gestion.boulangerie.application.production.ProductionPersistencePort;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionLigneProduit;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionStatus;
@@ -35,7 +36,7 @@ public class CreateVenteLibreV2UseCase {
             Long userId,
             Long guichetId,
             String moyenPaiement,
-            Map<Long, Integer> quantites  // produitId → qté
+            Map<Long, Integer> quantites
     ) {}
 
     @Transactional
@@ -83,9 +84,13 @@ public class CreateVenteLibreV2UseCase {
         VenteLibreV2 saved = salesPort.saveVente(vente);
 
         var compte = financePort.comptePrincipal();
-        String desc = "Vente libre V2 #" + saved.getId()
+        String desc = "Vente caisse V2 #" + saved.getId()
                 + " — " + saved.getMoyenPaiement();
-        financePort.enregistrerTransaction("VENTE_LIBRE", saved.getMontantTotal(), desc, compte.id());
+        financePort.enregistrerTransaction(
+                TransactionTypes.VENTE_CAISSE_V2,
+                saved.getMontantTotal(),
+                desc,
+                compte.id());
         salesPort.crediterCompte(compte.id(), saved.getMontantTotal());
 
         return saved;

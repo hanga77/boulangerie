@@ -1,6 +1,7 @@
 package lab.hang.Gestion.boulangerie.application.sales;
 
 import lab.hang.Gestion.boulangerie.application.finance.FinancePort;
+import lab.hang.Gestion.boulangerie.application.finance.TransactionTypes;
 import lab.hang.Gestion.boulangerie.application.production.ProductionPersistencePort;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionLigneProduit;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionStatus;
@@ -92,7 +93,6 @@ public class CreateLivraisonV2UseCase {
         productionPort.save(production);
         LivraisonV2 saved = salesPort.saveLivraison(livraison);
 
-        // Facture auto + lien id/numéro sur la livraison
         FactureDTO factureDTO = new FactureDTO();
         factureDTO.setType("VENTE");
         factureDTO.setMontantHT(saved.getMontantTotal());
@@ -107,7 +107,7 @@ public class CreateLivraisonV2UseCase {
         if (cmd.enregistrerRevenu() && saved.getMontantTotal() > 0) {
             var compte = financePort.comptePrincipal();
             financePort.enregistrerTransaction(
-                    "VENTE",
+                    TransactionTypes.VENTE_LIVRAISON_V2,
                     saved.getMontantTotal(),
                     "Livraison V2 #" + saved.getId() + " — facture " + saved.getFactureNumero()
                             + " — " + saved.getNomClient(),
