@@ -11,10 +11,19 @@
 | U2 | Commandes, produits, matières | ✅ |
 | U3 | Finances, compta, fournisseurs | ✅ |
 | U4 | Production / livraisons V1 | ✅ |
-| U5 | Admin, employés, bulletins, guichet | à faire |
+| U5 | Admin, employés, bulletins, guichet | ✅ |
 
-## U4 livré
+## U5 livré
 
-- `livraisons/today`, `confirmation`, `list-by-production` modernisés
-- `vente-libre/list` : bandeau legacy + CTA Caisse V2
-- `livraisons/list` et `production/previous` déjà au standard (bandeau Historique)
+- `admin/inactive-users` (roles complets + CSRF + layout)
+- `employes/list`, `employes/form`
+- `bulletins/mes-bulletins`
+- `guichet/select` (+ lien Caisse V2)
+
+Les écrans admin users/settings/licence et guichet POS déjà structurés n'ont pas été réécrits en profondeur (risque métier).
+
+## Convention globale
+
+- `fragments/layout` : head, navbar, flash, scripts
+- `page-header`, `card`, `table-sm`, `empty-state`
+- Bandeaux `legacy-banner` sur modules V1
