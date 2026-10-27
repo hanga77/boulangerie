@@ -10,12 +10,11 @@
 | U1 | Login, register, 403/404/500 | ✅ |
 | U2 | Commandes, produits, matières | ✅ |
 | U3 | Finances, compta, fournisseurs | ✅ |
-| U4 | Production/livraisons V1 | à faire |
+| U4 | Production / livraisons V1 | ✅ |
 | U5 | Admin, employés, bulletins, guichet | à faire |
 
-## U3 livré
+## U4 livré
 
-- `finances/finance`, `transactions`, `compte`, `transaction-details`
-- `comptabilite/kpis`, `payer-charge`
-- Fournisseurs list/form déjà au standard (inchangés)
-- Lien vers trésorerie unifiée depuis Finances classic
+- `livraisons/today`, `confirmation`, `list-by-production` modernisés
+- `vente-libre/list` : bandeau legacy + CTA Caisse V2
+- `livraisons/list` et `production/previous` déjà au standard (bandeau Historique)
