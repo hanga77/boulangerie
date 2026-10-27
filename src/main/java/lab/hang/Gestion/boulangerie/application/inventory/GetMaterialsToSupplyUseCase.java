@@ -3,7 +3,6 @@ package lab.hang.Gestion.boulangerie.application.inventory;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionLigneMatiere;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionStatus;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionV2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,21 +21,12 @@ public class GetMaterialsToSupplyUseCase {
     private final InventoryPort inventoryPort;
     private final Set<Long> farinageMatiereIds;
 
-    @Autowired
+    /** Un seul constructeur pour Spring (évite NoSuchMethodException &lt;init&gt;). */
     public GetMaterialsToSupplyUseCase(ProductionPort productionPort,
                                        InventoryPort inventoryPort) {
         this.productionPort = productionPort;
         this.inventoryPort = inventoryPort;
         this.farinageMatiereIds = Set.of();
-    }
-
-    /** Constructeur de test / config avancée. */
-    public GetMaterialsToSupplyUseCase(ProductionPort productionPort,
-                                       InventoryPort inventoryPort,
-                                       Set<Long> farinageMatiereIds) {
-        this.productionPort = productionPort;
-        this.inventoryPort = inventoryPort;
-        this.farinageMatiereIds = farinageMatiereIds != null ? farinageMatiereIds : Set.of();
     }
 
     public record Command(Long productionId) {}

@@ -4,6 +4,7 @@ import lab.hang.Gestion.boulangerie.domain.production.ProductionLigneMatiere;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionLigneProduit;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionStatus;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionV2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,12 +20,9 @@ public class ValidateProductionQuantitiesUseCase {
     private final ProductionPersistencePort persistencePort;
     private final double seuilIncidentPourcent;
 
-    public ValidateProductionQuantitiesUseCase(ProductionPersistencePort persistencePort) {
-        this(persistencePort, 10.0);
-    }
-
-    public ValidateProductionQuantitiesUseCase(ProductionPersistencePort persistencePort,
-                                               double seuilIncidentPourcent) {
+    public ValidateProductionQuantitiesUseCase(
+            ProductionPersistencePort persistencePort,
+            @Value("${boulangerie.production.seuil-incident-pourcent:10.0}") double seuilIncidentPourcent) {
         this.persistencePort = persistencePort;
         this.seuilIncidentPourcent = seuilIncidentPourcent;
     }
