@@ -8,13 +8,14 @@
 |-----|---------|--------|
 | U0 | Design system + menu Finance | ✅ |
 | U1 | Login, register, 403/404/500 | ✅ |
-| U2 | Commandes, produits, matières | à faire |
+| U2 | Commandes, produits, matières | ✅ (listes déjà OK + formulaires alignés) |
 | U3 | Finances, compta, fournisseurs | à faire |
 | U4 | Production/livraisons V1 | à faire |
 | U5 | Admin, employés, bulletins, guichet | à faire |
 
-## U1 livré
+## U2 livré
 
-- Login (U0) + **register** alignés `auth-page` / `auth-card`
-- **403 / 404 / 500** : même carte centrée, Bootstrap + icônes, CTA accueil
-- Note : `error.html` est une ancienne page « users inactifs » (traitée en U5 admin)
+- `commandes/view` modernisé
+- Matières : create / edit / add-stock / remove-stock / list (+ colonne P.U.)
+- `produits/create` structure page-header + card (JS recette conservé)
+- Listes commandes / produits déjà au standard page-header

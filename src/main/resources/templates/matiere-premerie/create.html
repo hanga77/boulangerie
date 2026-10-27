@@ -1,46 +1,43 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/layout :: head('Ajouter une Matière Première')}">
-</head>
-<body>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nouvelle matière')}"></head>
+<body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
 
-<div class="container mt-4">
+<main class="container py-4 flex-grow-1" style="max-width:640px">
+    <div class="page-header">
+        <h1 class="h4 fw-bold mb-0"><i class="fas fa-plus-circle me-2 text-success"></i>Nouvelle matière première</h1>
+    </div>
+
     <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h1 class="h3 mb-0"><i class="fas fa-plus-circle me-2"></i>Ajouter une Matière Première</h1>
-        </div>
         <div class="card-body">
             <form th:action="@{/matieres-premieres}" th:object="${matierePremiere}" method="post">
                 <div class="mb-3">
                     <label for="nom" class="form-label">Nom</label>
                     <input type="text" class="form-control" id="nom" th:field="*{nom}" required>
-                    <div class="text-danger" th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}"></div>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}"></div>
                 </div>
                 <div class="mb-3">
                     <label for="uniteMesure" class="form-label">Unité de mesure</label>
-                    <input type="text" class="form-control" id="uniteMesure" th:field="*{uniteMesure}" required>
-                    <div class="text-danger" th:if="${#fields.hasErrors('uniteMesure')}" th:errors="*{uniteMesure}"></div>
+                    <input type="text" class="form-control" id="uniteMesure" th:field="*{uniteMesure}"
+                           placeholder="kg, L, sachet…" required>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('uniteMesure')}" th:errors="*{uniteMesure}"></div>
                 </div>
                 <div class="mb-3">
-                    <label for="stockMinimum" class="form-label">Stock minimum</label>
-                    <input type="number" class="form-control" id="stockMinimum" th:field="*{stockMinimum}" required>
-                    <div class="text-danger" th:if="${#fields.hasErrors('stockMinimum')}" th:errors="*{stockMinimum}"></div>
+                    <label for="stockMinimum" class="form-label">Stock minimum (alerte)</label>
+                    <input type="number" step="any" class="form-control" id="stockMinimum" th:field="*{stockMinimum}" required>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('stockMinimum')}" th:errors="*{stockMinimum}"></div>
                 </div>
-                <div class="d-flex justify-content-between">
-                    <a th:href="@{/matieres-premieres}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>Retour
-                    </a>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-save me-1"></i>Enregistrer
-                    </button>
+                <div class="d-flex justify-content-between gap-2">
+                    <a th:href="@{/matieres-premieres}" class="btn btn-outline-secondary">Retour</a>
+                    <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i>Enregistrer</button>
                 </div>
             </form>
         </div>
     </div>
-</div>
+</main>
+
 <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>
