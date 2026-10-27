@@ -47,7 +47,6 @@
                     </a>
                 </li>
 
-                <!-- Flux principal V2 -->
                 <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER','MAGASINIER','CAISSIER')">
                     <a class="nav-link rounded px-2 fw-semibold" href="/cycle">
                         <i class="fas fa-sync-alt me-1"></i>Cycle du jour
@@ -59,7 +58,6 @@
                     </a>
                 </li>
 
-                <!-- Modules historiques (V1) regroupés -->
                 <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')">
                     <a class="nav-link rounded px-2 dropdown-toggle" href="#"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -162,16 +160,48 @@
                         </li>
                     </ul>
                 </li>
-                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
-                    <a class="nav-link rounded px-2" href="/finances">
-                        <i class="fas fa-chart-line me-1"></i>Finances
+
+                <!-- Finance unifiée -->
+                <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                    <a class="nav-link rounded px-2 dropdown-toggle" href="#"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-balance-scale me-1"></i>Finance
                     </a>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li>
+                            <a class="dropdown-item" href="/cycle/tresorerie">
+                                <i class="fas fa-chart-pie me-2"></i>Trésorerie unifiée
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="/cycle/depenses">
+                                <i class="fas fa-money-bill-wave me-2"></i>Dépenses
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="/cycle/recettes">
+                                <i class="fas fa-hand-holding-usd me-2"></i>Recettes
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="/cycle/marge">
+                                <i class="fas fa-percentage me-2"></i>Marge productions
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="/finances">
+                                <i class="fas fa-chart-line me-2"></i>Finances (classic)
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="/comptabilite/dashboard">
+                                <i class="fas fa-calculator me-2"></i>Comptabilité
+                            </a>
+                        </li>
+                    </ul>
                 </li>
-                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
-                    <a class="nav-link rounded px-2" href="/comptabilite/dashboard">
-                        <i class="fas fa-calculator me-1"></i>Comptabilité
-                    </a>
-                </li>
+
                 <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link rounded px-2 dropdown-toggle" href="#"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -228,7 +258,6 @@
     </div>
 </nav>
 
-<!-- Bandeau modules V1 (legacy) -->
 <div th:fragment="legacy-banner(message, ctaUrl, ctaLabel)"
      class="alert alert-warning border-0 rounded-0 mb-0 no-print" role="status">
     <div class="container-fluid px-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
@@ -266,22 +295,22 @@
     </div>
 </div>
 
-<footer th:fragment="footer" class="mt-auto py-3 bg-light border-top no-print">
+<footer th:fragment="footer" class="app-footer mt-auto no-print">
     <div class="container-fluid px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <span class="text-muted small">
+        <span>
             &copy; <span th:text="${#temporals.format(#temporals.createNow(),'yyyy')}"></span>
             <strong>HANGA JEAN FRANCOIS</strong> &mdash; +237 676 847 776
         </span>
-        <a href="/a-propos" class="text-muted small text-decoration-none">
+        <a href="/a-propos" class="text-muted text-decoration-none">
             <i class="fas fa-info-circle me-1"></i>À propos
         </a>
     </div>
 </footer>
 
 <div th:fragment="scripts">
-    <footer class="mt-auto py-2 bg-light border-top no-print" style="font-size:.8rem">
+    <footer class="app-footer mt-auto no-print">
         <div class="container-fluid px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <span class="text-muted">
+            <span>
                 &copy; <span th:text="${#temporals.format(#temporals.createNow(),'yyyy')}"></span>
                 &nbsp;<strong>HANGA JEAN FRANCOIS</strong> &mdash; +237 676 847 776
             </span>
