@@ -21,8 +21,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 /**
- * Configuration sécurité — phase 3 P1 : headers, hiérarchie complète, routes cycle V2,
- * Swagger fermé en prod, BCrypt renforcé.
+ * Configuration sécurité — cycle V2, headers, health public (phase 10).
  */
 @Configuration
 @EnableWebSecurity
@@ -53,6 +52,8 @@ public class SecurityConfig {
                     auth.requestMatchers(mvc.pattern("/register")).permitAll();
                     auth.requestMatchers(mvc.pattern("/css/**"), mvc.pattern("/js/**"),
                             mvc.pattern("/images/**"), mvc.pattern("/webfonts/**")).permitAll();
+                    // Phase 10 — sonde monitoring
+                    auth.requestMatchers(mvc.pattern("/api/public/**")).permitAll();
 
                     if (!isProd) {
                         auth.requestMatchers(mvc.pattern("/swagger-ui/**"),
@@ -60,7 +61,6 @@ public class SecurityConfig {
                                 mvc.pattern("/v3/api-docs/**")).permitAll();
                     }
 
-                    // Cycle V2 (phase 1–3)
                     auth.requestMatchers(mvc.pattern("/cycle/caisse/**"),
                                     mvc.pattern("/cycle/vente/**"))
                             .hasAnyRole("ADMIN", "MANAGER", "CAISSIER");
@@ -72,6 +72,7 @@ public class SecurityConfig {
 
                     auth.requestMatchers(mvc.pattern("/api/credits/**")).hasAnyRole("ADMIN", "MANAGER");
                     auth.requestMatchers(mvc.pattern("/api/fournisseurs/**")).hasAnyRole("ADMIN", "MANAGER");
+                    auth.requestMatchers(mvc.pattern("/api/integrations/**")).hasRole("ADMIN");
                     auth.requestMatchers(mvc.pattern("/rapports/**")).hasAnyRole("ADMIN", "MANAGER");
                     auth.requestMatchers(mvc.pattern("/fournisseurs/**")).hasAnyRole("ADMIN", "MANAGER");
                     auth.requestMatchers(mvc.pattern("/production/incidents/**")).hasAnyRole("ADMIN", "MANAGER");
@@ -127,7 +128,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Facteur 12 (phase 3) — plus résistant au brute-force offline
         return new BCryptPasswordEncoder(12);
     }
 
