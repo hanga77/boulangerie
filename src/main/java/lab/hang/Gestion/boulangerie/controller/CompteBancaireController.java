@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Phase 9 — multi-comptes et virements internes.
+ * Phase 9 — multi-comptes et virements + F3 Compte Principal 1 clic.
  */
 @Controller
 @RequestMapping("/compte-bancaire")
@@ -81,6 +81,32 @@ public class CompteBancaireController {
         redirectAttributes.addFlashAttribute("successMessage",
                 "Compte bancaire \"" + nom + "\" créé avec succès.");
         return "redirect:/compte-bancaire";
+    }
+
+    /**
+     * F3 — crée le Compte Principal en un clic si absent (ADMIN).
+     */
+    @PostMapping("/assurer-principal")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String assurerPrincipal(
+            @RequestParam(defaultValue = "0") double soldeInitial,
+            @RequestParam(required = false, defaultValue = "/compte-bancaire") String redirect,
+            RedirectAttributes ra) {
+        try {
+            boolean created = financeService.assurerComptePrincipal(soldeInitial);
+            if (created) {
+                ra.addFlashAttribute("successMessage",
+                        "Compte Principal créé (solde initial : " + (long) soldeInitial + " XAF).");
+            } else {
+                ra.addFlashAttribute("successMessage", "Compte Principal déjà présent.");
+            }
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        if (redirect == null || redirect.isBlank() || !redirect.startsWith("/")) {
+            redirect = "/compte-bancaire";
+        }
+        return "redirect:" + redirect;
     }
 
     @PostMapping("/transfert")
