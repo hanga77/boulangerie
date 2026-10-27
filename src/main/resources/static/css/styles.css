@@ -1,53 +1,58 @@
 /* ============================================================
-   styles.css — Gestion Boulangerie
+   Gestiboul — design system unifié
    ============================================================ */
 
-/* ── Variables ────────────────────────────────────────────── */
 :root {
-    --bs-body-bg: #f0f2f5;
+    --gb-primary: #0d6efd;
+    --gb-primary-dark: #0a58ca;
+    --gb-success: #198754;
+    --gb-body-bg: #f0f2f5;
+    --gb-text: #212529;
+    --gb-muted: #6c757d;
+    --gb-border: #e9ecef;
     --card-radius: 12px;
-    --card-shadow: 0 2px 12px rgba(0,0,0,.08);
-    --card-shadow-hover: 0 6px 20px rgba(0,0,0,.14);
+    --card-shadow: 0 2px 12px rgba(0, 0, 0, .08);
+    --card-shadow-hover: 0 6px 20px rgba(0, 0, 0, .12);
     --transition: .2s ease;
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* ── Base ─────────────────────────────────────────────────── */
 body {
-    background-color: var(--bs-body-bg);
-    font-family: Arial, sans-serif;
+    background-color: var(--gb-body-bg);
+    color: var(--gb-text);
+    font-family: var(--font-sans);
     font-size: .95rem;
+    line-height: 1.5;
 }
 
-/* ── Navbar ───────────────────────────────────────────────── */
+/* Navbar */
 .navbar {
-    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
 }
-
 .navbar-brand {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     letter-spacing: -.3px;
 }
-
 .nav-link {
     font-size: .9rem;
-    transition: background-color var(--transition), color var(--transition);
+    transition: background-color var(--transition);
 }
-
 .nav-link:hover {
-    background-color: rgba(255,255,255,.12);
+    background-color: rgba(255, 255, 255, .12);
+}
+.dropdown-menu-dark .dropdown-item:active {
+    background-color: var(--gb-primary);
 }
 
-/* ── Layout ───────────────────────────────────────────────── */
+/* Layout */
 .page-content {
     flex: 1;
     padding: 1.5rem 1rem;
 }
-
 .container, .container-fluid {
     padding-left: 1rem;
     padding-right: 1rem;
 }
-
 @media (min-width: 768px) {
     .container, .container-fluid {
         padding-left: 1.5rem;
@@ -58,7 +63,7 @@ body {
     }
 }
 
-/* ── Page header (titre + bouton d'action) ──────────────────  */
+/* Page header */
 .page-header {
     display: flex;
     align-items: center;
@@ -67,35 +72,44 @@ body {
     gap: .75rem;
     margin-bottom: 1.5rem;
 }
-
 .page-header h1 {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     font-weight: 700;
     margin: 0;
 }
-
 @media (max-width: 576px) {
-    .page-header { flex-direction: column; align-items: flex-start; }
-    .page-header .btn-group, .page-header > div { width: 100%; }
-    .page-header .btn { width: 100%; justify-content: center; }
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .page-header .btn-group,
+    .page-header > div:last-child {
+        width: 100%;
+    }
+    .page-header .btn {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
-/* ── Cards ────────────────────────────────────────────────── */
+/* Cards */
 .card {
     border: none;
     border-radius: var(--card-radius);
     box-shadow: var(--card-shadow);
-    transition: transform var(--transition), box-shadow var(--transition);
+    transition: box-shadow var(--transition);
     margin-bottom: 1rem;
-    /* NOTE: pas d'animation stripes sur toutes les cartes */
 }
-
 .card:hover {
-    transform: translateY(-2px);
     box-shadow: var(--card-shadow-hover);
 }
+.card-header {
+    background: #fff;
+    border-bottom: 1px solid var(--gb-border);
+    font-weight: 600;
+}
 
-/* Cartes de statistiques (KPI) */
+/* KPI */
 .stat-card {
     border-radius: var(--card-radius);
     color: #fff;
@@ -103,7 +117,6 @@ body {
     position: relative;
     overflow: hidden;
 }
-
 .stat-card::after {
     content: '';
     position: absolute;
@@ -112,57 +125,44 @@ body {
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    background: rgba(255,255,255,.1);
+    background: rgba(255, 255, 255, .1);
 }
-
 .stat-card .stat-icon {
     font-size: 2rem;
     opacity: .8;
     margin-bottom: .5rem;
 }
-
 .stat-card .stat-value {
-    font-size: 1.8rem;
+    font-size: 1.75rem;
     font-weight: 700;
     line-height: 1.1;
 }
-
 .stat-card .stat-label {
-    font-size: .8rem;
-    opacity: .85;
+    font-size: .75rem;
+    opacity: .9;
     text-transform: uppercase;
-    letter-spacing: .5px;
+    letter-spacing: .4px;
     margin-top: .25rem;
 }
-
-@media (max-width: 576px) {
-    .stat-card .stat-value { font-size: 1.4rem; }
-}
-
-/* Couleurs stat cards */
 .stat-card.bg-primary { background: linear-gradient(135deg, #0d6efd, #0a58ca) !important; }
 .stat-card.bg-success { background: linear-gradient(135deg, #198754, #146c43) !important; }
 .stat-card.bg-warning { background: linear-gradient(135deg, #e67e22, #ca6f1e) !important; }
 .stat-card.bg-info    { background: linear-gradient(135deg, #0dcaf0, #0aa2c0) !important; }
 .stat-card.bg-danger  { background: linear-gradient(135deg, #dc3545, #b02a37) !important; }
 
-/* ── Tables ───────────────────────────────────────────────── */
+/* Tables */
 .table {
     margin-bottom: 0;
     font-size: .9rem;
 }
-
 .table th {
     font-weight: 600;
     white-space: nowrap;
+    color: #495057;
 }
-
 .table tbody tr:hover {
-    background-color: rgba(13,110,253,.05);
-    transition: background-color var(--transition);
+    background-color: rgba(13, 110, 253, .04);
 }
-
-/* Sur mobile : boutons d'action empilés */
 @media (max-width: 767px) {
     .table .btn-group-actions {
         display: flex;
@@ -172,60 +172,123 @@ body {
     .table .btn-group-actions .btn {
         width: 100%;
         font-size: .8rem;
-        padding: .25rem .5rem;
     }
 }
 
-/* ── Formulaires ──────────────────────────────────────────── */
-.form-label { font-weight: 600; font-size: .875rem; }
-
-/* Sur mobile : annuler les multi-colonnes de formulaire */
+/* Forms */
+.form-label {
+    font-weight: 600;
+    font-size: .875rem;
+}
+.form-control, .form-select {
+    border-radius: 8px;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--gb-primary);
+    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .15);
+}
 @media (max-width: 575px) {
-    .row.g-3 > [class*="col-md-"], .row.g-3 > [class*="col-lg-"] {
+    .row.g-3 > [class*="col-md-"],
+    .row.g-3 > [class*="col-lg-"] {
         flex: 0 0 100%;
         max-width: 100%;
     }
 }
 
-/* ── Boutons ──────────────────────────────────────────────── */
-.btn { border-radius: 6px; font-size: .875rem; }
-.btn-sm { font-size: .8rem; }
-.btn:hover { transform: translateY(-1px); }
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    font-size: .875rem;
+    font-weight: 500;
+}
+.btn-sm {
+    font-size: .8rem;
+}
 
-/* ── Badges / status ──────────────────────────────────────── */
-.badge { padding: .35em .65em; font-size: .78em; border-radius: 20px; }
+/* Badges */
+.badge {
+    padding: .35em .65em;
+    font-size: .78em;
+    border-radius: 20px;
+    font-weight: 600;
+}
 
-/* ── Alertes flash ────────────────────────────────────────── */
-.alert { border-left: 4px solid; border-radius: 8px; }
+/* Alerts */
+.alert {
+    border-left: 4px solid;
+    border-radius: 8px;
+}
 .alert-success { border-color: #198754; }
 .alert-danger  { border-color: #dc3545; }
 .alert-warning { border-color: #ffc107; }
 .alert-info    { border-color: #0dcaf0; }
 
-/* ── Pagination ───────────────────────────────────────────── */
-.pagination { margin-top: 1rem; flex-wrap: wrap; gap: .25rem; }
-.page-link { border-radius: 6px !important; }
+/* Pagination */
+.pagination {
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    gap: .25rem;
+}
+.page-link {
+    border-radius: 6px !important;
+}
 
-/* ── Login / Register ─────────────────────────────────────── */
+/* Auth */
 .auth-card {
     max-width: 420px;
     width: 100%;
     border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0,0,0,.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .12);
+}
+.auth-page {
+    min-height: 100vh;
+    background: linear-gradient(145deg, #e8eef8 0%, #f0f2f5 50%, #e9f5ef 100%);
 }
 
-/* ── Scrollbar ────────────────────────────────────────────── */
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--gb-muted);
+}
+.empty-state i {
+    font-size: 2.5rem;
+    opacity: .25;
+    display: block;
+    margin-bottom: .75rem;
+}
+
+/* Section title */
+.section-title {
+    font-size: .95rem;
+    font-weight: 700;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    margin-bottom: 1rem;
+    padding-bottom: .5rem;
+    border-bottom: 2px solid var(--gb-border);
+}
+
+/* Footer app */
+.app-footer {
+    border-top: 1px solid var(--gb-border);
+    background: #fff;
+    font-size: .8rem;
+    color: var(--gb-muted);
+    padding: .75rem 1rem;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #6c757d; }
 
-/* ── Pages d'erreur ───────────────────────────────────────── */
+/* Errors */
 .error-page { text-align: center; padding: 4rem 1rem; }
 .error-page h1 { font-size: 5rem; color: #dc3545; }
-.error-page p  { font-size: 1.3rem; color: #6c757d; }
+.error-page p  { font-size: 1.2rem; color: var(--gb-muted); }
 
-/* ── Utilitaires ──────────────────────────────────────────── */
 .text-truncate-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -233,26 +296,12 @@ body {
     overflow: hidden;
 }
 
-.section-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #495057;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    margin-bottom: 1rem;
-    padding-bottom: .5rem;
-    border-bottom: 2px solid #e9ecef;
-}
-
-
-/* ── Impression ───────────────────────────────────────────── */
+/* Print */
 .print-header { display: none; }
-
 @media print {
-    nav, .no-print { display: none !important; }
-    .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+    nav, .no-print, .app-footer { display: none !important; }
+    .container { max-width: 100% !important; padding: 0 !important; }
     .card { border: none !important; box-shadow: none !important; }
     .print-header { display: block !important; }
     body { font-size: 12px; }
-    th, td { padding: 6px 8px !important; }
 }
