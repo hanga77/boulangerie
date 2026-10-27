@@ -8,6 +8,7 @@ import lab.hang.Gestion.boulangerie.service.CommandeService;
 import lab.hang.Gestion.boulangerie.service.FinanceService;
 import lab.hang.Gestion.boulangerie.service.LivraisonService;
 import lab.hang.Gestion.boulangerie.service.MatierePremiereService;
+import lab.hang.Gestion.boulangerie.service.OperationalReadinessService;
 import lab.hang.Gestion.boulangerie.service.ProductionService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,6 +27,7 @@ public class DashboardController {
     private final ProductionService productionService;
     private final LivraisonService livraisonService;
     private final NotificationRepository notificationRepository;
+    private final OperationalReadinessService readinessService;
 
     public DashboardController(CommandeService commandeService,
                                FinanceService financeService,
@@ -33,7 +35,8 @@ public class DashboardController {
                                MatierePremiereService matierePremiereService,
                                ProductionService productionService,
                                LivraisonService livraisonService,
-                               NotificationRepository notificationRepository) {
+                               NotificationRepository notificationRepository,
+                               OperationalReadinessService readinessService) {
         this.commandeService = commandeService;
         this.financeService = financeService;
         this.unifiedReportingService = unifiedReportingService;
@@ -41,6 +44,7 @@ public class DashboardController {
         this.productionService = productionService;
         this.livraisonService = livraisonService;
         this.notificationRepository = notificationRepository;
+        this.readinessService = readinessService;
     }
 
     @GetMapping("/dashboard")
@@ -52,12 +56,10 @@ public class DashboardController {
         double coutTotalAujourdhui = commandeService.getCoutTotalPourDate(today);
         int nombrePointsDeVenteActifs = commandeService.getNombrePointsDeVenteActifsPourDate(today);
 
-        // KPI consolidés V1 + V2 (phase 6)
         CaBreakdown jour = unifiedReportingService.report(today, today);
         CaBreakdown mois = unifiedReportingService.report(debutMois, today);
 
         double coutsProduction = financeService.calculerCoutsProduction();
-        // Revenus / profit affichés = période mois en cours (unifié)
         double revenusVentes = mois.totalCa();
         double profitTotal = mois.resultat();
 
@@ -77,6 +79,8 @@ public class DashboardController {
         model.addAttribute("produits", productionDTOS);
         model.addAttribute("livraisons", livraisonService.getLivraisonsByDateRange(today.minusDays(7), today));
         model.addAttribute("notifications", notificationRepository.findTop8ByOrderByDateCreationDesc());
+        model.addAttribute("opsAlerts", readinessService.alertsForToday());
+        model.addAttribute("hasComptePrincipal", readinessService.hasComptePrincipal());
 
         return "dashboard";
     }
