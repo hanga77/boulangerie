@@ -4,7 +4,6 @@ import lab.hang.Gestion.boulangerie.domain.production.ProductionLigneMatiere;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionLigneProduit;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionStatus;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionV2;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,14 +16,12 @@ import java.util.Map;
 @Service
 public class ValidateProductionQuantitiesUseCase {
 
-    private final ProductionPersistencePort persistencePort;
-    private final double seuilIncidentPourcent;
+    private static final double SEUIL_INCIDENT_POURCENT = 10.0;
 
-    public ValidateProductionQuantitiesUseCase(
-            ProductionPersistencePort persistencePort,
-            @Value("${boulangerie.production.seuil-incident-pourcent:10.0}") double seuilIncidentPourcent) {
+    private final ProductionPersistencePort persistencePort;
+
+    public ValidateProductionQuantitiesUseCase(ProductionPersistencePort persistencePort) {
         this.persistencePort = persistencePort;
-        this.seuilIncidentPourcent = seuilIncidentPourcent;
     }
 
     /**
@@ -68,7 +65,7 @@ public class ValidateProductionQuantitiesUseCase {
                             return production.ligneMatiere(e.getKey()).orElseThrow();
                         });
                 ligne.declarerBoulanger(e.getValue());
-                if (ligne.ecartPourcent() > seuilIncidentPourcent) {
+                if (ligne.ecartPourcent() > SEUIL_INCIDENT_POURCENT) {
                     incidents++;
                 }
             }

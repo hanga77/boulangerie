@@ -9,6 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Implémente les deux ports production (inventory + application).
+ */
 @Component
 public class JpaProductionAdapter implements ProductionPort, ProductionPersistencePort {
 
@@ -24,12 +27,12 @@ public class JpaProductionAdapter implements ProductionPort, ProductionPersisten
         ProductionV2 p = repo.findByIdWithLignes(id)
                 .or(() -> repo.findById(id))
                 .orElseThrow(() -> new IllegalArgumentException("Production V2 introuvable: " + id));
-        // Initialise le 2e bag en lazy (même transaction) — pas de double JOIN FETCH
         p.getLignesMatieres().size();
         return p;
     }
 
     @Override
+    @Transactional
     public ProductionV2 save(ProductionV2 production) {
         return repo.save(production);
     }
