@@ -1,25 +1,32 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Détails de la Transaction')}">
-</head>
-<body>
+<head th:replace="~{fragments/layout :: head('Détail transaction')}"></head>
+<body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
 
-<div class="container mt-4">
-    <h1>Détails de la Transaction</h1>
+<main class="container py-4 flex-grow-1" style="max-width:560px">
+    <div class="page-header">
+        <h1 class="h4 fw-bold mb-0">Transaction #<span th:text="${transaction.id}"></span></h1>
+        <a href="/finances" class="btn btn-outline-secondary btn-sm">Retour</a>
+    </div>
+
     <div class="card">
-        <div class="card-header">
-            Transaction #<span th:text="${transaction.id}"></span>
-        </div>
         <div class="card-body">
-            <p class="card-text">Date : <span th:text="${transaction.date}"></span></p>
-            <p class="card-text">Type : <span th:text="${transaction.type}"></span></p>
-            <p class="card-text">Description : <span th:text="${transaction.description}"></span></p>
-            <p class="card-text">Montant : <span th:text="${transaction.montant} + ' XAF'"></span></p>
+            <dl class="row mb-0">
+                <dt class="col-sm-4 text-muted">Date</dt>
+                <dd class="col-sm-8" th:text="${transaction.date}"></dd>
+                <dt class="col-sm-4 text-muted">Type</dt>
+                <dd class="col-sm-8"><span class="badge text-bg-light border" th:text="${transaction.type}"></span></dd>
+                <dt class="col-sm-4 text-muted">Description</dt>
+                <dd class="col-sm-8" th:text="${transaction.description}"></dd>
+                <dt class="col-sm-4 text-muted">Montant</dt>
+                <dd class="col-sm-8 fs-5 fw-bold" th:text="${transaction.montant + ' XAF'}"></dd>
+            </dl>
         </div>
     </div>
-</div>
+</main>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

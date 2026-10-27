@@ -1,82 +1,85 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/layout :: head('Gestion Financière')}">
-</head>
-<body>
-<!-- Navbar -->
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Finances')}"></head>
+<body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
 
-<!-- Contenu principal -->
-<div class="container mt-4">
-    <h1 class="mb-4">Gestion Financière</h1>
-    <p class="lead">Visualisez et gérez les transactions financières de la boulangerie.</p>
-
-    <!-- Bouton d'impression -->
-    <button class="btn btn-primary mb-3" onclick="window.print()">
-        <i class="fas fa-print me-1"></i>Imprimer
-    </button>
-
-    <!-- Liste des transactions financières -->
-    <div class="card mb-4">
-        <div class="card-header bg-secondary text-white">
-            <i class="fas fa-list-alt me-2"></i>Transactions Financières
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>Finances</h1>
+            <p class="text-muted small mb-0">Journal et résumé — préférer aussi <a href="/cycle/tresorerie">trésorerie unifiée</a></p>
         </div>
-        <div class="card-body">
-            <table class="table table-striped">
-                <thead>
+        <div class="d-flex flex-wrap gap-2 no-print">
+            <a href="/cycle/tresorerie" class="btn btn-outline-primary btn-sm"><i class="fas fa-chart-pie me-1"></i>Trésorerie V2</a>
+            <button type="button" class="btn btn-primary btn-sm" onclick="window.print()"><i class="fas fa-print me-1"></i>Imprimer</button>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card bg-success">
+                <div class="stat-label">Revenus</div>
+                <div class="stat-value" th:text="${revenusTotaux != null ? #numbers.formatDecimal(revenusTotaux, 0, 'COMMA', 0, 'POINT') + ' XAF' : '—'}"></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card bg-danger">
+                <div class="stat-label">Dépenses</div>
+                <div class="stat-value" th:text="${depensesTotales != null ? #numbers.formatDecimal(depensesTotales, 0, 'COMMA', 0, 'POINT') + ' XAF' : '—'}"></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card bg-primary">
+                <div class="stat-label">Résultat</div>
+                <div class="stat-value" th:text="${profit != null ? #numbers.formatDecimal(profit, 0, 'COMMA', 0, 'POINT') + ' XAF' : '—'}"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Transactions</div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
                 <tr>
                     <th>Date</th>
                     <th>Type</th>
                     <th>Description</th>
-                    <th>Montant</th>
+                    <th class="text-end">Montant</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="transaction : ${transactions}">
-                    <td th:text="${transaction.date}"></td>
-                    <td th:text="${transaction.type}"></td>
+                    <td class="text-nowrap" th:text="${transaction.date}"></td>
+                    <td><span class="badge text-bg-light border" th:text="${transaction.type}"></span></td>
                     <td th:text="${transaction.description}"></td>
-                    <td th:text="${transaction.montant} + ' XAF'"></td>
+                    <td class="text-end fw-semibold" th:text="${transaction.montant + ' XAF'}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(transactions)}">
+                    <td colspan="4" class="empty-state">Aucune transaction</td>
                 </tr>
                 </tbody>
             </table>
         </div>
-        <!-- Pagination -->
-        <nav aria-label="Page navigation" th:if="${totalPages > 1}">
-            <ul class="pagination justify-content-center">
+        <div class="card-footer bg-transparent" th:if="${totalPages != null and totalPages > 1}">
+            <ul class="pagination pagination-sm justify-content-center mb-0">
                 <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                    <a class="page-link" th:href="@{/finances(page=${currentPage - 1}, size=${size})}" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
+                    <a class="page-link" th:href="@{/finances(page=${currentPage - 1}, size=${size})}">&laquo;</a>
                 </li>
-                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${i == currentPage} ? 'active'">
                     <a class="page-link" th:href="@{/finances(page=${i}, size=${size})}" th:text="${i + 1}"></a>
                 </li>
                 <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                    <a class="page-link" th:href="@{/finances(page=${currentPage + 1}, size=${size})}" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
+                    <a class="page-link" th:href="@{/finances(page=${currentPage + 1}, size=${size})}">&raquo;</a>
                 </li>
             </ul>
-        </nav>
-    </div>
-
-    <!-- Résumé financier -->
-    <div class="card mb-4">
-        <div class="card-header bg-info text-white">
-            <i class="fas fa-chart-line me-2"></i>Résumé Financier
-        </div>
-        <div class="card-body">
-            <p>Revenus totaux : <span th:text="${revenusTotaux} + ' XAF'"></span></p>
-            <p>Dépenses totales : <span th:text="${depensesTotales} + ' XAF'"></span></p>
-            <p>Profit : <span th:text="${profit} + ' XAF'"></span></p>
         </div>
     </div>
-</div>
+</main>
 
-<!-- Bootstrap JS (optionnel, pour les fonctionnalités interactives) -->
 <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>
