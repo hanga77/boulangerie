@@ -8,10 +8,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Contrôles légers pour réduire les fragilités opérationnelles
- * (Compte Principal, double flux V1/V2 le même jour).
- */
 @Service
 public class OperationalReadinessService {
 
@@ -30,7 +26,7 @@ public class OperationalReadinessService {
     }
 
     public boolean hasComptePrincipal() {
-        return compteBancaireRepository.findByNom("Compte Principal").isPresent();
+        return compteBancaireRepository.findByNom(FinanceService.NOM_COMPTE_PRINCIPAL).isPresent();
     }
 
     public List<Alert> alertsForToday() {
@@ -40,9 +36,9 @@ public class OperationalReadinessService {
         if (!hasComptePrincipal()) {
             alerts.add(new Alert(
                     "danger",
-                    "Compte Principal introuvable. Les livraisons V2, dépenses et recettes peuvent échouer.",
-                    "/compte-bancaire/creer",
-                    "Créer un compte"
+                    "Compte Principal introuvable. Les livraisons V2, dépenses et recettes peuvent échouer. Utilisez le bouton 1 clic (ADMIN).",
+                    "#assurer-principal",
+                    "Créer Compte Principal"
             ));
         }
 
@@ -51,7 +47,6 @@ public class OperationalReadinessService {
             v2 = productionPersistencePort.existsForDate(today)
                     || !productionPersistencePort.findByDate(today).isEmpty();
         } catch (Exception ignored) {
-            // tables V2 absentes tant que migrations non appliquées
         }
 
         boolean v1 = false;

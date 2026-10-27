@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 @Service
 public class FinanceService {
 
+    public static final String NOM_COMPTE_PRINCIPAL = "Compte Principal";
+
     private final TransactionRepository transactionRepository;
     private final CompteBancaireRepository compteBancaireRepository;
     private final AlerteService alerteService;
@@ -53,7 +55,6 @@ public class FinanceService {
         return nz(transactionRepository.sumMontantByType(TransactionTypes.PRODUCTION));
     }
 
-    /** CA consolidé V1 + V2 (tous types revenus). */
     public double calculerRevenusVentes() {
         return nz(transactionRepository.sumMontantByTypeIn(TransactionTypes.REVENUE_TYPES));
     }
@@ -89,7 +90,7 @@ public class FinanceService {
     }
 
     public CompteBancaire getCompteBancairePrincipal() {
-        return compteBancaireRepository.findByNom("Compte Principal")
+        return compteBancaireRepository.findByNom(NOM_COMPTE_PRINCIPAL)
                 .orElseThrow(() -> new ResourceNotFoundException("Compte Principal non trouvé"));
     }
 
@@ -98,6 +99,19 @@ public class FinanceService {
         compteBancaire.setSolde(soldeInitial);
         compteBancaire.setNom(nom);
         compteBancaireRepository.save(compteBancaire);
+    }
+
+    /**
+     * F3 — crée le Compte Principal s'il n'existe pas (idempotent).
+     * @return true si création, false si déjà présent
+     */
+    @Transactional
+    public boolean assurerComptePrincipal(double soldeInitial) {
+        if (compteBancaireRepository.findByNom(NOM_COMPTE_PRINCIPAL).isPresent()) {
+            return false;
+        }
+        creerCompteBancaire(NOM_COMPTE_PRINCIPAL, soldeInitial);
+        return true;
     }
 
     public TransactionDTO getTransactionById(Long id) {
