@@ -1,5 +1,6 @@
 package lab.hang.Gestion.boulangerie.controller;
 
+import lab.hang.Gestion.boulangerie.service.OperationalReadinessService;
 import lab.hang.Gestion.boulangerie.service.PilotService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,15 +16,21 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.util.Map;
 
+/**
+ * Phase 7 + F4 — guide pilote terrain avec prérequis readiness.
+ */
 @Controller
 @RequestMapping("/admin/pilot")
 @PreAuthorize("hasRole('ADMIN')")
 public class PilotGuideController {
 
     private final PilotService pilotService;
+    private final OperationalReadinessService readinessService;
 
-    public PilotGuideController(PilotService pilotService) {
+    public PilotGuideController(PilotService pilotService,
+                                OperationalReadinessService readinessService) {
         this.pilotService = pilotService;
+        this.readinessService = readinessService;
     }
 
     @GetMapping
@@ -40,6 +47,9 @@ public class PilotGuideController {
         model.addAttribute("done", done);
         model.addAttribute("total", progression.size());
         model.addAttribute("observations", pilotService.pourJour(jour));
+        model.addAttribute("hasComptePrincipal", readinessService.hasComptePrincipal());
+        model.addAttribute("opsAlerts", readinessService.alertsForToday());
+        model.addAttribute("readyForPilot", readinessService.hasComptePrincipal());
         return "admin/pilot";
     }
 
