@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Reporting')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0">
+                <i class="fas fa-file-export me-2 text-primary"></i>Reporting avancé
+            </h1>
+            <p class="text-muted small mb-0">Phase 8 — synthèse CA / dépenses et exports CSV (Excel)</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a th:href="@{/cycle/reporting/synthese.csv(debut=${debut},fin=${fin})}"
+               class="btn btn-outline-success btn-sm">
+                <i class="fas fa-download me-1"></i>CSV synthèse
+            </a>
+            <a th:href="@{/cycle/reporting/depenses.csv(debut=${debut},fin=${fin})}"
+               class="btn btn-outline-warning btn-sm">
+                <i class="fas fa-download me-1"></i>CSV dépenses
+            </a>
+            <a th:href="@{/cycle/reporting/export.csv(debut=${debut},fin=${fin})}"
+               class="btn btn-primary btn-sm">
+                <i class="fas fa-download me-1"></i>CSV complet
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" action="/cycle/reporting" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small">Du</label>
+                    <input type="date" name="debut" class="form-control form-control-sm" th:value="${debut}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">Au</label>
+                    <input type="date" name="fin" class="form-control form-control-sm" th:value="${fin}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <i class="fas fa-filter me-1"></i>Filtrer
+                    </button>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="/cycle/tresorerie" class="btn btn-outline-secondary btn-sm">Trésorerie</a>
+                    <a href="/cycle/marge" class="btn btn-outline-secondary btn-sm">Marge</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-success h-100"><div class="card-body py-3">
+                <div class="text-muted small">CA total</div>
+                <div class="fs-5 fw-bold text-success"
+                     th:text="${#numbers.formatDecimal(report.totalCa(), 0, 'COMMA', 0, 'POINT') + ' XAF'}">0</div>
+            </div></div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card h-100"><div class="card-body py-3">
+                <div class="text-muted small">Dépenses</div>
+                <div class="fs-5 fw-bold"
+                     th:text="${#numbers.formatDecimal(report.depenses(), 0, 'COMMA', 0, 'POINT') + ' XAF'}">0</div>
+            </div></div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card h-100"><div class="card-body py-3">
+                <div class="text-muted small">Résultat</div>
+                <div class="fs-5 fw-bold"
+                     th:classappend="${report.resultat() >= 0} ? 'text-success' : 'text-danger'"
+                     th:text="${#numbers.formatDecimal(report.resultat(), 0, 'COMMA', 0, 'POINT') + ' XAF'}">0</div>
+            </div></div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card h-100"><div class="card-body py-3">
+                <div class="text-muted small">Solde compte principal</div>
+                <div class="fs-5 fw-bold" th:if="${soldePrincipal != null}"
+                     th:text="${#numbers.formatDecimal(soldePrincipal, 0, 'COMMA', 0, 'POINT') + ' XAF'}">0</div>
+                <div class="text-muted" th:if="${soldePrincipal == null}">—</div>
+            </div></div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-header">CA par source</div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between" th:each="e : ${parSource}">
+                        <span th:text="${e.key}"></span>
+                        <span class="fw-semibold"
+                              th:text="${#numbers.formatDecimal(e.value, 0, 'COMMA', 0, 'POINT') + ' XAF'}"></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-header">Répartition V2</div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="border rounded p-3">
+                                <div class="small text-muted">Livraisons V2</div>
+                                <div class="fs-5 fw-bold"
+                                     th:text="${#numbers.formatDecimal(report.livraisonV2(), 0, 'COMMA', 0, 'POINT') + ' XAF'}"></div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-3">
+                                <div class="small text-muted">Caisse V2</div>
+                                <div class="fs-5 fw-bold"
+                                     th:text="${#numbers.formatDecimal(report.caisseV2(), 0, 'COMMA', 0, 'POINT') + ' XAF'}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="small text-muted mt-3 mb-0">
+                        Ouvrir les CSV dans Excel (séparateur <code>;</code>). Encodage UTF-8.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">Revenus (période)</div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th class="text-end">Montant</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${report.mouvementsRevenus()}">
+                    <td class="text-nowrap" th:text="${#temporals.format(t.date, 'dd/MM/yyyy')}"></td>
+                    <td><span class="badge text-bg-light border" th:text="${t.type}"></span></td>
+                    <td class="small" th:text="${t.description}"></td>
+                    <td class="text-end fw-semibold"
+                        th:text="${#numbers.formatDecimal(t.montant, 0, 'COMMA', 0, 'POINT') + ' XAF'}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(report.mouvementsRevenus())}">
+                    <td colspan="4" class="empty-state">Aucun revenu sur la période</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Dépenses (période)</div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th class="text-end">Montant</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${depenses}">
+                    <td class="text-nowrap" th:text="${#temporals.format(t.date, 'dd/MM/yyyy')}"></td>
+                    <td><span class="badge text-bg-light border" th:text="${t.type}"></span></td>
+                    <td class="small" th:text="${t.description}"></td>
+                    <td class="text-end"
+                        th:text="${#numbers.formatDecimal(t.montant, 0, 'COMMA', 0, 'POINT') + ' XAF'}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(depenses)}">
+                    <td colspan="4" class="empty-state">Aucune dépense sur la période</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

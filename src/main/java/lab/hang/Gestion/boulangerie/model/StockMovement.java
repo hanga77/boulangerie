@@ -16,7 +16,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Table(name = "stock_movement", indexes = {
         @Index(name = "idx_stock_movement_date", columnList = "date"),
-        @Index(name = "idx_stock_movement_type", columnList = "type")
+        @Index(name = "idx_stock_movement_type", columnList = "type"),
+        @Index(name = "idx_stock_movement_prod_v2", columnList = "production_v2_id")
 })
 public class StockMovement {
 
@@ -50,11 +51,15 @@ public class StockMovement {
     /** Quantité commandée au fournisseur (ENTRÉE uniquement). */
     private Double quantiteCommandee;
 
-    /** Quantité avariée à la réception (ENTRÉE uniquement). Net reçu = quantite - quantiteAvariee. */
+    /** Quantité avariée à la réception (ENTRÉE uniquement). */
     private Double quantiteAvariee;
 
-    /** Non-null uniquement pour les sorties manuelles enregistrées par le magasinier. */
+    /** Lien production V1 (historique). */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "production_id")
     private Production production;
+
+    /** Lien production V2 (phase 4) — sorties cycle journalier. */
+    @Column(name = "production_v2_id")
+    private Long productionV2Id;
 }

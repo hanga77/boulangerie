@@ -3,15 +3,13 @@
 <head th:replace="~{fragments/layout :: head('Modifier un Produit')}">
 </head>
 <body>
-<!-- Navbar -->
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
 
-<!-- Contenu principal -->
 <div class="container mt-4">
     <h1 class="mb-4">Modifier un Produit</h1>
     <form th:action="@{/produits/update/{id}(id=${produitDTO.id})}" th:object="${produitDTO}" method="post" id="productForm">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
         <div class="mb-3">
             <label for="nom" class="form-label">Nom du Produit</label>
             <input type="text" class="form-control" id="nom" th:field="*{nom}" required />
@@ -31,7 +29,6 @@
         <div class="mb-3">
             <label for="quantiteVenteLibreJournaliere" class="form-label">
                 Quota vente libre / jour
-                <small class="text-muted">(quantité supplémentaire produite pour la vente au comptoir)</small>
             </label>
             <input type="number" min="0" class="form-control" id="quantiteVenteLibreJournaliere"
                    th:field="*{quantiteVenteLibreJournaliere}" />
@@ -39,9 +36,7 @@
 
         <div class="mb-3">
             <h3>Matières Premières Nécessaires</h3>
-            <div id="matieresList">
-                <!-- Les matières premières seront ajoutées ici dynamiquement -->
-            </div>
+            <div id="matieresList"></div>
             <button type="button" class="btn btn-secondary mb-3" id="addMatiere">
                 <i class="fas fa-plus me-1"></i>Ajouter une matière première
             </button>
@@ -56,26 +51,21 @@
     </form>
 </div>
 
-<!-- Scripts -->
 <div th:replace="~{fragments/layout :: scripts}"></div>
 
 <script th:inline="javascript">
-
     const matieres = [[${matieresPremieres}]];
     const existingMatieres = [[${produitDTO.matieresPremieres}]];
 
     function addMatiere(matiereId = '', quantity = '') {
         const matiereContainer = document.createElement('div');
         matiereContainer.className = 'row mb-2 align-items-center';
-
         matiereContainer.innerHTML = `
             <div class="col-5">
                 <select class="form-select matiere-select" required>
                     <option value="">Sélectionner une matière première</option>
                     ${matieres.map(m => `
-                        <option value="${m.id}"
-                                data-unite="${m.uniteMesure}"
-                                ${m.id == matiereId ? 'selected' : ''}>
+                        <option value="${m.id}" data-unite="${m.uniteMesure}" ${m.id == matiereId ? 'selected' : ''}>
                             ${m.nom}
                         </option>
                     `).join('')}
@@ -83,41 +73,26 @@
             </div>
             <div class="col-5">
                 <div class="input-group">
-                    <input type="number"
-                           step="0.001"
-                           min="0"
-                           class="form-control matiere-quantity"
-                           value="${quantity}"
-                           required>
+                    <input type="number" step="0.001" min="0" class="form-control matiere-quantity" value="${quantity}" required>
                     <span class="input-group-text unite-mesure">
                         ${matiereId ? matieres.find(m => m.id == matiereId)?.uniteMesure || '' : ''}
                     </span>
                 </div>
             </div>
             <div class="col-2">
-                <button type="button" class="btn btn-danger remove-matiere">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <button type="button" class="btn btn-danger remove-matiere"><i class="fas fa-trash"></i></button>
             </div>
             <input type="hidden" class="matiere-input" name="matieresPremieres[${matiereId}]" value="${quantity}">
         `;
-
         document.getElementById('matieresList').appendChild(matiereContainer);
-
-        // Gestionnaire d'événements pour le changement de matière
         matiereContainer.querySelector('.matiere-select').addEventListener('change', function(e) {
             const selectedOption = e.target.options[e.target.selectedIndex];
-            const uniteMesure = selectedOption.getAttribute('data-unite');
-            matiereContainer.querySelector('.unite-mesure').textContent = uniteMesure || '';
+            matiereContainer.querySelector('.unite-mesure').textContent = selectedOption.getAttribute('data-unite') || '';
             updateFormField(matiereContainer);
         });
-
-        // Gestionnaire d'événements pour le changement de quantité
         matiereContainer.querySelector('.matiere-quantity').addEventListener('input', function() {
             updateFormField(matiereContainer);
         });
-
-        // Gestionnaire d'événements pour la suppression
         matiereContainer.querySelector('.remove-matiere').addEventListener('click', function() {
             matiereContainer.remove();
         });
@@ -132,26 +107,19 @@
         }
     }
 
-    // Initialiser les matières existantes au chargement de la page
     window.addEventListener('DOMContentLoaded', function() {
-        // Si aucune matière n'existe, ajouter une ligne vide
-        if (Object.keys(existingMatieres).length === 0) {
+        if (!existingMatieres || Object.keys(existingMatieres).length === 0) {
             addMatiere();
         } else {
-            // Ajouter les matières existantes
             for (const [matiereId, quantity] of Object.entries(existingMatieres)) {
-                if (quantity > 0) {
-                    addMatiere(matiereId, quantity);
-                }
+                if (quantity > 0) addMatiere(matiereId, quantity);
             }
         }
     });
 
-    // Gestionnaire pour le bouton d'ajout de matière
     document.getElementById('addMatiere').addEventListener('click', function() {
         addMatiere();
     });
-
 </script>
 </body>
 </html>

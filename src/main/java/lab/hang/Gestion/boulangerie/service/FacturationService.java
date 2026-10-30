@@ -48,6 +48,11 @@ public class FacturationService {
     }
 
     public void creerFacture(FactureDTO factureDTO) {
+        creerFactureAndReturn(factureDTO);
+    }
+
+    /** Crée la facture et renvoie le DTO avec id + numéro généré (phase 3 P2). */
+    public FactureDTO creerFactureAndReturn(FactureDTO factureDTO) {
         Facture facture = new Facture();
         facture.setNumero(generateNumero());
         facture.setType(factureDTO.getType());
@@ -59,7 +64,14 @@ public class FacturationService {
         facture.setDateEcheance(factureDTO.getDateEcheance() != null
                 ? factureDTO.getDateEcheance() : LocalDate.now().plusDays(30));
         facture.setStatut("EMISE");
-        factureRepository.save(facture);
+        Facture saved = factureRepository.save(facture);
+        return mapToDTO(saved);
+    }
+
+    public FactureDTO getFactureById(Long id) {
+        return factureRepository.findById(id)
+                .map(this::mapToDTO)
+                .orElseThrow(() -> new EntityNotFoundException("Facture non trouvée : " + id));
     }
 
     public Map<String, Object> getStatistiquesFacturation() {

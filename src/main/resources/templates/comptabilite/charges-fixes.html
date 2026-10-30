@@ -16,13 +16,13 @@
         </a>
     </div>
 
-    <!-- Formulaire d'ajout -->
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
             <i class="fas fa-plus-circle me-2"></i>Ajouter une charge fixe
         </div>
         <div class="card-body">
             <form th:action="@{/comptabilite/charges-fixes}" th:object="${newCharge}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <div class="row g-3">
                     <div class="col-md-2">
                         <label for="type" class="form-label">Type</label>
@@ -71,7 +71,6 @@
         </div>
     </div>
 
-    <!-- Liste des charges -->
     <div class="card">
         <div class="card-header bg-secondary text-white">
             <i class="fas fa-list me-2"></i>Liste des charges
@@ -92,9 +91,7 @@
                     </thead>
                     <tbody>
                     <tr th:each="charge : ${charges}">
-                        <td>
-                            <span class="badge bg-secondary" th:text="${charge.type}"></span>
-                        </td>
+                        <td><span class="badge bg-secondary" th:text="${charge.type}"></span></td>
                         <td th:text="${charge.description}"></td>
                         <td th:text="${charge.montant + ' XAF'}"></td>
                         <td th:text="${charge.dateEcheance}"></td>
@@ -112,7 +109,7 @@
                                 </a>
                                 <a th:if="${charge.paye}"
                                    th:href="@{/comptabilite/charges-fixes/{id}/recu(id=${charge.id})}"
-                                   class="btn btn-sm btn-outline-secondary" title="T&#233;l&#233;charger le re&#231;u">
+                                   class="btn btn-sm btn-outline-secondary">
                                     <i class="fas fa-file-pdf"></i>
                                 </a>
                             </div>

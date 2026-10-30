@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pilote terrain')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0"><i class="fas fa-clipboard-check me-2 text-primary"></i>Pilote terrain — F4</h1>
+            <p class="text-muted small mb-0">Journée type Cycle V2 · pré-vol + observations</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <form method="get" class="d-flex gap-2 align-items-center">
+                <input type="date" name="date" class="form-control form-control-sm" th:value="${date}">
+                <button class="btn btn-outline-secondary btn-sm" type="submit">Jour</button>
+            </form>
+            <a href="/cycle" class="btn btn-success btn-sm"><i class="fas fa-sync-alt me-1"></i>Cycle</a>
+            <a href="/admin/pilot/observations" class="btn btn-outline-primary btn-sm">Observations</a>
+        </div>
+    </div>
+
+    <div class="card mb-3 border-warning">
+        <div class="card-header bg-warning bg-opacity-25 fw-semibold">Pré-vol pilote (F4)</div>
+        <div class="card-body small">
+            <ul class="mb-2">
+                <li>Backup BDD effectué</li>
+                <li>Migrations <code>migration_v2_all.sql</code> + <code>migration_pilot.sql</code></li>
+                <li>
+                    Compte Principal :
+                    <span th:if="${hasComptePrincipal}" class="badge bg-success">OK</span>
+                    <span th:unless="${hasComptePrincipal}" class="badge bg-danger">MANQUANT</span>
+                </li>
+                <li>Consigne : <strong>un seul flux = Cycle V2</strong></li>
+            </ul>
+            <form th:unless="${hasComptePrincipal}" th:action="@{/compte-bancaire/assurer-principal}" method="post" class="d-inline-flex gap-2 align-items-center">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <input type="hidden" name="redirect" value="/admin/pilot"/>
+                <input type="number" name="soldeInitial" value="0" class="form-control form-control-sm" style="width:7rem"/>
+                <button type="submit" class="btn btn-sm btn-dark">Créer Compte Principal</button>
+            </form>
+            <span th:if="${readyForPilot}" class="text-success"><i class="fas fa-check-circle me-1"></i>Prêt côté Compte Principal</span>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <div class="text-muted small">Progression du jour</div>
+                    <div class="fs-3 fw-bold" th:text="${done + ' / ' + total}">0 / 9</div>
+                    <div class="progress mt-2" style="height:8px">
+                        <div class="progress-bar" th:style="'width:' + (${total} > 0 ? (${done} * 100.0 / ${total}) : 0) + '%'"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="alert alert-info small mb-0">
+                Pour chaque étape réussie, enregistrez <strong>OK</strong>.
+                En cas de blocage, cochez <strong>Problème</strong> et décrivez l’écart.
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header">Checklist journée</div>
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item" th:each="code : ${etapes}" th:if="${code != 'AUTRE'}">
+                        <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+                            <div>
+                                <span class="badge me-2"
+                                      th:classappend="${progression[code]} ? 'bg-success' : 'bg-secondary'"
+                                      th:text="${progression[code]} ? 'OK' : '—'">—</span>
+                                <span class="fw-semibold" th:text="${labels[code]}">Étape</span>
+                            </div>
+                            <div class="btn-group btn-group-sm">
+                                <a th:if="${code == 'COMMANDES'}" href="/commandes" class="btn btn-outline-secondary">Ouvrir</a>
+                                <a th:if="${code == 'PRODUCTION' or code == 'MAGASIN' or code == 'VALIDATION' or code == 'CLOTURE' or code == 'LIVRAISONS'}" href="/cycle" class="btn btn-outline-secondary">Ouvrir</a>
+                                <a th:if="${code == 'CAISSE'}" href="/cycle/caisse" class="btn btn-outline-secondary">Ouvrir</a>
+                                <a th:if="${code == 'FINANCE'}" href="/cycle/depenses" class="btn btn-outline-secondary">Ouvrir</a>
+                                <a th:if="${code == 'SYNTHESE'}" href="/cycle/synthese" class="btn btn-outline-secondary">Ouvrir</a>
+                            </div>
+                        </div>
+                        <form th:action="@{/admin/pilot/observation}" method="post" class="row g-2 mt-2">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <input type="hidden" name="date" th:value="${date}"/>
+                            <input type="hidden" name="etape" th:value="${code}"/>
+                            <div class="col-md-6">
+                                <input type="text" name="commentaire" class="form-control form-control-sm" placeholder="Commentaire">
+                            </div>
+                            <div class="col-md-6 d-flex gap-2">
+                                <button type="submit" name="ok" value="true" class="btn btn-success btn-sm">OK</button>
+                                <button type="submit" name="ok" value="false" class="btn btn-outline-danger btn-sm">Problème</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card mb-3">
+                <div class="card-header">Observations du jour</div>
+                <ul class="list-group list-group-flush" th:if="${!#lists.isEmpty(observations)}">
+                    <li class="list-group-item small" th:each="o : ${observations}">
+                        <span class="badge me-1" th:classappend="${o.ok} ? 'bg-success' : 'bg-danger'" th:text="${o.ok} ? 'OK' : 'KO'">OK</span>
+                        <strong th:text="${labels[o.etape] ?: o.etape}"></strong>
+                        <div th:if="${o.commentaire}" th:text="${o.commentaire}"></div>
+                    </li>
+                </ul>
+                <div class="empty-state" th:if="${#lists.isEmpty(observations)}">Aucune observation</div>
+            </div>
+            <div class="card">
+                <div class="card-header">Liens rapides</div>
+                <div class="list-group list-group-flush">
+                    <a href="/cycle/tresorerie" class="list-group-item list-group-item-action">Trésorerie</a>
+                    <a href="/cycle/reporting" class="list-group-item list-group-item-action">Reporting</a>
+                    <a href="/compte-bancaire" class="list-group-item list-group-item-action">Comptes</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

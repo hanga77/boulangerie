@@ -1,6 +1,7 @@
 package lab.hang.Gestion.boulangerie.service;
 
 import jakarta.transaction.Transactional;
+import lab.hang.Gestion.boulangerie.application.finance.TransactionTypes;
 import lab.hang.Gestion.boulangerie.dto.ChargeFixeDTO;
 import lab.hang.Gestion.boulangerie.exception.ResourceNotFoundException;
 import lab.hang.Gestion.boulangerie.model.ChargeFixe;
@@ -42,7 +43,6 @@ public class ChargeFixeService {
     public ChargeFixe getByIdForPdf(Long id) {
         ChargeFixe c = chargeFixeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Charge fixe non trouvée : " + id));
-        // Initialise le proxy lazy Transaction.compteBancaire dans la transaction
         if (c.getTransaction() != null) {
             c.getTransaction().getCompteBancaire().getNom();
         }
@@ -72,7 +72,7 @@ public class ChargeFixeService {
         }
 
         Transaction transaction = new Transaction();
-        transaction.setType("CHARGE");
+        transaction.setType(TransactionTypes.CHARGE);
         transaction.setMontant(charge.getMontant());
         transaction.setDate(LocalDate.now());
         transaction.setDescription("Paiement " + charge.getType() + " — " + charge.getDescription());

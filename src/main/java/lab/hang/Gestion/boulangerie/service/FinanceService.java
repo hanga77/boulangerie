@@ -1,6 +1,7 @@
 package lab.hang.Gestion.boulangerie.service;
 
 import jakarta.transaction.Transactional;
+import lab.hang.Gestion.boulangerie.application.finance.TransactionTypes;
 import lab.hang.Gestion.boulangerie.dto.TransactionDTO;
 import lab.hang.Gestion.boulangerie.exception.ResourceNotFoundException;
 import lab.hang.Gestion.boulangerie.mapper.TransactionMapper;
@@ -19,33 +20,27 @@ import java.util.stream.Collectors;
 @Service
 public class FinanceService {
 
+    public static final String NOM_COMPTE_PRINCIPAL = "Compte Principal";
+
     private final TransactionRepository transactionRepository;
     private final CompteBancaireRepository compteBancaireRepository;
-
     private final AlerteService alerteService;
 
-    public FinanceService(TransactionRepository transactionRepository, CompteBancaireRepository compteBancaireRepository, AlerteService alerteService) {
+    public FinanceService(TransactionRepository transactionRepository,
+                          CompteBancaireRepository compteBancaireRepository,
+                          AlerteService alerteService) {
         this.transactionRepository = transactionRepository;
         this.compteBancaireRepository = compteBancaireRepository;
         this.alerteService = alerteService;
     }
 
     public double calculerProfit(LocalDate startDate, LocalDate endDate) {
-        List<Transaction> transactions = transactionRepository.findByDateBetween(startDate, endDate);
-        double revenus = 0;
-        double depenses = 0;
-
-        for (Transaction transaction : transactions) {
-            if (transaction.getType().equals("VENTE")) {
-                revenus += transaction.getMontant(); // Revenus des ventes
-            } else if (transaction.getType().equals("PRODUCTION") || transaction.getType().equals("ACHAT")) {
-                depenses += transaction.getMontant(); // Dépenses de production et achats
-            }
-        }
-
+        double revenus = nz(transactionRepository.sumMontantByTypeInAndDateBetween(
+                TransactionTypes.REVENUE_TYPES, startDate, endDate));
+        double depenses = nz(transactionRepository.sumMontantByTypeInAndDateBetween(
+                TransactionTypes.EXPENSE_TYPES, startDate, endDate));
         return revenus - depenses;
     }
-
 
     public CompteBancaire getCompteBancaire(Long id) {
         return compteBancaireRepository.findById(id)
@@ -57,48 +52,37 @@ public class FinanceService {
     }
 
     public double calculerCoutsProduction() {
-        Double total = transactionRepository.sumMontantByType("PRODUCTION");
-        return total != null ? total : 0.0;
+        return nz(transactionRepository.sumMontantByType(TransactionTypes.PRODUCTION));
     }
 
     public double calculerRevenusVentes() {
-        Double total = transactionRepository.sumMontantByType("VENTE");
-        return total != null ? total : 0.0;
+        return nz(transactionRepository.sumMontantByTypeIn(TransactionTypes.REVENUE_TYPES));
     }
 
     public double calculerProfitTotal() {
-        double revenusVentes = calculerRevenusVentes();
-        double coutsProduction = calculerCoutsProduction();
-        double depensesAchats = calculerDepensesAchats();
-        return revenusVentes - coutsProduction - depensesAchats;
+        return calculerRevenusVentes() - calculerCoutsProduction() - calculerDepensesAchats();
     }
 
     public double calculerDepensesAchats() {
-        Double total = transactionRepository.sumMontantByType("ACHAT");
-        return total != null ? total : 0.0;
+        return nz(transactionRepository.sumMontantByType(TransactionTypes.ACHAT));
     }
 
     public List<TransactionDTO> getAllTransactions() {
-        List<Transaction> transactions = transactionRepository.findAll();
-        return transactions.stream()
+        return transactionRepository.findAll().stream()
                 .map(TransactionMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
     public Page<TransactionDTO> getAllTransactions(Pageable pageable) {
-        Page<Transaction> transactions = transactionRepository.findAll(pageable);
-        return transactions.map(TransactionMapper::toDTO);
+        return transactionRepository.findAll(pageable).map(TransactionMapper::toDTO);
     }
 
     public double calculerRevenusTotaux() {
-        List<Transaction> transactions = transactionRepository.findByType("VENTE");
-        return transactions.stream()
-                .mapToDouble(Transaction::getMontant)
-                .sum();
+        return calculerRevenusVentes();
     }
 
     public double calculerDepensesTotales() {
-        Double total = transactionRepository.sumMontantByTypeIn(List.of("PRODUCTION", "ACHAT"));
-        return total != null ? total : 0.0;
+        return nz(transactionRepository.sumMontantByTypeIn(TransactionTypes.EXPENSE_TYPES));
     }
 
     public double calculerProfit() {
@@ -106,7 +90,7 @@ public class FinanceService {
     }
 
     public CompteBancaire getCompteBancairePrincipal() {
-        return compteBancaireRepository.findByNom("Compte Principal")
+        return compteBancaireRepository.findByNom(NOM_COMPTE_PRINCIPAL)
                 .orElseThrow(() -> new ResourceNotFoundException("Compte Principal non trouvé"));
     }
 
@@ -115,6 +99,19 @@ public class FinanceService {
         compteBancaire.setSolde(soldeInitial);
         compteBancaire.setNom(nom);
         compteBancaireRepository.save(compteBancaire);
+    }
+
+    /**
+     * F3 — crée le Compte Principal s'il n'existe pas (idempotent).
+     * @return true si création, false si déjà présent
+     */
+    @Transactional
+    public boolean assurerComptePrincipal(double soldeInitial) {
+        if (compteBancaireRepository.findByNom(NOM_COMPTE_PRINCIPAL).isPresent()) {
+            return false;
+        }
+        creerCompteBancaire(NOM_COMPTE_PRINCIPAL, soldeInitial);
+        return true;
     }
 
     public TransactionDTO getTransactionById(Long id) {
@@ -135,13 +132,11 @@ public class FinanceService {
         transaction.setDate(LocalDate.now());
         transaction.setCompteBancaire(compte);
 
-        // Mise à jour du solde du compte
-        if ("VENTE".equals(type)) {
+        if (TransactionTypes.isRevenue(type)) {
             compte.setSolde(compte.getSolde() + montant);
-        } else if ("PRODUCTION".equals(type) || "ACHAT".equals(type)) {
+        } else if (TransactionTypes.EXPENSE_TYPES.contains(type)
+                || "PRODUCTION".equals(type) || "ACHAT".equals(type)) {
             compte.setSolde(compte.getSolde() - montant);
-
-            // Vérification du seuil d'alerte pour solde bas
             if (compte.getSolde() < 1000) {
                 alerteService.creerAlerte("FINANCE", "WARNING",
                         "Solde bas sur le compte " + compte.getNom() + ": " + compte.getSolde() + " XAF");
@@ -149,8 +144,7 @@ public class FinanceService {
         }
 
         compteBancaireRepository.save(compte);
-        Transaction saved = transactionRepository.save(transaction);
-        return TransactionMapper.toDTO(saved);
+        return TransactionMapper.toDTO(transactionRepository.save(transaction));
     }
 
     public List<CompteBancaire> getAllComptesBancaires() {
@@ -170,11 +164,9 @@ public class FinanceService {
 
         sourceCompte.setSolde(sourceCompte.getSolde() - montant);
         destinationCompte.setSolde(destinationCompte.getSolde() + montant);
-
         compteBancaireRepository.save(sourceCompte);
         compteBancaireRepository.save(destinationCompte);
 
-        // Enregistrer les transactions
         Transaction debit = new Transaction();
         debit.setType("TRANSFERT_DEBIT");
         debit.setMontant(montant);
@@ -194,22 +186,26 @@ public class FinanceService {
     }
 
     public double calculerDepensesSalariales() {
-        Double total = transactionRepository.sumMontantByTypeIn(List.of("SALAIRE", "SALAIRE_ENFOIS"));
-        return total != null ? total : 0.0;
+        return nz(transactionRepository.sumMontantByTypeIn(
+                List.of(TransactionTypes.SALAIRE, TransactionTypes.SALAIRE_ENFOIS)));
     }
 
-    public double calculerRevenusTotaux(java.time.LocalDate debut, java.time.LocalDate fin) {
-        Double total = transactionRepository.sumMontantByTypeAndDateBetween("VENTE", debut, fin);
-        return total != null ? total : 0.0;
+    public double calculerRevenusTotaux(LocalDate debut, LocalDate fin) {
+        return nz(transactionRepository.sumMontantByTypeInAndDateBetween(
+                TransactionTypes.REVENUE_TYPES, debut, fin));
     }
 
-    public double calculerDepensesTotales(java.time.LocalDate debut, java.time.LocalDate fin) {
-        Double total = transactionRepository.sumMontantByTypeInAndDateBetween(List.of("PRODUCTION", "ACHAT"), debut, fin);
-        return total != null ? total : 0.0;
+    public double calculerDepensesTotales(LocalDate debut, LocalDate fin) {
+        return nz(transactionRepository.sumMontantByTypeInAndDateBetween(
+                TransactionTypes.EXPENSE_TYPES, debut, fin));
     }
 
-    public double calculerDepensesSalariales(java.time.LocalDate debut, java.time.LocalDate fin) {
-        Double total = transactionRepository.sumMontantByTypeInAndDateBetween(List.of("SALAIRE", "SALAIRE_ENFOIS"), debut, fin);
-        return total != null ? total : 0.0;
+    public double calculerDepensesSalariales(LocalDate debut, LocalDate fin) {
+        return nz(transactionRepository.sumMontantByTypeInAndDateBetween(
+                List.of(TransactionTypes.SALAIRE, TransactionTypes.SALAIRE_ENFOIS), debut, fin));
+    }
+
+    private static double nz(Double v) {
+        return v != null ? v : 0.0;
     }
 }

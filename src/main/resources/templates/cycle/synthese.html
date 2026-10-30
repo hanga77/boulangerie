@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Synthèse cycle')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<main class="flex-grow-1 container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h1 class="h4 fw-bold mb-0">
+                <i class="fas fa-chart-pie me-2 text-primary"></i>Synthèse journalière
+            </h1>
+            <p class="text-muted small mb-0">Vue consolidée du cycle V2</p>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <form method="get" action="/cycle/synthese" class="d-flex gap-2">
+                <input type="date" name="date" class="form-control form-control-sm" th:value="${date}">
+                <button type="submit" class="btn btn-sm btn-primary">Voir</button>
+            </form>
+            <a href="/cycle" class="btn btn-sm btn-outline-secondary">Cycle</a>
+        </div>
+    </div>
+
+    <div class="alert alert-secondary" th:if="${production == null}">
+        Aucune production V2 pour le
+        <strong th:text="${#temporals.format(date, 'dd/MM/yyyy')}"></strong>.
+        <a href="/cycle/lancer" class="alert-link">Lancer la production</a>
+    </div>
+
+    <div th:if="${production != null}" class="mb-3">
+        <span class="badge text-bg-primary me-1">Production #<span th:text="${production.id}"></span></span>
+        <span class="badge text-bg-secondary" th:text="${production.statut}"></span>
+    </div>
+
+    <!-- KPI -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card shadow-sm h-100"><div class="card-body py-3">
+                <div class="text-muted small">Commandes</div>
+                <div class="fs-4 fw-bold">
+                    <span th:text="${nbCommandesTraitees}">0</span>/<span th:text="${nbCommandes}">0</span>
+                </div>
+            </div></div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card shadow-sm h-100"><div class="card-body py-3">
+                <div class="text-muted small">Produits (restant)</div>
+                <div class="fs-5 fw-bold">
+                    <span th:text="${qteProduitsRestants}">0</span>
+                    <span class="text-muted small">/ <span th:text="${qteProduitsPlanifies}">0</span></span>
+                </div>
+            </div></div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card shadow-sm h-100"><div class="card-body py-3">
+                <div class="text-muted small">Sorties magasin</div>
+                <div class="fs-5 fw-bold">
+                    <span th:text="${nbMatieresConfirmees}">0</span>/<span th:text="${nbMatieres}">0</span>
+                </div>
+                <div class="small text-muted" th:text="${nbSorties} + ' mvts · qté ' + ${#numbers.formatDecimal(qteSorties,1,'COMMA',2,'POINT')}"></div>
+            </div></div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card shadow-sm h-100"><div class="card-body py-3">
+                <div class="text-muted small">Livraisons</div>
+                <div class="fs-4 fw-bold" th:text="${nbLivraisons}">0</div>
+                <div class="small text-muted" th:text="${#numbers.formatDecimal(montantLivraisons,0,'COMMA',0,'POINT') + ' XAF'}"></div>
+            </div></div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card shadow-sm h-100"><div class="card-body py-3">
+                <div class="text-muted small">Ventes caisse</div>
+                <div class="fs-4 fw-bold" th:text="${nbVentes}">0</div>
+                <div class="small text-muted" th:text="${#numbers.formatDecimal(montantVentes,0,'COMMA',0,'POINT') + ' XAF'}"></div>
+            </div></div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card shadow-sm h-100 border-success"><div class="card-body py-3">
+                <div class="text-muted small">CA du jour (V2)</div>
+                <div class="fs-5 fw-bold text-success"
+                     th:text="${#numbers.formatDecimal(montantTotal,0,'COMMA',0,'POINT') + ' XAF'}">0</div>
+            </div></div>
+        </div>
+    </div>
+
+    <div class="row g-3" th:if="${production != null}">
+        <!-- Produits -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold">Produits production</div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                        <tr><th>Produit ID</th><th class="text-end">Planifié</th><th class="text-end">Réel</th><th class="text-end">Restant</th></tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="l : ${production.lignesProduits}">
+                            <td th:text="${l.produitId}"></td>
+                            <td class="text-end" th:text="${l.quantitePlanifiee}"></td>
+                            <td class="text-end" th:text="${l.quantiteReelle}"></td>
+                            <td class="text-end fw-semibold" th:text="${l.quantiteRestante}"></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(production.lignesProduits)}">
+                            <td colspan="4" class="text-muted text-center">Aucun</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Matières -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold">Matières (théorique / magasin)</div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                        <tr><th>Matière ID</th><th class="text-end">Théorique</th><th class="text-end">Magasinier</th></tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="m : ${production.lignesMatieres}">
+                            <td th:text="${m.matierePremiereId}"></td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(m.quantiteTheorique,1,'COMMA',3,'POINT')}"></td>
+                            <td class="text-end" th:text="${m.quantiteMagasinier != null ? #numbers.formatDecimal(m.quantiteMagasinier,1,'COMMA',3,'POINT') : '—'}"></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(production.lignesMatieres)}">
+                            <td colspan="3" class="text-muted text-center">Aucune</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Livraisons -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between">
+                    <span class="fw-semibold">Livraisons V2</span>
+                    <a th:href="@{/cycle/livraison/{id}(id=${production.id})}" class="btn btn-sm btn-outline-info">Gérer</a>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between" th:each="l : ${livraisons}">
+                        <span>#<span th:text="${l.id}"></span> — <span th:text="${l.nomClient}"></span>
+                            <span class="badge text-bg-light border ms-1" th:if="${l.factureNumero}" th:text="${l.factureNumero}"></span>
+                        </span>
+                        <span class="fw-semibold" th:text="${#numbers.formatDecimal(l.montantTotal,0,'COMMA',0,'POINT') + ' XAF'}"></span>
+                    </li>
+                    <li class="list-group-item text-muted" th:if="${#lists.isEmpty(livraisons)}">Aucune livraison</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Ventes -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between">
+                    <span class="fw-semibold">Ventes V2</span>
+                    <a th:href="@{/cycle/caisse/{id}(id=${production.id})}" class="btn btn-sm btn-outline-success">Caisse</a>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between" th:each="v : ${ventes}">
+                        <span>#<span th:text="${v.id}"></span> · <span th:text="${v.moyenPaiement}"></span></span>
+                        <span class="fw-semibold" th:text="${#numbers.formatDecimal(v.montantTotal,0,'COMMA',0,'POINT') + ' XAF'}"></span>
+                    </li>
+                    <li class="list-group-item text-muted" th:if="${#lists.isEmpty(ventes)}">Aucune vente</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</main>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

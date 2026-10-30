@@ -1,14 +1,26 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Confirmation de Livraison')}">
-</head>
-<body>
+<head th:replace="~{fragments/layout :: head('Livraison confirmée')}"></head>
+<body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
-
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
 
-<h1>Livraison Confirmée</h1>
-<p>La livraison a été enregistrée avec succès.</p>
-<a th:href="@{/livraisons}">Retour à la liste des livraisons</a>
+<div th:replace="~{fragments/layout :: legacy-banner(
+    'Livraison historique (V1). Les livraisons ProductionV2 se font depuis le Cycle du jour.',
+    '/cycle',
+    'Livrer via Cycle V2')}"></div>
+
+<main class="container py-5 flex-grow-1">
+    <div class="text-center">
+        <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+        <h1 class="h4">Livraison confirmée</h1>
+        <p class="text-muted">La livraison a été enregistrée.</p>
+        <div class="d-flex gap-2 justify-content-center mt-3">
+            <a href="/livraisons" class="btn btn-outline-secondary btn-sm">Liste livraisons V1</a>
+            <a href="/cycle" class="btn btn-success btn-sm">Cycle du jour</a>
+        </div>
+    </div>
+</main>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

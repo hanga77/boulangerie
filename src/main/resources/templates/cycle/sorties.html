@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sorties stock V2')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<main class="flex-grow-1 container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h1 class="h4 fw-bold mb-0">
+                <i class="fas fa-dolly me-2 text-primary"></i>Sorties stock (Production V2)
+            </h1>
+            <p class="text-muted small mb-0">Mouvements SORTIE liés à une production V2</p>
+        </div>
+        <a href="/cycle" class="btn btn-sm btn-outline-secondary">Cycle du jour</a>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" action="/cycle/sorties" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small">Date</label>
+                    <input type="date" name="date" class="form-control form-control-sm" th:value="${date}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small">Production V2</label>
+                    <select name="productionV2Id" class="form-select form-select-sm">
+                        <option value="">Toutes</option>
+                        <option th:each="p : ${productions}"
+                                th:value="${p.id}"
+                                th:selected="${productionV2Id != null and productionV2Id == p.id}"
+                                th:text="|'#' + ${p.id} + ' — ' + ${#temporals.format(p.dateProduction,'dd/MM/yyyy')} + ' (' + ${p.statut} + ')'|"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <i class="fas fa-filter me-1"></i>Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="alert alert-light border small mb-3">
+        <strong th:text="${#lists.size(sorties)}">0</strong> sortie(s)
+        — quantité totale
+        <strong th:text="${#numbers.formatDecimal(totalQte, 1, 'COMMA', 3, 'POINT')}">0</strong>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0 align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Prod. V2</th>
+                    <th>Matière</th>
+                    <th class="text-end">Quantité</th>
+                    <th>Utilisateur</th>
+                    <th>Motif</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${sorties}">
+                    <td class="text-nowrap" th:text="${#temporals.format(s.date, 'dd/MM/yyyy')}"></td>
+                    <td>
+                        <a th:if="${s.productionV2Id != null}"
+                           th:href="@{/cycle/feuille/{id}(id=${s.productionV2Id})}"
+                           th:text="|'#' + ${s.productionV2Id}|"></a>
+                        <span th:unless="${s.productionV2Id != null}">—</span>
+                    </td>
+                    <td th:text="${s.matierePremiere != null ? s.matierePremiere.nom : '?'}"></td>
+                    <td class="text-end fw-semibold"
+                        th:text="${#numbers.formatDecimal(s.quantite, 1, 'COMMA', 3, 'POINT')
+                            + (s.matierePremiere != null ? ' ' + s.matierePremiere.uniteMesure : '')}"></td>
+                    <td th:text="${s.user != null ? s.user.username : '—'}"></td>
+                    <td class="small text-muted" th:text="${s.motif}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(sorties)}">
+                    <td colspan="6" class="text-center text-muted py-4">Aucune sortie V2 pour ces critères</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

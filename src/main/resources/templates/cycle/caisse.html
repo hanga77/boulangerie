@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Caisse V2')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<main class="flex-grow-1 container-fluid py-3 px-3 px-lg-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h1 class="h4 fw-bold mb-0">
+                <i class="fas fa-cash-register me-2 text-success"></i>Caisse — Production V2
+                #<span th:text="${production.id}"></span>
+            </h1>
+            <p class="text-muted small mb-0">
+                <span th:text="${#temporals.format(production.dateProduction,'dd/MM/yyyy')}"></span>
+                · <span th:text="${production.statut}"></span>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/cycle" class="btn btn-sm btn-outline-secondary">Cycle</a>
+            <a th:href="@{/cycle/vente/{id}(id=${production.id})}" class="btn btn-sm btn-outline-primary">Vue détaillée</a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <form th:action="@{/cycle/caisse/{id}(id=${production.id})}" method="post" id="formCaisse">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Produits disponibles</span>
+                        <select name="moyenPaiement" class="form-select form-select-sm" style="width:auto">
+                            <option value="ESPECES">Espèces</option>
+                            <option value="MOBILE_MONEY">Mobile Money</option>
+                        </select>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="row g-0">
+                            <div class="col-6 col-md-4 col-xl-3 border p-3" th:each="e : ${restants}">
+                                <div class="fw-semibold" th:text="${e.value[0]}">Pain</div>
+                                <div class="text-muted small">
+                                    Restant : <strong th:text="${e.value[1]}">0</strong>
+                                    · <span th:text="${#numbers.formatDecimal(e.value[2],0,'COMMA',0,'POINT') + ' XAF'}"></span>
+                                </div>
+                                <div class="input-group input-group-sm mt-2">
+                                    <button type="button" class="btn btn-outline-secondary btn-minus" data-target="qte">−</button>
+                                    <input type="number" min="0" th:max="${e.value[1]}" value="0"
+                                           class="form-control text-center qte-input"
+                                           th:name="|qte[${e.key}]|"
+                                           th:attr="data-prix=${e.value[2]},data-max=${e.value[1]}">
+                                    <button type="button" class="btn btn-outline-secondary btn-plus" data-target="qte">+</button>
+                                </div>
+                            </div>
+                            <div class="col-12 p-4 text-center text-muted" th:if="${restants.isEmpty()}">
+                                Plus de stock sur cette production.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <button type="submit" class="btn btn-success btn-lg" th:disabled="${restants.isEmpty()}"
+                            onclick="return confirm('Enregistrer la vente ?');">
+                        <i class="fas fa-check me-1"></i>Encaisser
+                        <span id="totalPreview" class="ms-1">0 XAF</span>
+                    </button>
+                    <button type="reset" class="btn btn-outline-secondary">Remettre à zéro</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-semibold">Dernières ventes</div>
+                <ul class="list-group list-group-flush" style="max-height:420px;overflow:auto">
+                    <li class="list-group-item d-flex justify-content-between" th:each="v : ${ventes}">
+                        <span>#<span th:text="${v.id}"></span> · <span th:text="${v.moyenPaiement}"></span></span>
+                        <span class="fw-semibold" th:text="${#numbers.formatDecimal(v.montantTotal,0,'COMMA',0,'POINT') + ' XAF'}"></span>
+                    </li>
+                    <li class="list-group-item text-muted" th:if="${#lists.isEmpty(ventes)}">Aucune vente</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+(function () {
+  function recalc() {
+    let total = 0;
+    document.querySelectorAll('.qte-input').forEach(function (inp) {
+      const q = parseInt(inp.value || '0', 10);
+      const p = parseFloat(inp.getAttribute('data-prix') || '0');
+      if (q > 0) total += q * p;
+    });
+    const el = document.getElementById('totalPreview');
+    if (el) el.textContent = total.toLocaleString('fr-FR') + ' XAF';
+  }
+  document.querySelectorAll('.btn-plus').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const inp = btn.parentElement.querySelector('.qte-input');
+      const max = parseInt(inp.getAttribute('data-max') || '999', 10);
+      let v = parseInt(inp.value || '0', 10) + 1;
+      if (v > max) v = max;
+      inp.value = v;
+      recalc();
+    });
+  });
+  document.querySelectorAll('.btn-minus').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const inp = btn.parentElement.querySelector('.qte-input');
+      let v = parseInt(inp.value || '0', 10) - 1;
+      if (v < 0) v = 0;
+      inp.value = v;
+      recalc();
+    });
+  });
+  document.querySelectorAll('.qte-input').forEach(function (inp) {
+    inp.addEventListener('input', recalc);
+  });
+  document.getElementById('formCaisse')?.addEventListener('reset', function () {
+    setTimeout(recalc, 0);
+  });
+})();
+</script>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
