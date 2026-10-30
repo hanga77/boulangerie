@@ -6,61 +6,39 @@
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
 
 <main class="flex-grow-1 container py-4" style="max-width:720px">
-
-    <div class="d-flex align-items-center gap-2 mb-4">
-        <div class="rounded-circle bg-success bg-opacity-10 p-3">
-            <i class="fas fa-industry fa-lg text-success"></i>
-        </div>
-        <div>
-            <h1 class="h4 fw-bold mb-0">Lancer la production (cycle V2)</h1>
-            <p class="text-muted small mb-0">
-                Calcule le théorique matières (commandes + vente libre) et le farinage du lot
-            </p>
-        </div>
-    </div>
-
-    <div class="alert alert-info small">
-        <i class="fas fa-info-circle me-1"></i>
-        Dès le lancement, le <strong>magasinier</strong> dispose de la feuille de sortie
-        (recettes + farinage). Il n’attend pas la fin de la cuisson.
+    <div class="mb-4">
+        <h1 class="h4 fw-bold mb-0">
+            <i class="fas fa-industry me-2 text-success"></i>Lancer la production (Cycle V2)
+        </h1>
+        <p class="text-muted small mb-0">À partir des commandes du jour · farinage optionnel</p>
     </div>
 
     <div class="card shadow-sm">
         <div class="card-body">
-            <form th:action="@{/cycle/lancer}" method="post">
+            <form th:action="@{/cycle/lancer}" method="post" id="formLancer">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-
                 <div class="mb-3">
-                    <label class="form-label fw-semibold" for="date">Date de production</label>
+                    <label class="form-label" for="date">Date de production</label>
                     <input type="date" id="date" name="date" class="form-control"
                            th:value="${dateActuelle}" required>
                 </div>
-
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">Farinage du lot</label>
-                    <div class="form-text mb-2">
-                        Inclus dans le théorique magasinier — obligatoire s’il y a fleurage / pétrissage.
+                <div class="row g-2 mb-3">
+                    <div class="col-md-7">
+                        <label class="form-label">Farinage — matière (optionnel)</label>
+                        <select name="farinageMatiereId" id="farinageMatiereId" class="form-select">
+                            <option value="">— Aucun —</option>
+                            <option th:each="m : ${matieres}" th:value="${m.id}" th:text="${m.nom}"></option>
+                        </select>
                     </div>
-                    <div class="row g-2">
-                        <div class="col-7">
-                            <select name="farinageMatiereId" class="form-select">
-                                <option value="">-- Aucun --</option>
-                                <option th:each="m : ${matieresPremieres}"
-                                        th:value="${m.id}"
-                                        th:text="${m.nom} + ' (' + ${m.uniteMesure} + ')'"></option>
-                            </select>
-                        </div>
-                        <div class="col-5">
-                            <input type="number" step="0.001" min="0" name="farinageQuantite"
-                                   class="form-control" placeholder="Quantité">
-                        </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Quantité farinage</label>
+                        <input type="number" step="0.001" min="0" name="farinageQuantite"
+                               id="farinageQuantite" class="form-control" placeholder="0">
                     </div>
                 </div>
-
+                <p class="small text-muted">Si une matière de farinage est choisie, la quantité doit être &gt; 0.</p>
                 <div class="d-flex gap-2">
-                    <a href="/cycle" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>Retour
-                    </a>
+                    <a href="/cycle" class="btn btn-outline-secondary">Annuler</a>
                     <button type="submit" class="btn btn-success">
                         <i class="fas fa-play me-1"></i>Démarrer
                     </button>
@@ -68,8 +46,22 @@
             </form>
         </div>
     </div>
-
 </main>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+<script>
+(function () {
+  var f = document.getElementById('formLancer');
+  if (!f) return;
+  f.addEventListener('submit', function (e) {
+    var mat = document.getElementById('farinageMatiereId');
+    var qte = document.getElementById('farinageQuantite');
+    if (mat && qte && mat.value && (!qte.value || parseFloat(qte.value) <= 0)) {
+      e.preventDefault();
+      alert('Indiquez une quantité de farinage > 0 si une matière est sélectionnée.');
+      qte.focus();
+    }
+  });
+})();
+</script>
 </body>
 </html>
