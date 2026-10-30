@@ -22,9 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Phase 3 — Caisse POS branchée sur le stock restant ProductionV2.
- */
 @Controller
 @RequestMapping("/cycle/caisse")
 @PreAuthorize("hasAnyRole('ADMIN','MANAGER','CAISSIER')")
@@ -53,21 +50,32 @@ public class CycleCaisseController {
 
     private Optional<ProductionV2> resolveProduction(Long productionId) {
         if (productionId != null) {
-            return productionRepo.findByIdWithLignes(productionId);
+            return productionRepo.findById(productionId);
         }
         LocalDate today = LocalDate.now();
-        return productionRepo.findByDateProductionWithLignes(today)
-                .or(() -> productionRepo.findByDateProductionWithLignes(today.minusDays(1)));
+        var list = productionPort.findByDate(today);
+        if (!list.isEmpty()) {
+            return Optional.of(list.get(0));
+        }
+        list = productionPort.findByDate(today.minusDays(1));
+        if (!list.isEmpty()) {
+            return Optional.of(list.get(0));
+        }
+        return Optional.empty();
     }
 
     private Map<Long, Object[]> restantsView(ProductionV2 p) {
         Map<Long, Object[]> map = new LinkedHashMap<>();
+        if (p.getLignesProduits() == null) {
+            return map;
+        }
         for (ProductionLigneProduit l : p.getLignesProduits()) {
-            if (l.getQuantiteRestante() > 0) {
-                map.put(l.getProduitId(), new Object[]{
-                        catalogPort.nomProduit(l.getProduitId()),
-                        l.getQuantiteRestante(),
-                        catalogPort.prixProduit(l.getProduitId())
+            int rest = l.getQuantiteRestante();
+            if (rest > 0 && l.getProduit() != null) {
+                map.put(l.getProduit().getId(), new Object[]{
+                        l.getProduit().getNom(),
+                        rest,
+                        l.getProduit().getPrixUnitaire()
                 });
             }
         }
@@ -110,9 +118,14 @@ public class CycleCaisseController {
                 if (k.startsWith("qte[") && v != null && !v.isBlank()) {
                     Long pid = Long.valueOf(k.substring(4, k.indexOf(']')));
                     int q = Integer.parseInt(v);
-                    if (q > 0) qtes.put(pid, q);
+                    if (q > 0) {
+                        qtes.put(pid, q);
+                    }
                 }
             });
+            if (qtes.isEmpty()) {
+                throw new IllegalArgumentException("Indiquez au moins une quantité produit > 0.");
+            }
             var saved = createVente.execute(new CreateVenteLibreV2UseCase.Command(
                     productionId, user.getId(), null, moyenPaiement, qtes));
             ra.addFlashAttribute("successMessage",
