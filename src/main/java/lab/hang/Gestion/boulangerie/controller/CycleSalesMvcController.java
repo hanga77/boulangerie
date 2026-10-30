@@ -1,14 +1,11 @@
 package lab.hang.Gestion.boulangerie.controller;
 
 import lab.hang.Gestion.boulangerie.application.production.ProductionPersistencePort;
-import lab.hang.Gestion.boulangerie.application.sales.CatalogSalesPort;
 import lab.hang.Gestion.boulangerie.application.sales.CreateLivraisonV2UseCase;
 import lab.hang.Gestion.boulangerie.application.sales.CreateVenteLibreV2UseCase;
 import lab.hang.Gestion.boulangerie.application.sales.SalesPersistencePort;
-import lab.hang.Gestion.boulangerie.domain.production.ProductionLigneProduit;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionV2;
 import lab.hang.Gestion.boulangerie.model.User;
-import lab.hang.Gestion.boulangerie.repository.PointDeVenteRepository;
 import lab.hang.Gestion.boulangerie.service.UserService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -20,49 +17,46 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Livraisons et ventes libres liées à ProductionV2.
+ */
 @Controller
 @RequestMapping("/cycle")
 public class CycleSalesMvcController {
 
     private final ProductionPersistencePort productionPort;
+    private final SalesPersistencePort salesPort;
     private final CreateLivraisonV2UseCase createLivraison;
     private final CreateVenteLibreV2UseCase createVente;
-    private final SalesPersistencePort salesPort;
-    private final CatalogSalesPort catalogPort;
-    private final PointDeVenteRepository pdvRepo;
     private final UserService userService;
 
     public CycleSalesMvcController(ProductionPersistencePort productionPort,
+                                   SalesPersistencePort salesPort,
                                    CreateLivraisonV2UseCase createLivraison,
                                    CreateVenteLibreV2UseCase createVente,
-                                   SalesPersistencePort salesPort,
-                                   CatalogSalesPort catalogPort,
-                                   PointDeVenteRepository pdvRepo,
                                    UserService userService) {
         this.productionPort = productionPort;
+        this.salesPort = salesPort;
         this.createLivraison = createLivraison;
         this.createVente = createVente;
-        this.salesPort = salesPort;
-        this.catalogPort = catalogPort;
-        this.pdvRepo = pdvRepo;
         this.userService = userService;
     }
 
     private Map<Long, Object[]> restantsView(ProductionV2 p) {
         Map<Long, Object[]> map = new LinkedHashMap<>();
-        for (ProductionLigneProduit l : p.getLignesProduits()) {
-            if (l.getQuantiteRestante() > 0) {
-                map.put(l.getProduitId(), new Object[]{
-                        catalogPort.nomProduit(l.getProduitId()),
-                        l.getQuantiteRestante(),
-                        catalogPort.prixProduit(l.getProduitId())
+        if (p.getLignesProduits() == null) return map;
+        p.getLignesProduits().forEach(l -> {
+            int rest = l.getQuantiteRestante();
+            if (rest > 0 && l.getProduit() != null) {
+                map.put(l.getProduit().getId(), new Object[]{
+                        l.getProduit().getNom(),
+                        rest,
+                        l.getProduit().getPrixUnitaire()
                 });
             }
-        }
+        });
         return map;
     }
-
-    // ─── Livraison ───────────────────────────────────────────
 
     @GetMapping("/livraison/{productionId}")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
@@ -71,7 +65,6 @@ public class CycleSalesMvcController {
             ProductionV2 p = productionPort.getById(productionId);
             model.addAttribute("production", p);
             model.addAttribute("restants", restantsView(p));
-            model.addAttribute("pointsDeVente", pdvRepo.findAll());
             model.addAttribute("livraisons", salesPort.findLivraisonsByProduction(productionId));
             return "cycle/livraison";
         } catch (Exception e) {
@@ -101,6 +94,9 @@ public class CycleSalesMvcController {
                     if (qte > 0) lignes.put(pid, new CreateLivraisonV2UseCase.LigneCmd(qte, prix));
                 }
             });
+            if (lignes.isEmpty()) {
+                throw new IllegalArgumentException("Indiquez au moins une quantité produit > 0.");
+            }
             var saved = createLivraison.execute(new CreateLivraisonV2UseCase.Command(
                     productionId, nomClient, pointDeVenteId, user.getId(), lignes, enregistrerRevenu));
             ra.addFlashAttribute("successMessage",
@@ -111,8 +107,6 @@ public class CycleSalesMvcController {
         }
         return "redirect:/cycle/livraison/" + productionId;
     }
-
-    // ─── Vente libre ─────────────────────────────────────────
 
     @GetMapping("/vente/{productionId}")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','CAISSIER')")
@@ -146,6 +140,9 @@ public class CycleSalesMvcController {
                     if (q > 0) qtes.put(pid, q);
                 }
             });
+            if (qtes.isEmpty()) {
+                throw new IllegalArgumentException("Indiquez au moins une quantité produit > 0.");
+            }
             var saved = createVente.execute(new CreateVenteLibreV2UseCase.Command(
                     productionId, user.getId(), null, moyenPaiement, qtes));
             ra.addFlashAttribute("successMessage",
