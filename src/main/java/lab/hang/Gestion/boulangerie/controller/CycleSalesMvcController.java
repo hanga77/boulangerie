@@ -1,11 +1,14 @@
 package lab.hang.Gestion.boulangerie.controller;
 
 import lab.hang.Gestion.boulangerie.application.production.ProductionPersistencePort;
+import lab.hang.Gestion.boulangerie.application.sales.CatalogSalesPort;
 import lab.hang.Gestion.boulangerie.application.sales.CreateLivraisonV2UseCase;
 import lab.hang.Gestion.boulangerie.application.sales.CreateVenteLibreV2UseCase;
 import lab.hang.Gestion.boulangerie.application.sales.SalesPersistencePort;
+import lab.hang.Gestion.boulangerie.domain.production.ProductionLigneProduit;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionV2;
 import lab.hang.Gestion.boulangerie.model.User;
+import lab.hang.Gestion.boulangerie.repository.PointDeVenteRepository;
 import lab.hang.Gestion.boulangerie.service.UserService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -17,35 +20,40 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Livraisons et ventes libres liées à ProductionV2.
- */
 @Controller
 @RequestMapping("/cycle")
 public class CycleSalesMvcController {
 
     private final ProductionPersistencePort productionPort;
-    private final SalesPersistencePort salesPort;
     private final CreateLivraisonV2UseCase createLivraison;
     private final CreateVenteLibreV2UseCase createVente;
+    private final SalesPersistencePort salesPort;
+    private final CatalogSalesPort catalogPort;
+    private final PointDeVenteRepository pdvRepo;
     private final UserService userService;
 
     public CycleSalesMvcController(ProductionPersistencePort productionPort,
-                                   SalesPersistencePort salesPort,
                                    CreateLivraisonV2UseCase createLivraison,
                                    CreateVenteLibreV2UseCase createVente,
+                                   SalesPersistencePort salesPort,
+                                   CatalogSalesPort catalogPort,
+                                   PointDeVenteRepository pdvRepo,
                                    UserService userService) {
         this.productionPort = productionPort;
-        this.salesPort = salesPort;
         this.createLivraison = createLivraison;
         this.createVente = createVente;
+        this.salesPort = salesPort;
+        this.catalogPort = catalogPort;
+        this.pdvRepo = pdvRepo;
         this.userService = userService;
     }
 
     private Map<Long, Object[]> restantsView(ProductionV2 p) {
         Map<Long, Object[]> map = new LinkedHashMap<>();
-        if (p.getLignesProduits() == null) return map;
-        p.getLignesProduits().forEach(l -> {
+        if (p.getLignesProduits() == null) {
+            return map;
+        }
+        for (ProductionLigneProduit l : p.getLignesProduits()) {
             int rest = l.getQuantiteRestante();
             if (rest > 0 && l.getProduit() != null) {
                 map.put(l.getProduit().getId(), new Object[]{
@@ -54,7 +62,7 @@ public class CycleSalesMvcController {
                         l.getProduit().getPrixUnitaire()
                 });
             }
-        });
+        }
         return map;
     }
 
@@ -65,6 +73,7 @@ public class CycleSalesMvcController {
             ProductionV2 p = productionPort.getById(productionId);
             model.addAttribute("production", p);
             model.addAttribute("restants", restantsView(p));
+            model.addAttribute("pointsDeVente", pdvRepo.findAll());
             model.addAttribute("livraisons", salesPort.findLivraisonsByProduction(productionId));
             return "cycle/livraison";
         } catch (Exception e) {
@@ -91,7 +100,9 @@ public class CycleSalesMvcController {
                     int qte = Integer.parseInt(v);
                     String prixStr = formData.getOrDefault("prix[" + pid + "]", "0");
                     double prix = Double.parseDouble(prixStr.replace(',', '.'));
-                    if (qte > 0) lignes.put(pid, new CreateLivraisonV2UseCase.LigneCmd(qte, prix));
+                    if (qte > 0) {
+                        lignes.put(pid, new CreateLivraisonV2UseCase.LigneCmd(qte, prix));
+                    }
                 }
             });
             if (lignes.isEmpty()) {
@@ -137,7 +148,9 @@ public class CycleSalesMvcController {
                 if (k.startsWith("qte[") && v != null && !v.isBlank()) {
                     Long pid = Long.valueOf(k.substring(4, k.indexOf(']')));
                     int q = Integer.parseInt(v);
-                    if (q > 0) qtes.put(pid, q);
+                    if (q > 0) {
+                        qtes.put(pid, q);
+                    }
                 }
             });
             if (qtes.isEmpty()) {
