@@ -16,13 +16,13 @@
         </a>
     </div>
 
-    <!-- Formulaire d'ajout -->
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
             <i class="fas fa-plus-circle me-2"></i>Nouvelle facture
         </div>
         <div class="card-body">
             <form th:action="@{/comptabilite/factures}" th:object="${newFacture}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <div class="row g-3">
                     <div class="col-md-2">
                         <label for="type" class="form-label">Type</label>
@@ -58,7 +58,6 @@
         </div>
     </div>
 
-    <!-- Liste des factures -->
     <div class="card">
         <div class="card-header bg-secondary text-white">
             <i class="fas fa-list me-2"></i>Liste des factures
