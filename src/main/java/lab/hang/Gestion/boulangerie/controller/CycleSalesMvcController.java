@@ -8,6 +8,8 @@ import lab.hang.Gestion.boulangerie.application.sales.SalesPersistencePort;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionLigneProduit;
 import lab.hang.Gestion.boulangerie.domain.production.ProductionV2;
 import lab.hang.Gestion.boulangerie.model.User;
+import lab.hang.Gestion.boulangerie.model.Produit;
+import lab.hang.Gestion.boulangerie.repository.ProduitRepository;
 import lab.hang.Gestion.boulangerie.repository.PointDeVenteRepository;
 import lab.hang.Gestion.boulangerie.service.UserService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +33,7 @@ public class CycleSalesMvcController {
     private final CatalogSalesPort catalogPort;
     private final PointDeVenteRepository pdvRepo;
     private final UserService userService;
+    private final ProduitRepository produitRepository;
 
     public CycleSalesMvcController(ProductionPersistencePort productionPort,
                                    CreateLivraisonV2UseCase createLivraison,
@@ -38,7 +41,8 @@ public class CycleSalesMvcController {
                                    SalesPersistencePort salesPort,
                                    CatalogSalesPort catalogPort,
                                    PointDeVenteRepository pdvRepo,
-                                   UserService userService) {
+                                   UserService userService,
+				   ProduitRepository produitRepository) {
         this.productionPort = productionPort;
         this.createLivraison = createLivraison;
         this.createVente = createVente;
@@ -46,6 +50,7 @@ public class CycleSalesMvcController {
         this.catalogPort = catalogPort;
         this.pdvRepo = pdvRepo;
         this.userService = userService;
+	this.produitRepository = produitRepository;
     }
 
     private Map<Long, Object[]> restantsView(ProductionV2 p) {
