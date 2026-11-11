@@ -55,11 +55,12 @@ public class CycleSalesMvcController {
         }
         for (ProductionLigneProduit l : p.getLignesProduits()) {
             int rest = l.getQuantiteRestante();
-            if (rest > 0 && l.getProduit() != null) {
-                map.put(l.getProduit().getId(), new Object[]{
-                        l.getProduit().getNom(),
+            if (rest > 0) {
+                Long pid = l.getProduitId();
+                map.put(pid, new Object[]{
+                        catalogPort.nomProduit(pid),
                         rest,
-                        l.getProduit().getPrixUnitaire()
+                        catalogPort.prixProduit(pid)
                 });
             }
         }
