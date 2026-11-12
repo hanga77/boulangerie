@@ -29,14 +29,16 @@ while IFS= read -r file; do
       i=$((i + 1))
       continue
     fi
-    if echo "$line" | grep -qiE '<form[^>]*method[[:space:]]*=[[:space:]]*["'"'']?post'; then
+    # method=post / method="post" / method='post' (case insensitive)
+    lower=$(echo "$line" | tr '[:upper:]' '[:lower:]')
+    if [[ "$lower" == *"<form"* && "$lower" == *"method"* && "$lower" == *"post"* ]]; then
       window="$line"
       for ((j=i+1; j<i+16 && j<${#lines[@]}; j++)); do
         window+="${lines[$j]}"
       done
       if ! echo "$window" | grep -q '_csrf.token'; then
         lineno=$((i + 1))
-        echo "CSRF manquant: $rel (ligne ${lineno})"
+        echo "CSRF manquant: ${rel} ligne ${lineno}"
         missing=$((missing + 1))
       fi
     fi
@@ -48,8 +50,8 @@ rm -f "$tmp_list"
 
 if (( missing > 0 )); then
   echo ""
-  echo "ÉCHEC: $missing formulaire(s) POST sans token CSRF."
+  echo "ECHEC: ${missing} formulaire(s) POST sans token CSRF."
   exit 1
 fi
 
-echo "OK: tous les formulaires POST sous $ROOT ont un token CSRF."
+echo "OK: tous les formulaires POST sous ${ROOT} ont un token CSRF."
