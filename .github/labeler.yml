@@ -1,0 +1,25 @@
+# Configuration minimale pour actions/labeler
+# https://github.com/actions/labeler
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/**'
+          - '**/*.md'
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/resources/templates/**'
+          - 'src/main/resources/static/**'
+
+backend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/java/**'
+          - 'pom.xml'
