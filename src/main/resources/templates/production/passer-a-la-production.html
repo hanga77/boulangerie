@@ -4,6 +4,10 @@
 <body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
+<div th:replace="~{fragments/layout :: legacy-banner(
+    'Ancien lancement de production (V1). Préférez le Cycle du jour (V2) pour le farinage et la feuille magasinier.',
+    '/cycle/lancer',
+    'Lancer via Cycle V2')}"></div>
 
 <main class="flex-grow-1 container py-4" style="max-width:760px">
 
@@ -12,12 +16,11 @@
             <i class="fas fa-industry fa-lg text-success"></i>
         </div>
         <div>
-            <h1 class="h4 fw-bold mb-0">Lancer la production</h1>
-            <p class="text-muted small mb-0">Démarre la production à partir des commandes en attente</p>
+            <h1 class="h4 fw-bold mb-0">Lancer la production (ancien)</h1>
+            <p class="text-muted small mb-0">Démarre la production V1 à partir des commandes en attente</p>
         </div>
     </div>
 
-    <!-- Résumé commandes en attente -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white py-3">
             <h6 class="mb-0 fw-semibold">
@@ -46,7 +49,6 @@
         </div>
     </div>
 
-    <!-- Formulaire lancement -->
     <div class="card shadow-sm">
         <div class="card-header bg-white py-3">
             <h6 class="mb-0 fw-semibold">
@@ -68,8 +70,7 @@
                         Farinage <span class="text-muted fw-normal">(optionnel)</span>
                     </label>
                     <div class="form-text mb-2">
-                        Farine utilisée pour le fleurage/pétrissage, non comptée dans les recettes produit —
-                        ajoutée en plus du théorique calculé pour cette session de production.
+                        Farine utilisée pour le fleurage/pétrissage, non comptée dans les recettes produit.
                     </div>
                     <div class="row g-2">
                         <div class="col-7">
@@ -87,7 +88,7 @@
                     </div>
                 </div>
 
-<div class="d-flex gap-2 mt-3">
+                <div class="d-flex gap-2 mt-3">
                     <a href="/production" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left me-1"></i>Annuler
                     </a>

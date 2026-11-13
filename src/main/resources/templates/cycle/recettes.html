@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Recettes')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<main class="flex-grow-1 container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h1 class="h4 fw-bold mb-0">
+                <i class="fas fa-hand-holding-usd me-2 text-success"></i>Recettes de vente
+            </h1>
+            <p class="text-muted small mb-0">Saisie manuelle — crédit compte principal</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="/cycle/caisse" class="btn btn-sm btn-success">Caisse V2</a>
+            <a href="/cycle/depenses" class="btn btn-sm btn-outline-danger">Dépenses</a>
+            <a href="/cycle/tresorerie" class="btn btn-sm btn-outline-success">Trésorerie</a>
+        </div>
+    </div>
+
+    <div class="alert alert-info small">
+        <strong>Attention :</strong> les livraisons et la caisse V2 enregistrent déjà le CA automatiquement.
+        Utilisez cet écran pour des recettes hors cycle (ajustement, vente exceptionnelle),
+        pas en double des flux <code>/cycle/livraison</code> ou <code>/cycle/caisse</code>.
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm"><div class="card-body py-3">
+                <div class="text-muted small">Solde compte</div>
+                <div class="fs-5 fw-bold" th:if="${solde != null}"
+                     th:text="${#numbers.formatDecimal(solde, 0, 'COMMA', 0, 'POINT') + ' XAF'}"></div>
+                <div class="small text-muted" th:if="${compteNom != null}" th:text="${compteNom}"></div>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-success"><div class="card-body py-3">
+                <div class="text-muted small">Total recettes (période, tous types)</div>
+                <div class="fs-5 fw-bold text-success"
+                     th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT') + ' XAF'}"></div>
+            </div></div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-semibold">Nouvelle recette</div>
+                <div class="card-body">
+                    <form th:if="${compteId != null}" method="post" action="/cycle/recettes">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <input type="hidden" name="compteId" th:value="${compteId}"/>
+
+                        <div class="mb-3">
+                            <label class="form-label small">Type</label>
+                            <select name="type" class="form-select form-select-sm" required>
+                                <option th:each="t : ${types}" th:value="${t}" th:text="${t}"></option>
+                            </select>
+                            <div class="form-text">VENTE = vente générale · VENTE_LIBRE = caisse hors V2 · PAIEMENT_FACTURE</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Montant (XAF)</label>
+                            <input type="number" name="montant" class="form-control form-control-sm"
+                                   min="1" step="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Description</label>
+                            <input type="text" name="description" class="form-control form-control-sm"
+                                   maxlength="255" required
+                                   placeholder="Ex: Vente exceptionnelle marché">
+                        </div>
+                        <button type="submit" class="btn btn-success btn-sm"
+                                onclick="return confirm('Enregistrer cette recette et créditer le compte ?');">
+                            <i class="fas fa-save me-1"></i>Enregistrer
+                        </button>
+                    </form>
+                    <div th:if="${compteId == null}" class="alert alert-warning mb-0">
+                        Compte Principal introuvable.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body py-2">
+                    <form method="get" action="/cycle/recettes" class="row g-2 align-items-end">
+                        <div class="col-auto">
+                            <label class="form-label small mb-0">Du</label>
+                            <input type="date" name="debut" class="form-control form-control-sm" th:value="${debut}">
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label small mb-0">Au</label>
+                            <input type="date" name="fin" class="form-control form-control-sm" th:value="${fin}">
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Filtrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-semibold">Recettes de la période (tous types revenus)</div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th class="text-end">Montant</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="r : ${recettes}">
+                            <td class="text-nowrap" th:text="${#temporals.format(r.date, 'dd/MM/yyyy')}"></td>
+                            <td><span class="badge text-bg-light border" th:text="${r.type}"></span></td>
+                            <td class="small" th:text="${r.description}"></td>
+                            <td class="text-end text-success fw-semibold"
+                                th:text="${#numbers.formatDecimal(r.montant, 0, 'COMMA', 0, 'POINT') + ' XAF'}"></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(recettes)}">
+                            <td colspan="4" class="text-center text-muted py-4">Aucune recette</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

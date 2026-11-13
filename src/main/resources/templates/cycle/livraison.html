@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Livraison V2')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<main class="flex-grow-1 container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h4 fw-bold mb-0">Livraison — Production V2 #<span th:text="${production.id}"></span></h1>
+            <p class="text-muted small mb-0">
+                Date prod. <span th:text="${#temporals.format(production.dateProduction,'dd/MM/yyyy')}"></span>
+                — <span th:text="${production.statut}"></span>
+            </p>
+        </div>
+        <a href="/cycle" class="btn btn-sm btn-outline-secondary">Cycle du jour</a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-semibold">Nouvelle livraison</div>
+                <div class="card-body">
+                    <form th:action="@{/cycle/livraison/{id}(id=${production.id})}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <div class="mb-3">
+                            <label class="form-label">Client / Point de vente (nom)</label>
+                            <input type="text" name="nomClient" class="form-control" required placeholder="Nom du client">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Point de vente (optionnel)</label>
+                            <select name="pointDeVenteId" class="form-select">
+                                <option value="">—</option>
+                                <option th:each="pdv : ${pointsDeVente}" th:value="${pdv.id}" th:text="${pdv.nom}"></option>
+                            </select>
+                        </div>
+
+                        <table class="table table-sm">
+                            <thead><tr><th>Produit</th><th class="text-end">Restant</th><th class="text-end">Qté</th><th class="text-end">Prix</th></tr></thead>
+                            <tbody>
+                            <tr th:each="e : ${restants}">
+                                <td th:text="${e.value[0]}"></td>
+                                <td class="text-end" th:text="${e.value[1]}"></td>
+                                <td class="text-end" style="width:100px">
+                                    <input type="number" min="0" th:max="${e.value[1]}" class="form-control form-control-sm text-end"
+                                           th:name="|qte[${e.key}]|" value="0">
+                                </td>
+                                <td class="text-end" style="width:110px">
+                                    <input type="number" step="1" min="0" class="form-control form-control-sm text-end"
+                                           th:name="|prix[${e.key}]|" th:value="${e.value[2]}">
+                                </td>
+                            </tr>
+                            <tr th:if="${restants.isEmpty()}">
+                                <td colspan="4" class="text-muted text-center">Aucun produit restant</td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="enregistrerRevenu" value="true" id="rev" checked>
+                            <label class="form-check-label" for="rev">Enregistrer le revenu immédiatement</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" th:disabled="${restants.isEmpty()}">
+                            <i class="fas fa-truck me-1"></i>Créer la livraison
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-semibold">Livraisons déjà faites</div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item" th:each="l : ${livraisons}">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <div class="fw-semibold">#<span th:text="${l.id}"></span> — <span th:text="${l.nomClient}"></span></div>
+                                <div class="small text-muted" th:if="${l.factureNumero != null}">
+                                    Facture <span class="badge text-bg-light border" th:text="${l.factureNumero}"></span>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-semibold" th:text="${#numbers.formatDecimal(l.montantTotal,0,'COMMA',0,'POINT') + ' XAF'}"></div>
+                                <a th:href="@{/cycle/livraison/{id}/pdf(id=${l.id})}" class="btn btn-sm btn-outline-secondary mt-1">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="list-group-item text-muted" th:if="${#lists.isEmpty(livraisons)}">Aucune</li>
+                </ul>
+            </div>
+            <a th:href="@{/cycle/vente/{id}(id=${production.id})}" class="btn btn-outline-success w-100 mt-3">
+                <i class="fas fa-cash-register me-1"></i>Vente libre sur cette production
+            </a>
+        </div>
+    </div>
+</main>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

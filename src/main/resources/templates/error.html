@@ -9,15 +9,11 @@
 </head>
 <body>
 <div class="container">
-    <!-- Message d'erreur -->
-<!-- Message de succès -->
 <div class="card">
         <div class="card-header">
             <h2>Utilisateurs en attente d'activation</h2>
         </div>
         <div class="card-body">
-            <!-- Si aucun utilisateur inactif -->
-<!-- Liste des utilisateurs inactifs -->
             <div th:if="${!#lists.isEmpty(inactiveUsers)}" class="table-responsive">
                 <table class="table table-striped">
                     <thead>
@@ -34,23 +30,24 @@
                         <td th:text="${#temporals.format(user.creationDate, 'dd-MM-yyyy HH:mm')}"></td>
                         <td>
                             <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" class="form-inline">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                 <select name="role" class="form-control form-control-sm">
                                     <option value="BOULANGER" th:selected="${user.role == 'BOULANGER'}">Boulanger</option>
                                     <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Administrateur</option>
                                 </select>
-                                <button type="submit" class="btn btn-sm btn-secondary ml-2">
-                                    Modifier le rôle
-                                </button>
+                                <button type="submit" class="btn btn-sm btn-secondary ml-2">Modifier le rôle</button>
                             </form>
                         </td>
                         <td>
                             <div class="btn-group">
                                 <form th:action="@{/admin/users/{id}/activate(id=${user.id})}" method="post" style="display: inline;">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                     <button type="submit" class="btn btn-success btn-sm">
                                         <i class="fas fa-check"></i> Activer
                                     </button>
                                 </form>
                                 <form th:action="@{/admin/users/{id}(id=${user.id})}" method="post" style="display: inline;">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                     <input type="hidden" name="_method" value="DELETE"/>
                                     <button type="submit" class="btn btn-danger btn-sm"
                                             onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
@@ -66,7 +63,6 @@
         </div>
     </div>
 
-    <!-- Bouton de retour -->
     <div class="mt-3">
         <a href="/admin/users" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Retour à la liste complète

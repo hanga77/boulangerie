@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head('Caisse')}"></head>
-<body style="background:#f0f2f5">
+<body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
 <!-- En-tête guichet -->
@@ -24,9 +24,8 @@
 
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
 
-<div class="container-fluid px-3 py-3">
+<div class="container-fluid px-3 py-3 flex-grow-1">
 
-    <!-- Formulaire caché -->
     <form id="posForm" th:action="@{/guichet/vente}" method="post" class="no-print">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
         <input type="hidden" name="guichetId" th:value="${guichet.id}"/>
@@ -34,7 +33,6 @@
         <input type="hidden" name="moyenPaiement" id="moyenPaiementInput" value="ESPECES"/>
     </form>
 
-    <!-- Grille de tuiles -->
     <div class="row g-3 mb-3">
         <div th:each="entry : ${produitsRestants}" class="col-6 col-md-4 col-lg-3">
             <div th:with="produit=${entry.key}, stock=${entry.value}"
@@ -68,10 +66,9 @@
         </div>
     </div>
 
-    <!-- Barre du bas -->
     <div class="pos-footer no-print">
         <div class="paiement-section">
-            <div class="text-muted small mb-2" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Paiement</div>
+            <div class="pos-label-caps mb-2">Paiement</div>
             <div class="d-flex gap-2">
                 <button type="button" id="btnEspeces" class="btn btn-primary btn-sm px-3"
                         onclick="setPaiement('ESPECES')">
@@ -84,8 +81,8 @@
             </div>
         </div>
         <div class="text-end">
-            <div class="text-muted small" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Total</div>
-            <div id="totalMontant" style="font-size:26px;font-weight:900;color:#198754">0 XAF</div>
+            <div class="pos-label-caps">Total</div>
+            <div id="totalMontant" class="pos-total-amount">0 XAF</div>
             <div id="totalDetail" class="text-muted small"></div>
         </div>
         <button type="button" id="btnEncaisser" class="btn btn-success btn-lg fw-bold px-4" disabled
@@ -94,7 +91,6 @@
         </button>
     </div>
 
-    <!-- Bouton imprimer (visible après vente réussie) -->
     <div th:if="${venteOk}" class="text-center mt-3 no-print">
         <button onclick="window.print()" class="btn btn-outline-secondary">
             <i class="fas fa-print me-2"></i>Imprimer le ticket
@@ -103,43 +99,9 @@
 
 </div>
 
-<!-- Ticket d'impression -->
 <div th:replace="~{guichet/ticket-fragment :: ticket(guichet=${guichet}, production=${production}, largeur=${largeurTicketMm})}"></div>
 
 <div th:replace="~{fragments/layout :: scripts}"></div>
-
-<style>
-.tile-produit {
-    border-radius:12px; padding:16px; text-align:center;
-    color:white; box-shadow:0 2px 8px rgba(0,0,0,.15);
-    min-height:140px; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:4px;
-}
-.tile-dispo  { background:#0d6efd; cursor:pointer; }
-.tile-faible { background:#dc3545; cursor:pointer; }
-.tile-epuise { background:#e9ecef; color:#adb5bd; cursor:default; }
-.tile-icon  { font-size:28px; }
-.tile-nom   { font-weight:700; font-size:14px; }
-.tile-prix  { font-size:12px; opacity:.85; }
-.tile-stock { font-size:11px; opacity:.75; }
-.tile-controls { display:flex; align-items:center; gap:12px; margin-top:8px; }
-.btn-moins, .btn-plus {
-    background:rgba(0,0,0,.25); border:none; border-radius:6px;
-    width:28px; height:28px; color:white; font-size:18px; cursor:pointer; line-height:1;
-}
-.btn-plus { background:rgba(255,255,255,.3); }
-.tile-qty  { font-size:20px; font-weight:900; min-width:24px; }
-.pos-footer {
-    position:sticky; bottom:0; background:white; border-radius:12px;
-    padding:14px 16px; display:flex; align-items:center; gap:16px;
-    box-shadow:0 -2px 12px rgba(0,0,0,.1);
-}
-.paiement-section { flex:1; }
-@media print {
-    nav, .no-print { display:none !important; }
-    #ticket-caisse { display:block !important; }
-}
-</style>
 
 <script th:inline="javascript">
 const stocks = {};

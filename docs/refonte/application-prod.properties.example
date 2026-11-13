@@ -1,0 +1,18 @@
+# Exemple de surcharge locale / env — ne pas committer de secrets.
+# Copier vers un fichier hors dépôt ou utiliser des variables d'environnement.
+
+SPRING_PROFILES_ACTIVE=prod
+SERVER_PORT=9000
+
+DB_URL=jdbc:mysql://localhost:3306/boulangerie_bd?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Africa/Douala
+DB_USERNAME=gestiboul
+DB_PASSWORD=changez-moi
+
+# openssl rand -hex 32
+LICENSE_SALT=
+
+UPLOAD_DIR=/var/gestiboul/uploads
+DOCUMENTS_DIR=/var/gestiboul/documents
+
+# false uniquement si vous testez en HTTP local sans TLS
+COOKIE_SECURE=true

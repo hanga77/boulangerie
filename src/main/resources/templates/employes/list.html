@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Employés')}"></head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+    <div class="page-header">
         <div>
             <h1 class="h4 fw-bold mb-0"><i class="fas fa-users me-2 text-primary"></i>Employés</h1>
-            <p class="text-muted small mb-0">Registre des employés actifs</p>
+            <p class="text-muted small mb-0">Registre du personnel actif</p>
         </div>
-        <div class="d-flex gap-2 no-print">
-            <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+        <div class="d-flex flex-wrap gap-2 no-print">
+            <button type="button" onclick="window.print()" class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-print me-1"></i>Imprimer
             </button>
             <a href="/employes/nouveau" class="btn btn-primary btn-sm">
@@ -21,23 +21,22 @@
         </div>
     </div>
 
-    <!-- En-tête visible uniquement à l'impression -->
     <div class="print-header mb-3">
         <h2 class="h5 fw-bold">Liste du personnel</h2>
         <p class="text-muted small" th:text="'Imprimé le ' + ${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy')}"></p>
         <hr>
     </div>
 
-    <div class="card shadow-sm">
+    <div class="card">
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-sm table-hover mb-0">
                 <thead class="table-light">
                 <tr>
                     <th>Nom</th>
                     <th>Prénom</th>
                     <th>Poste</th>
                     <th class="text-end">Salaire base</th>
-                    <th>Compte lié</th>
+                    <th class="d-none d-md-table-cell">Compte lié</th>
                     <th class="text-end no-print">Actions</th>
                 </tr>
                 </thead>
@@ -46,19 +45,17 @@
                     <td class="fw-semibold" th:text="${e.nom}"></td>
                     <td th:text="${e.prenom}"></td>
                     <td><span class="badge bg-secondary" th:text="${e.poste}"></span></td>
-                    <td class="text-end" th:text="${#numbers.formatDecimal(e.salaireBase,1,'COMMA',0,'POINT') + ' XAF'}"></td>
-                    <td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(e.salaireBase, 1, 'COMMA', 0, 'POINT') + ' XAF'}"></td>
+                    <td class="d-none d-md-table-cell">
                         <span th:if="${e.user != null}" class="badge bg-info text-dark" th:text="${e.user.username}"></span>
                         <span th:unless="${e.user != null}" class="text-muted small">—</span>
                     </td>
                     <td class="text-end no-print">
                         <div class="d-flex justify-content-end gap-1 flex-wrap">
-                            <a th:href="@{/employes/{id}/modifier(id=${e.id})}"
-                               class="btn btn-outline-primary btn-sm" title="Modifier">
+                            <a th:href="@{/employes/{id}/modifier(id=${e.id})}" class="btn btn-outline-primary btn-sm" title="Modifier">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a th:href="@{/bulletins/generer(employeId=${e.id})}"
-                               class="btn btn-outline-success btn-sm" title="Nouveau bulletin">
+                            <a th:href="@{/bulletins/generer(employeId=${e.id})}" class="btn btn-outline-success btn-sm" title="Bulletin">
                                 <i class="fas fa-file-invoice-dollar"></i>
                             </a>
                             <form th:action="@{/employes/{id}/desactiver(id=${e.id})}" method="post"
@@ -72,13 +69,14 @@
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(employes)}">
-                    <td colspan="6" class="text-center text-muted py-4">Aucun employé actif.</td>
+                    <td colspan="6" class="empty-state">Aucun employé actif</td>
                 </tr>
                 </tbody>
             </table>
         </div>
     </div>
-</div>
+</main>
+
 <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

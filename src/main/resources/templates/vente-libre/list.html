@@ -1,20 +1,29 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/layout :: head('Ventes Libres')}"></head>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ventes libres')}"></head>
 <body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
+<div th:replace="~{fragments/layout :: legacy-banner(
+    'Ventes libres historiques (V1). Pour la caisse du jour liée à ProductionV2, utiliser Cycle → Caisse.',
+    '/cycle/caisse',
+    'Caisse V2')}"></div>
 
 <main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
 
     <div class="page-header">
         <div>
-            <h1 class="h4 fw-bold mb-0"><i class="fas fa-store me-2 text-success"></i>Ventes Libres</h1>
-            <p class="text-muted small mb-0">Ventes directes en boulangerie</p>
+            <h1 class="h4 fw-bold mb-0"><i class="fas fa-store me-2 text-success"></i>Ventes libres (ancien)</h1>
+            <p class="text-muted small mb-0">Historique V1</p>
         </div>
-        <a href="/ventes-libres/new" class="btn btn-success btn-sm">
-            <i class="fas fa-plus me-1"></i>Nouvelle vente
-        </a>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="/cycle/caisse" class="btn btn-success btn-sm">
+                <i class="fas fa-cash-register me-1"></i>Caisse V2
+            </a>
+            <a href="/ventes-libres/new" class="btn btn-outline-success btn-sm">
+                <i class="fas fa-plus me-1"></i>Nouvelle (V1)
+            </a>
+        </div>
     </div>
 
     <div class="card">
@@ -51,8 +60,8 @@
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(ventesLibres)}">
-                    <td colspan="5" class="text-center text-muted py-4">
-                        <i class="fas fa-store fa-2x d-block mb-2 opacity-25"></i>
+                    <td colspan="5" class="empty-state">
+                        <i class="fas fa-store"></i>
                         Aucune vente libre enregistrée
                     </td>
                 </tr>
@@ -60,7 +69,6 @@
             </table>
         </div>
     </div>
-
 </main>
 
 <div th:replace="~{fragments/layout :: scripts}"></div>

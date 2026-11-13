@@ -20,11 +20,22 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     Double sumMontantByTypeIn(@Param("types") List<String> types);
 
     @Query("SELECT t FROM Transaction t WHERE t.type = :type AND t.date BETWEEN :startDate AND :endDate")
-    List<Transaction> findByDateBetweenAndType(@Param("type") String type, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    List<Transaction> findByDateBetweenAndType(@Param("type") String type,
+                                               @Param("startDate") LocalDate startDate,
+                                               @Param("endDate") LocalDate endDate);
 
     @Query("SELECT COALESCE(SUM(t.montant), 0.0) FROM Transaction t WHERE t.type = :type AND t.date BETWEEN :startDate AND :endDate")
-    Double sumMontantByTypeAndDateBetween(@Param("type") String type, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    Double sumMontantByTypeAndDateBetween(@Param("type") String type,
+                                          @Param("startDate") LocalDate startDate,
+                                          @Param("endDate") LocalDate endDate);
 
     @Query("SELECT COALESCE(SUM(t.montant), 0.0) FROM Transaction t WHERE t.type IN :types AND t.date BETWEEN :startDate AND :endDate")
-    Double sumMontantByTypeInAndDateBetween(@Param("types") List<String> types, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    Double sumMontantByTypeInAndDateBetween(@Param("types") List<String> types,
+                                            @Param("startDate") LocalDate startDate,
+                                            @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT t FROM Transaction t WHERE t.date BETWEEN :start AND :end AND t.type IN :types ORDER BY t.date DESC, t.id DESC")
+    List<Transaction> findByDateBetweenAndTypeIn(@Param("start") LocalDate start,
+                                                 @Param("end") LocalDate end,
+                                                 @Param("types") List<String> types);
 }
