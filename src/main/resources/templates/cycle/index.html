@@ -1,1 +1,158 @@
-PLACEHOLDER_WILL_FAIL
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Cycle du jour')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div class="d-flex align-items-center gap-2">
+            <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                <i class="fas fa-sync-alt fa-lg text-primary"></i>
+            </div>
+            <div>
+                <h1 class="h4 fw-bold mb-0">Cycle journalier</h1>
+                <p class="text-muted small mb-0">
+                    <span th:text="${#temporals.format(date, 'dd/MM/yyyy')}">24/10/2026</span>
+                    — étape :
+                    <strong th:text="${snap.etapeCourante().label()}">Commandes</strong>
+                </p>
+            </div>
+        </div>
+        <form method="get" action="/cycle" class="d-flex gap-2">
+            <input type="date" name="date" class="form-control form-control-sm" th:value="${date}">
+            <button type="submit" class="btn btn-sm btn-outline-primary">Voir</button>
+        </form>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-lg" th:each="entry : ${snap.checklist()}">
+            <div class="card shadow-sm h-100"
+                 th:classappend="${entry.value} ? 'border-success' : 'border-secondary'">
+                <div class="card-body py-3 text-center">
+                    <i class="fas fa-lg mb-2"
+                       th:classappend="${entry.value} ? 'fa-check-circle text-success' : 'fa-circle text-muted'"></i>
+                    <div class="small fw-semibold" th:text="${entry.key.label()}">Étape</div>
+                    <div class="text-muted" style="font-size:.7rem" th:text="${entry.key.rolePrincipal()}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm"><div class="card-body">
+                <div class="text-muted small">Commandes</div>
+                <div class="fs-4 fw-bold">
+                    <span th:text="${snap.nbCommandesTraitees()}">0</span> /
+                    <span th:text="${snap.nbCommandes()}">0</span>
+                </div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm"><div class="card-body">
+                <div class="text-muted small">Sorties magasin</div>
+                <div class="fs-4 fw-bold">
+                    <span th:text="${snap.nbLignesMatiereConfirmees()}">0</span> /
+                    <span th:text="${snap.nbLignesMatiere()}">0</span>
+                </div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm"><div class="card-body">
+                <div class="text-muted small">Produits restants</div>
+                <div class="fs-4 fw-bold" th:text="${snap.quantiteProduitsRestants()}">0</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm"><div class="card-body">
+                <div class="text-muted small">Livraisons / Ventes</div>
+                <div class="fs-5 fw-bold">
+                    <span th:text="${snap.nbLivraisons()}">0</span> liv. ·
+                    <span th:text="${snap.nbVentesGuichet()}">0</span> ventes
+                </div>
+            </div></div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h6 class="mb-0 fw-semibold"><i class="fas fa-bolt me-2 text-warning"></i>Actions</h6>
+        </div>
+        <div class="card-body d-flex flex-wrap gap-2">
+
+            <a th:if="${!snap.productionLancee()}"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')"
+               href="/cycle/lancer" class="btn btn-success">
+                <i class="fas fa-play me-1"></i>Lancer la production
+            </a>
+
+            <a th:if="${snap.productionId() != null}"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER','MAGASINIER','BOULANGER')"
+               th:href="@{/cycle/feuille/{id}(id=${snap.productionId()})}"
+               class="btn btn-primary">
+                <i class="fas fa-clipboard-list me-1"></i>Feuille de sortie magasin
+            </a>
+
+            <a th:if="${snap.productionLancee() and !snap.productionValidee()}"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')"
+               th:href="@{/cycle/valider/{id}(id=${snap.productionId()})}"
+               class="btn btn-warning">
+                <i class="fas fa-check me-1"></i>Valider les quantités
+            </a>
+
+            <a th:if="${snap.productionValidee()}"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER','CAISSIER')"
+               th:href="@{/cycle/caisse/{id}(id=${snap.productionId()})}"
+               class="btn btn-success">
+                <i class="fas fa-cash-register me-1"></i>Caisse
+            </a>
+
+            <a th:if="${snap.productionValidee()}"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER','LIVREUR','CAISSIER')"
+               th:href="@{/cycle/livraison/{id}(id=${snap.productionId()})}"
+               class="btn btn-info text-white">
+                <i class="fas fa-truck me-1"></i>Livraison
+            </a>
+
+            <a th:if="${snap.productionId() != null}"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER')"
+               th:href="@{/cycle/synthese/{id}(id=${snap.productionId()})}"
+               class="btn btn-outline-dark">
+                <i class="fas fa-chart-pie me-1"></i>Synthèse
+            </a>
+
+            <a href="/cycle/tresorerie" class="btn btn-outline-primary"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                <i class="fas fa-wallet me-1"></i>Trésorerie
+            </a>
+
+            <a href="/cycle/depenses" class="btn btn-outline-danger"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                <i class="fas fa-arrow-down me-1"></i>Dépenses
+            </a>
+
+            <a href="/cycle/recettes" class="btn btn-outline-success"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                <i class="fas fa-arrow-up me-1"></i>Recettes
+            </a>
+
+            <a href="/cycle/reporting" class="btn btn-outline-secondary"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                <i class="fas fa-chart-bar me-1"></i>Reporting
+            </a>
+
+            <a href="/cycle/ventes-v2" class="btn btn-outline-secondary btn-sm"
+               sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                Historique ventes V2
+            </a>
+        </div>
+    </div>
+
+</main>
+<div th:replace="~{fragments/layout :: footer}"></div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
