@@ -11,6 +11,7 @@
   <div class="page-header">...</div>
   ...
 </main>
+<div th:replace="~{fragments/layout :: footer}"></div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 ```
@@ -35,20 +36,30 @@
 </div>
 ```
 
-## Pied de page (anti-triple)
+## Pied de page
 
-**Un seul** appel :
 ```html
+<div th:replace="~{fragments/layout :: footer}"></div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
 ```
-Le fragment `scripts` inclut le footer + JS.
+Une seule fois chaque. Ne pas doubler.
 
-**Ne pas** combiner `:: footer` **et** `:: scripts` (sinon double pied de page).
+## Script local
 
-## À éviter
+```bash
+python3 scripts/harmonize-layout.py
+# ou
+python3 scripts/harmonize-layout.py src/main/resources/templates
+```
 
-| Ancien | Nouveau |
-|--------|--------|
-| `<div class="container mt-4">` | `<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">` |
-| `h1` nu + boutons flottants | `.page-header` |
-| `footer` + `scripts` (avec footer) | `scripts` seul |
+## Déjà alignés (exemples)
+
+- `cycle/index.html`, `cycle` (plusieurs écrans)
+- `commandes/non-traitees.html`, `commandes/edit.html`
+- `admin/generateur-licence.html`
+- `matiere-premerie/list.html` (référence)
+- CSS : `page-shell-narrow`, padding unifié
+
+## À faire en local si besoin
+
+Relancer le script après `git pull`, puis vérifier manuellement les formulaires complexes (création commande, POS).
