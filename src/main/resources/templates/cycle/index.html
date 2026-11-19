@@ -7,21 +7,16 @@
 
 <main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
 
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-        <div class="d-flex align-items-center gap-2">
-            <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                <i class="fas fa-sync-alt fa-lg text-primary"></i>
-            </div>
-            <div>
-                <h1 class="h4 fw-bold mb-0">Cycle journalier</h1>
-                <p class="text-muted small mb-0">
-                    <span th:text="${#temporals.format(date, 'dd/MM/yyyy')}">24/10/2026</span>
-                    — étape :
-                    <strong th:text="${snap.etapeCourante().label()}">Commandes</strong>
-                </p>
-            </div>
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0"><i class="fas fa-sync-alt me-2 text-primary"></i>Cycle journalier</h1>
+            <p class="text-muted small mb-0">
+                <span th:text="${#temporals.format(date, 'dd/MM/yyyy')}">24/10/2026</span>
+                — étape :
+                <strong th:text="${snap.etapeCourante().label()}">Commandes</strong>
+            </p>
         </div>
-        <form method="get" action="/cycle" class="d-flex gap-2">
+        <form method="get" action="/cycle" class="d-flex gap-2 align-items-center">
             <input type="date" name="date" class="form-control form-control-sm" th:value="${date}">
             <button type="submit" class="btn btn-sm btn-outline-primary">Voir</button>
         </form>
@@ -42,112 +37,57 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm"><div class="card-body">
-                <div class="text-muted small">Commandes</div>
-                <div class="fs-4 fw-bold">
-                    <span th:text="${snap.nbCommandesTraitees()}">0</span> /
-                    <span th:text="${snap.nbCommandes()}">0</span>
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold">Productions du jour</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Statut</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="p : ${snap.productions()}">
+                                <td th:text="${p.id}">1</td>
+                                <td><span class="badge bg-secondary" th:text="${p.statut}">LANCEE</span></td>
+                                <td class="text-end">
+                                    <a th:href="@{/cycle/feuille/{id}(id=${p.id})}" class="btn btn-sm btn-outline-primary">Feuille</a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(snap.productions())}">
+                                <td colspan="3" class="text-muted text-center py-3">Aucune production</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div></div>
+            </div>
         </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm"><div class="card-body">
-                <div class="text-muted small">Sorties magasin</div>
-                <div class="fs-4 fw-bold">
-                    <span th:text="${snap.nbLignesMatiereConfirmees()}">0</span> /
-                    <span th:text="${snap.nbLignesMatiere()}">0</span>
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold">Actions rapides</div>
+                <div class="card-body d-flex flex-wrap gap-2">
+                    <a href="/cycle/lancer" class="btn btn-success btn-sm" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')">
+                        <i class="fas fa-play me-1"></i>Lancer
+                    </a>
+                    <a href="/cycle/caisse" class="btn btn-primary btn-sm" sec:authorize="hasAnyRole('ADMIN','MANAGER','CAISSIER')">
+                        <i class="fas fa-cash-register me-1"></i>Caisse
+                    </a>
+                    <a href="/cycle/synthese" class="btn btn-outline-secondary btn-sm" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                        <i class="fas fa-clipboard-list me-1"></i>Synthèse
+                    </a>
+                    <a href="/cycle/reporting" class="btn btn-outline-secondary btn-sm" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                        <i class="fas fa-chart-bar me-1"></i>Reporting
+                    </a>
+                    <a href="/cycle/ventes-v2" class="btn btn-outline-secondary btn-sm" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                        Historique ventes V2
+                    </a>
                 </div>
-            </div></div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm"><div class="card-body">
-                <div class="text-muted small">Produits restants</div>
-                <div class="fs-4 fw-bold" th:text="${snap.quantiteProduitsRestants()}">0</div>
-            </div></div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm"><div class="card-body">
-                <div class="text-muted small">Livraisons / Ventes</div>
-                <div class="fs-5 fw-bold">
-                    <span th:text="${snap.nbLivraisons()}">0</span> liv. ·
-                    <span th:text="${snap.nbVentesGuichet()}">0</span> ventes
-                </div>
-            </div></div>
-        </div>
-    </div>
-
-    <div class="card shadow-sm">
-        <div class="card-header bg-white py-3">
-            <h6 class="mb-0 fw-semibold"><i class="fas fa-bolt me-2 text-warning"></i>Actions</h6>
-        </div>
-        <div class="card-body d-flex flex-wrap gap-2">
-
-            <a th:if="${!snap.productionLancee()}"
-               sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')"
-               href="/cycle/lancer" class="btn btn-success">
-                <i class="fas fa-play me-1"></i>Lancer la production
-            </a>
-
-            <a th:if="${snap.productionId() != null}"
-               sec:authorize="hasAnyRole('ADMIN','MANAGER','MAGASINIER','BOULANGER')"
-               th:href="@{/cycle/feuille/{id}(id=${snap.productionId()})}"
-               class="btn btn-primary">
-                <i class="fas fa-clipboard-list me-1"></i>Feuille de sortie magasin
-            </a>
-
-            <a th:if="${snap.productionLancee() and !snap.productionValidee()}"
-               sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')"
-               th:href="@{/cycle/valider/{id}(id=${snap.productionId()})}"
-               class="btn btn-warning">
-                <i class="fas fa-check me-1"></i>Valider les quantités
-            </a>
-
-            <a th:if="${snap.productionValidee()}"
-               sec:authorize="hasAnyRole('ADMIN','MANAGER','CAISSIER')"
-               th:href="@{/cycle/caisse/{id}(id=${snap.productionId()})}"
-               class="btn btn-success">
-                <i class="fas fa-cash-register me-1"></i>Caisse
-            </a>
-
-            <a th:if="${snap.productionValidee()}"
-               sec:authorize="hasAnyRole('ADMIN','MANAGER','LIVREUR','CAISSIER')"
-               th:href="@{/cycle/livraison/{id}(id=${snap.productionId()})}"
-               class="btn btn-info text-white">
-                <i class="fas fa-truck me-1"></i>Livraison
-            </a>
-
-            <a th:if="${snap.productionId() != null}"
-               sec:authorize="hasAnyRole('ADMIN','MANAGER')"
-               th:href="@{/cycle/synthese/{id}(id=${snap.productionId()})}"
-               class="btn btn-outline-dark">
-                <i class="fas fa-chart-pie me-1"></i>Synthèse
-            </a>
-
-            <a href="/cycle/tresorerie" class="btn btn-outline-primary"
-               sec:authorize="hasAnyRole('ADMIN','MANAGER')">
-                <i class="fas fa-wallet me-1"></i>Trésorerie
-            </a>
-
-            <a href="/cycle/depenses" class="btn btn-outline-danger"
-               sec:authorize="hasAnyRole('ADMIN','MANAGER')">
-                <i class="fas fa-arrow-down me-1"></i>Dépenses
-            </a>
-
-            <a href="/cycle/recettes" class="btn btn-outline-success"
-               sec:authorize="hasAnyRole('ADMIN','MANAGER')">
-                <i class="fas fa-arrow-up me-1"></i>Recettes
-            </a>
-
-            <a href="/cycle/reporting" class="btn btn-outline-secondary"
-               sec:authorize="hasAnyRole('ADMIN','MANAGER')">
-                <i class="fas fa-chart-bar me-1"></i>Reporting
-            </a>
-
-            <a href="/cycle/ventes-v2" class="btn btn-outline-secondary btn-sm"
-               sec:authorize="hasAnyRole('ADMIN','MANAGER')">
-                Historique ventes V2
-            </a>
+            </div>
         </div>
     </div>
 
