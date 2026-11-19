@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Cycle du jour')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: flash-messages}"></div>
+
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0"><i class="fas fa-sync-alt me-2 text-primary"></i>Cycle journalier</h1>
+            <p class="text-muted small mb-0">
+                <span th:text="${#temporals.format(date, 'dd/MM/yyyy')}">24/10/2026</span>
+                — étape :
+                <strong th:text="${snap.etapeCourante().label()}">Commandes</strong>
+            </p>
+        </div>
+        <form method="get" action="/cycle" class="d-flex gap-2 align-items-center">
+            <input type="date" name="date" class="form-control form-control-sm" th:value="${date}">
+            <button type="submit" class="btn btn-sm btn-outline-primary">Voir</button>
+        </form>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-lg" th:each="entry : ${snap.checklist()}">
+            <div class="card shadow-sm h-100"
+                 th:classappend="${entry.value} ? 'border-success' : 'border-secondary'">
+                <div class="card-body py-3 text-center">
+                    <i class="fas fa-lg mb-2"
+                       th:classappend="${entry.value} ? 'fa-check-circle text-success' : 'fa-circle text-muted'"></i>
+                    <div class="small fw-semibold" th:text="${entry.key.label()}">Étape</div>
+                    <div class="text-muted" style="font-size:.7rem" th:text="${entry.key.rolePrincipal()}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold">Productions du jour</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Statut</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="p : ${snap.productions()}">
+                                <td th:text="${p.id}">1</td>
+                                <td><span class="badge bg-secondary" th:text="${p.statut}">LANCEE</span></td>
+                                <td class="text-end">
+                                    <a th:href="@{/cycle/feuille/{id}(id=${p.id})}" class="btn btn-sm btn-outline-primary">Feuille</a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(snap.productions())}">
+                                <td colspan="3" class="text-muted text-center py-3">Aucune production</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold">Actions rapides</div>
+                <div class="card-body d-flex flex-wrap gap-2">
+                    <a href="/cycle/lancer" class="btn btn-success btn-sm" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')">
+                        <i class="fas fa-play me-1"></i>Lancer
+                    </a>
+                    <a href="/cycle/caisse" class="btn btn-primary btn-sm" sec:authorize="hasAnyRole('ADMIN','MANAGER','CAISSIER')">
+                        <i class="fas fa-cash-register me-1"></i>Caisse
+                    </a>
+                    <a href="/cycle/synthese" class="btn btn-outline-secondary btn-sm" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                        <i class="fas fa-clipboard-list me-1"></i>Synthèse
+                    </a>
+                    <a href="/cycle/reporting" class="btn btn-outline-secondary btn-sm" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                        <i class="fas fa-chart-bar me-1"></i>Reporting
+                    </a>
+                    <a href="/cycle/ventes-v2" class="btn btn-outline-secondary btn-sm" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+                        Historique ventes V2
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+<div th:replace="~{fragments/layout :: footer}"></div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

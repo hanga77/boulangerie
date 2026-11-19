@@ -70,7 +70,7 @@
         }
     </style>
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 <div class="header">
     <h1>Production du Jour</h1>
     <p>Date de production: <span th:text="${#temporals.format(production.dateProduction, 'dd/MM/yyyy')}"></span></p>

@@ -2,12 +2,18 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head('Résumé des Stocks')}">
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
 
-<div class="container mt-4">
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0">Résumé des Stocks pour le <span th:text="${#temporals.format(date, 'dd/MM/yyyy')}"></span></h1>
+        </div>
+    </div>
+
     <h1 class="mb-4">Résumé des Stocks pour le <span th:text="${#temporals.format(date, 'dd/MM/yyyy')}"></span></h1>
 
     <div class="card">
@@ -36,5 +42,6 @@
         <a href="/mouvements" class="btn btn-primary" > <i class="fas fa-left-long"></i> Retour </a>
     </div>
 </div>
+</main>
 </body>
 </html>
