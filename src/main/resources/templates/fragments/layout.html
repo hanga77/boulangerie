@@ -45,11 +45,12 @@
 
                 <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER','MAGASINIER','CAISSIER')">
                     <a class="nav-link rounded px-2 dropdown-toggle fw-semibold text-warning"
-                       href="/cycle" data-bs-toggle="dropdown" aria-expanded="false">
+                       href="#" data-bs-toggle="dropdown" aria-expanded="false"
+                       role="button" id="navCycleDropdown">
                         <i class="fas fa-sync-alt me-1"></i>Cycle du jour
                         <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem">V2</span>
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-dark">
+                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navCycleDropdown">
                         <li>
                             <a class="dropdown-item" href="/cycle">
                                 <i class="fas fa-calendar-day me-2 text-warning"></i>Vue du jour
@@ -85,7 +86,7 @@
 
                 <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMIN','MANAGER','MAGASINIER','BOULANGER')">
                     <a class="nav-link rounded px-2 dropdown-toggle" href="#"
-                       data-bs-toggle="dropdown" aria-expanded="false">
+                       data-bs-toggle="dropdown" aria-expanded="false" role="button">
                         <i class="fas fa-boxes me-1"></i>Stock
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark">
@@ -124,7 +125,7 @@
 
                 <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
                     <a class="nav-link rounded px-2 dropdown-toggle" href="#"
-                       data-bs-toggle="dropdown" aria-expanded="false">
+                       data-bs-toggle="dropdown" aria-expanded="false" role="button">
                         <i class="fas fa-coins me-1"></i>Finance
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark">
@@ -179,7 +180,7 @@
 
                 <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMIN','MANAGER','CAISSIER')">
                     <a class="nav-link rounded px-2 dropdown-toggle" href="#"
-                       data-bs-toggle="dropdown" aria-expanded="false">
+                       data-bs-toggle="dropdown" aria-expanded="false" role="button">
                         <i class="fas fa-users me-1"></i>Équipe
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark">
@@ -208,7 +209,7 @@
 
                 <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMIN','MANAGER','BOULANGER')">
                     <a class="nav-link rounded px-2 dropdown-toggle text-white-50" href="#"
-                       data-bs-toggle="dropdown" aria-expanded="false">
+                       data-bs-toggle="dropdown" aria-expanded="false" role="button">
                         <i class="fas fa-history me-1"></i>Historique
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark">
@@ -248,7 +249,7 @@
 
                 <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link rounded px-2 dropdown-toggle" href="#"
-                       data-bs-toggle="dropdown" aria-expanded="false">
+                       data-bs-toggle="dropdown" aria-expanded="false" role="button">
                         <i class="fas fa-users-cog me-1"></i>Admin
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
@@ -356,7 +357,6 @@
     </div>
 </footer>
 
-<!-- Pied de page : :: footer une seule fois, puis :: scripts -->
 <div th:fragment="scripts">
     <script th:src="@{/js/scripts.js}"></script>
 </div>
