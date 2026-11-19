@@ -42,32 +42,39 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    /* ── Dropdowns Bootstrap (navbar user menu etc.) ────────────────────── */
+    /* ── Dropdowns navbar (sans bootstrap.bundle) ───────────────────────── */
     document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
+            e.preventDefault();
             e.stopPropagation();
-            const menu = this.nextElementSibling;
-            if (menu && menu.classList.contains('dropdown-menu')) {
-                const isOpen = menu.classList.contains('show');
-                // Ferme tous les autres dropdowns
-                document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
-                document.querySelectorAll('.dropdown-toggle.show').forEach(t => {
-                    t.classList.remove('show');
-                    t.setAttribute('aria-expanded', 'false');
-                });
-                if (!isOpen) {
-                    menu.classList.add('show');
-                    this.classList.add('show');
-                    this.setAttribute('aria-expanded', 'true');
-                }
+            const parent = this.closest('.dropdown') || this.parentElement;
+            const menu = parent
+                ? parent.querySelector('.dropdown-menu')
+                : this.nextElementSibling;
+            if (!menu) return;
+            const isOpen = menu.classList.contains('show');
+            // Ferme tous les autres dropdowns
+            document.querySelectorAll('.dropdown-menu.show').forEach(function (m) {
+                m.classList.remove('show');
+            });
+            document.querySelectorAll('[data-bs-toggle="dropdown"].show').forEach(function (t) {
+                t.classList.remove('show');
+                t.setAttribute('aria-expanded', 'false');
+            });
+            if (!isOpen) {
+                menu.classList.add('show');
+                this.classList.add('show');
+                this.setAttribute('aria-expanded', 'true');
             }
         });
     });
 
     /* Ferme les dropdowns en cliquant ailleurs */
     document.addEventListener('click', function () {
-        document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
-        document.querySelectorAll('[data-bs-toggle="dropdown"].show').forEach(t => {
+        document.querySelectorAll('.dropdown-menu.show').forEach(function (m) {
+            m.classList.remove('show');
+        });
+        document.querySelectorAll('[data-bs-toggle="dropdown"].show').forEach(function (t) {
             t.classList.remove('show');
             t.setAttribute('aria-expanded', 'false');
         });
