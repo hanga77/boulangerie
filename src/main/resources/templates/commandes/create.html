@@ -2,14 +2,20 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head('Créer une Commande')}">
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 <!-- Navbar -->
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
 
 <!-- Contenu principal -->
-<div class="container mt-4">
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0"><i class="fas fa-plus-circle me-2"></i>Créer une Commande</h1>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header bg-primary text-white">
             <h1 class="h3 mb-0"><i class="fas fa-plus-circle me-2"></i>Créer une Commande</h1>
@@ -173,6 +179,7 @@
 </script>
 
 <!-- Bootstrap JS (optionnel, pour les fonctionnalités interactives) -->
+</main>
 <div th:replace="~{fragments/layout :: footer}"></div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>

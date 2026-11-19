@@ -4,6 +4,12 @@
 <body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 <main class="container py-4 flex-grow-1">
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0">Production #<span th:text="${m.productionId()}"></span> <span class="badge ms-2" th:classappend="${m.rentable()} ? 'text-bg-success' : 'text-bg-danger'" th:text="${m.rentable()} ? 'Rentable' : 'Perte'"></span></h1>
+        </div>
+    </div>
+
     <a href="/cycle/marge" class="btn btn-sm btn-outline-secondary mb-3">← Liste</a>
     <h1 class="h4 fw-bold">Production #<span th:text="${m.productionId()}"></span>
         <span class="badge ms-2" th:classappend="${m.rentable()} ? 'text-bg-success' : 'text-bg-danger'"

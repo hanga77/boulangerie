@@ -2,11 +2,17 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head('Nouvelle Livraison')}">
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 <div th:replace="~{fragments/layout :: flash-messages}"></div>
 
-<div class="container mt-4">
+<main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+    <div class="page-header">
+        <div>
+            <h1 class="h4 fw-bold mb-0"><i class="fas fa-truck me-2"></i>Nouvelle Livraison</h1>
+        </div>
+    </div>
+
     <div class="row mb-4">
         <div class="col">
             <h1><i class="fas fa-truck me-2"></i>Nouvelle Livraison</h1>
@@ -74,6 +80,7 @@
     </div>
 </div>
 
+</main>
 <div th:replace="~{fragments/layout :: footer}"></div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
 <script>
