@@ -45,7 +45,7 @@ log() { echo "${LOG_TAG} $(date '+%Y-%m-%d %H:%M:%S') $*"; }
 
 # Options client MySQL
 MYSQL_OPTS=( -h "${DB_HOST}" -P "${DB_PORT}" -u "${DB_USERNAME}" )
-if [[ -n " semiMYSQL_DEFAULTS_FILE:-}" && -f "${MYSQL_DEFAULTS_FILE}" ]]; then
+if [[ -n "${MYSQL_DEFAULTS_FILE:-}" && -f "${MYSQL_DEFAULTS_FILE}" ]]; then
   MYSQL_OPTS=( --defaults-file="${MYSQL_DEFAULTS_FILE}" )
 elif [[ -n "${DB_PASSWORD}" ]]; then
   export MYSQL_PWD="${DB_PASSWORD}"
@@ -83,7 +83,7 @@ if [[ "${RETENTION_DAYS}" =~ ^[0-9]+$ ]] && [[ "${RETENTION_DAYS}" -gt 0 ]]; the
   log "Rotation: ${deleted} fichier(s) > ${RETENTION_DAYS} jours supprimé(s)"
 fi
 
-# Option : copier aussi uploads (fichiers joints) si demandé
+# Option : copier aussi uploads si demandé
 if [[ "${BACKUP_UPLOADS:-0}" == "1" ]]; then
   UP_SRC="${UPLOAD_DIR:-./uploads}"
   if [[ -d "${UP_SRC}" ]]; then
